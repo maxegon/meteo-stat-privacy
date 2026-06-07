@@ -107,11 +107,12 @@ function App() {
       prevHandler?.(error, isFatal);
     });
 
-    // ── Lettura onboarding con recovery per AsyncStorage corrotto ───────────
+    // ── Lettura onboarding con recovery per AsyncStorage corrotto/bloccato ──
+    const timeout = setTimeout(() => setOnboardingDone(false), 3000);
     AsyncStorage.getItem(ONBOARDING_KEY)
-      .then(val => setOnboardingDone(val === 'true'))
+      .then(val => { clearTimeout(timeout); setOnboardingDone(val === 'true'); })
       .catch(async (err) => {
-        // Storage corrotto: logga, svuota tutto e riparte dall'onboarding
+        clearTimeout(timeout);
         logError('AsyncStorage:init', err);
         await AsyncStorage.clear().catch(() => {});
         setOnboardingDone(false);
