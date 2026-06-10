@@ -90,6 +90,7 @@ export async function fetchForecast(lat, lon) {
       alerts: 'yes',
       lang: 'it',
     },
+    timeout: 8000,
   });
 
   const curr = data.current;

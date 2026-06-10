@@ -17,6 +17,47 @@ import { API_KEYS } from './config';
 const BASE = PROVIDERS.OPEN_WEATHER.baseUrl;
 const KEY  = API_KEYS.OPEN_WEATHER_MAP;
 
+// Riempie i "buchi" di un array hourly con risoluzione nativa di 3h (OpenWeather)
+// interpolando linearmente i valori numerici, così le viste possono filtrare in
+// modo uniforme "ogni 2 ore" su dati a risoluzione 1h.
+function fillHourlyGaps(hourly, formatTime) {
+  if (!Array.isArray(hourly) || hourly.length < 2) return hourly;
+  const result = [];
+  for (let i = 0; i < hourly.length - 1; i++) {
+    const cur  = hourly[i];
+    const next = hourly[i + 1];
+    result.push(cur);
+    const tCur  = new Date(cur.time).getTime();
+    const tNext = new Date(next.time).getTime();
+    if (isNaN(tCur) || isNaN(tNext)) continue;
+    const gapHours = Math.round((tNext - tCur) / 3600000);
+    for (let g = 1; g < gapHours; g++) {
+      const frac = g / gapHours;
+      const point = { time: formatTime(new Date(tCur + g * 3600000)) };
+      for (const key of Object.keys(cur)) {
+        if (key === 'time' || key === 'description' || key === 'icon') continue;
+        const a = cur[key], b = next[key];
+        if (typeof a === 'number' && typeof b === 'number' && !isNaN(a) && !isNaN(b)) {
+          point[key] = a + (b - a) * frac;
+        } else if (typeof a === 'number' && !isNaN(a)) {
+          point[key] = a;
+        }
+      }
+      point.description = frac < 0.5 ? cur.description : next.description;
+      point.icon        = frac < 0.5 ? cur.icon        : next.icon;
+      result.push(point);
+    }
+  }
+  result.push(hourly[hourly.length - 1]);
+  return result;
+}
+
+// Formatta una Date nello stesso formato "YYYY-MM-DD HH:MM:SS" usato da OpenWeatherMap (dt_txt)
+function formatLikeOWM(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 // Mappa condizione OWM → icona MaterialCommunityIcons
 function owmIcon(id, pod) {
   const night = pod === 'n';
@@ -44,9 +85,11 @@ export async function fetchForecast(lat, lon) {
   const [currentRes, forecastRes] = await Promise.all([
     axios.get(`${BASE}/weather`, {
       params: { lat, lon, appid: KEY, units: 'metric', lang: 'it' },
+      timeout: 8000,
     }),
     axios.get(`${BASE}/forecast`, {
       params: { lat, lon, appid: KEY, units: 'metric', lang: 'it', cnt: 40 },
+      timeout: 8000,
     }),
   ]);
 
@@ -75,7 +118,9 @@ export async function fetchForecast(lat, lon) {
     icon: owmIcon(d.ids[Math.floor(d.ids.length / 2)]),
   }));
 
-  const hourly = fc.list.slice(0, 16).map(item => ({
+  // OpenWeatherMap fornisce un dato ogni 3 ore: interpoliamo a 1h così le viste
+  // possono mostrare in modo uniforme una previsione ogni 2 ore.
+  const hourly = fillHourlyGaps(fc.list.slice(0, 16).map(item => ({
     time: item.dt_txt,
     temp: item.main.temp,
     feelsLike: item.main.feels_like,
@@ -84,7 +129,7 @@ export async function fetchForecast(lat, lon) {
     windspeed: item.wind.speed * 3.6,
     description: item.weather[0].description,
     icon: owmIcon(item.weather[0].id, item.weather[0].icon?.slice(-1)),
-  }));
+  })), formatLikeOWM);
 
   return {
     provider: PROVIDERS.OPEN_WEATHER,

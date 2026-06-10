@@ -76,6 +76,7 @@ export async function fetchForecast(lat, lon) {
       timezone: 'auto',
       forecast_days: 16,
     },
+    timeout: 8000,
   });
 
   const cur = data.current;

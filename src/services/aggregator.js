@@ -26,7 +26,7 @@ export async function fetchAll(lat, lon) {
     const data = await withRetry(
       () => axios.get(`${BACKEND_URL}/weather`, {
         params: { lat, lon },
-        timeout: 10000,
+        timeout: 12000, // 12s: provider hanno 8-10s timeout, cold start Vercel aggiunge ~2s
       }).then(r => r.data),
       2,   // maxTries
       1000 // baseDelay ms

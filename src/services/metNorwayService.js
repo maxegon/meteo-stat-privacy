@@ -52,8 +52,9 @@ export async function fetchForecast(lat, lon) {
   const { data } = await axios.get(`${BASE}/compact`, {
     params: { lat: parseFloat(lat).toFixed(4), lon: parseFloat(lon).toFixed(4) },
     headers: {
-      'User-Agent': 'OnlyOneMeteo/1.0 maxegonit@gmail.com',
+      'User-Agent': 'Solo1Meteo/1.0 maxegonit@gmail.com',
     },
+    timeout: 8000,
   });
 
   const timeseries = data.properties.timeseries;
