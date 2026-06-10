@@ -986,13 +986,11 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.forecastAttrib}>
                 <MaterialCommunityIcons name="information-outline" size={11} color={c.textMuted} />
                 <Text style={styles.forecastAttribText}>
-                  Giorni 1–7: media provider · Dal giorno 8: solo Open-Meteo
+                  Media provider attivi per quel giorno · "Xf" = numero fonti · "OM" = solo Open-Meteo
                 </Text>
               </View>
               {weather.openMeteo.daily.map((omDay, i) => {
                 const day = aggDays[i] || omDay;
-                // Dal giorno 8 in poi solo Open-Meteo ha dati giornalieri
-                const isSingleProvider = i >= 7;
                 return (
                   <TouchableOpacity key={omDay.date} style={[styles.dayRow, i === 0 && styles.dayRowToday]}
                     onPress={() => setModal({ data: aggData, title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: '#38bdf8', initialDay: i })}
@@ -1005,7 +1003,11 @@ export default function HomeScreen({ navigation }) {
                       <Text style={styles.dayMin}>{Math.round(day.tempMin)}°</Text>
                     </View>
                     {omDay.precipitation > 0 && <Text style={styles.dayRain}>💧 {Math.round(omDay.precipitation)}mm</Text>}
-                    {isSingleProvider && <Text style={styles.daySingleBadge}>OM</Text>}
+                    {day.providerCount != null && (
+                      <Text style={styles.daySingleBadge}>
+                        {day.providerCount > 1 ? `${day.providerCount}f` : 'OM'}
+                      </Text>
+                    )}
                     <MaterialCommunityIcons name="chevron-right" size={14} color={c.textMuted} />
                   </TouchableOpacity>
                 );
