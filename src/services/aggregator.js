@@ -22,13 +22,13 @@ import { logError } from '../utils/errorLogger';
  */
 export async function fetchAll(lat, lon) {
   try {
-    // Retry automatico: 3 tentativi con backoff 1s → 2s → 4s
+    // Retry automatico: 2 tentativi con backoff 1s → 2s
     const data = await withRetry(
       () => axios.get(`${BACKEND_URL}/weather`, {
         params: { lat, lon },
-        timeout: 15000,
+        timeout: 10000,
       }).then(r => r.data),
-      3,   // maxTries
+      2,   // maxTries
       1000 // baseDelay ms
     );
     return data;
@@ -65,6 +65,7 @@ async function fetchAllDirect(lat, lon) {
     visualCrossing: null,
     sevenTimer:     null,
     tomorrowIo:     null,
+    isFallback:     true, // backend non raggiungibile, dati limitati a 4 provider
     errors: [],
   };
 

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, TextInput, Alert, Linking, Image, Modal, useWindowDimensions,
+  ActivityIndicator, TextInput, Alert, Linking, Modal, useWindowDimensions, AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ import WeatherIcon from '../components/WeatherIcon';
 import ForecastModal from '../components/ForecastModal';
 import AnimatedGradientBg from '../components/AnimatedGradientBg';
 import { PROVIDERS } from '../services/providers';
-import { EXTERNAL_APPS } from '../services/externalApps';
+
 import { useWeather } from '../context/WeatherContext';
 import { useTheme } from '../context/ThemeContext';
 import { getIconColor } from '../utils/weatherIconColor';
@@ -49,23 +49,7 @@ function formatDate(dateStr) {
   return `${DAYS_IT[d.getDay()]} ${d.getDate()} ${MONTHS_IT[d.getMonth()]}`;
 }
 
-function AppButton({ app, styles }) {
-  const [useFallback, setUseFallback] = useState(false);
-  return (
-    <TouchableOpacity style={styles.extBtn} onPress={() => Linking.openURL(app.appStore)}>
-      {useFallback ? (
-        <Text style={styles.extFallback}>{app.fallback}</Text>
-      ) : (
-        <Image
-          source={{ uri: `https://www.google.com/s2/favicons?domain=${app.domain}&sz=64` }}
-          style={styles.extFavicon}
-          onError={() => setUseFallback(true)}
-        />
-      )}
-      <Text style={styles.extName}>{app.name}</Text>
-    </TouchableOpacity>
-  );
-}
+
 
 export default function HomeScreen({ navigation }) {
   const [query, setQuery] = useState('');
@@ -88,6 +72,8 @@ export default function HomeScreen({ navigation }) {
   const [tooltip, setTooltip] = useState(null); // 'provider' | 'compare' | null
   const hasAutoLoaded = useRef(false);
   const scrollRef = useRef(null);
+  const cityInfoRef = useRef(null);
+  const lastUpdatedRef = useRef(null);
   const { setSelectedCity } = useWeather();
   const { dark, toggleTheme, colors: c } = useTheme();
   const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
@@ -206,6 +192,27 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     loadRecentCities();
     autoLoadGPS();
+  }, []);
+
+  // Tiene allineati i ref con lo stato corrente, da usare nei listener AppState
+  useEffect(() => { cityInfoRef.current = cityInfo; }, [cityInfo]);
+  useEffect(() => { lastUpdatedRef.current = lastUpdated; }, [lastUpdated]);
+
+  // Aggiorna automaticamente i dati meteo quando l'app torna in primo piano,
+  // se i dati sono più vecchi di 10 minuti (stessa durata della cache backend).
+  useEffect(() => {
+    const STALE_MS = 10 * 60 * 1000;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        const city = cityInfoRef.current;
+        const last = lastUpdatedRef.current;
+        const isStale = !last || (Date.now() - last.getTime() > STALE_MS);
+        if (city?.lat != null && city?.lon != null && isStale) {
+          loadWeather(city.lat, city.lon);
+        }
+      }
+    });
+    return () => subscription.remove();
   }, []);
 
   // Torna al tab iniziale quando si preme Meteo dal menu in basso
@@ -436,7 +443,7 @@ export default function HomeScreen({ navigation }) {
           )}
           <View style={styles.welcome}>
             <MaterialCommunityIcons name="weather-partly-cloudy" size={80} color="#38bdf8" />
-            <Text style={styles.welcomeTitle}>OnlyOneMeteo</Text>
+            <Text style={styles.welcomeTitle}>Solo1Meteo</Text>
             <Text style={styles.welcomeText}>
               Dati da più fonti meteo in un'unica app.{'\n'}
               Cerca una città o usa la tua posizione.
@@ -491,9 +498,9 @@ export default function HomeScreen({ navigation }) {
                 <View style={{ position: 'relative', overflow: 'visible' }}>
                   <MaterialCommunityIcons name="white-balance-sunny" size={54} color="#fbbf24" style={{ position: 'absolute', left: -16, top: -20, zIndex: 0, opacity: 0.9 }} />
                   <MaterialCommunityIcons name="cloud" size={36} color="#ffffff" style={{ position: 'absolute', left: 4, top: -16, zIndex: 1, opacity: 0.95 }} />
-                  <Text style={[styles.appTitle, { zIndex: 2 }]}>O</Text>
+                  <Text style={[styles.appTitle, { zIndex: 2 }]}>S</Text>
                 </View>
-                <Text style={styles.appTitle}>nlyOneMeteo</Text>
+                <Text style={styles.appTitle}>olo1Meteo</Text>
               </View>
               <TouchableOpacity onPress={() => setShowHowTo(true)} accessibilityLabel="Come funziona" accessibilityRole="button" style={{ position: 'absolute', right: 0 }}>
                 <MaterialCommunityIcons name="information-outline" size={22} color={c.accent} />
@@ -524,6 +531,14 @@ export default function HomeScreen({ navigation }) {
             )}
           </View>
 
+
+          {/* Banner fallback: backend non raggiungibile */}
+          {weather.isFallback && (
+            <View style={styles.fallbackBanner}>
+              <MaterialCommunityIcons name="alert-outline" size={15} color="#fbbf24" />
+              <Text style={styles.fallbackBannerText}>Connessione al server limitata — mostrati 4 provider su 8</Text>
+            </View>
+          )}
 
           {/* Tab bar */}
           <View style={styles.tabs}>
@@ -845,25 +860,15 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* App esterne */}
-          <View style={styles.extSection}>
-            <Text style={styles.extSectionTitle}>Confronta anche su</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.extBar}
-            >
-              {EXTERNAL_APPS.map(app => (
-                <AppButton key={app.name} app={app} styles={styles} />
-              ))}
-            </ScrollView>
-          </View>
 
           </View>}{/* fine vista principale */}
 
           {/* TAB: CONFRONTO */}
           {activeTab === 'compare' && (() => {
-            const providers = [weather.openMeteo, weather.openWeather, weather.weatherApi, weather.metNorway].filter(Boolean);
+            const providers = [
+              weather.openMeteo, weather.openWeather, weather.weatherApi, weather.metNorway,
+              weather.brightsky, weather.visualCrossing, weather.sevenTimer, weather.tomorrowIo,
+            ].filter(Boolean);
             const days = ['Oggi', 'Domani', 'Dopo'];
             const pct = (val, mean) => {
               if (val == null || !mean) return null;
@@ -1172,20 +1177,11 @@ function makeStyles(c, dark) {
   howToItemTitle: { color: c.text, fontSize: 14, fontWeight: '600', marginBottom: 4 },
   howToItemDesc: { color: c.textMuted, fontSize: 12, lineHeight: 18 },
   cardsList: { paddingHorizontal: 12 },
-  extSection: { marginHorizontal: 12, marginTop: 8, marginBottom: 4 },
-  extSectionTitle: { color: c.text, fontSize: 15, fontWeight: '700', textAlign: 'center', marginBottom: 10 },
-  extBar: { flexDirection: 'row', gap: 10, paddingHorizontal: 2, paddingVertical: 4 },
-  extBtn: {
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: c.bgCard, borderRadius: 14,
-    borderWidth: 1, borderColor: c.border,
-    width: 72, paddingVertical: 10, gap: 6,
-  },
-  extFavicon: { width: 34, height: 34, borderRadius: 8 },
-  extFallback: { fontSize: 28 },
-  extName: { color: c.text, fontSize: 10, fontWeight: '600', textAlign: 'center' },
+
   gpsBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, margin: 12, marginTop: 8, padding: 12, backgroundColor: dark ? 'rgba(251,191,36,0.12)' : 'rgba(251,191,36,0.15)', borderRadius: 10, borderWidth: 1, borderColor: '#fbbf24' },
   gpsBannerText: { flex: 1, color: '#fbbf24', fontSize: 12, fontWeight: '600' },
+  fallbackBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginBottom: 8, padding: 10, backgroundColor: dark ? 'rgba(251,191,36,0.10)' : 'rgba(251,191,36,0.12)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(251,191,36,0.5)' },
+  fallbackBannerText: { flex: 1, color: '#fbbf24', fontSize: 11, fontWeight: '500' },
   hintCard: { margin: 12, padding: 12, backgroundColor: c.bgCard, borderRadius: 10, borderWidth: 1, borderColor: c.border },
   hintText: { color: c.textMuted, fontSize: 12, lineHeight: 18 },
   hintCode: { color: c.accent, fontFamily: 'monospace' },
