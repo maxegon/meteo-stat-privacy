@@ -97,7 +97,8 @@ export default function HomeScreen({ navigation }) {
   // Normalizza valori che alcuni provider mandano come frazione 0-1 invece di 0-100
   const pct = v => { if (v == null || isNaN(v)) return null; return (v > 0 && v <= 1) ? v * 100 : v; };
 
-  // Media hourly su tutti i provider disponibili per quella ora
+  // INVARIANTE — vedi CLAUDE.md "Regole intoccabili"
+  // Media oraria: solo provider che hanno dati per quell'ora specifica (filter(Boolean) sulla mappa ora→slot)
   const buildAggregateHourly = (w) => {
     const base = w.openMeteo?.hourly || [];
     if (!base.length) return [];
@@ -141,7 +142,9 @@ export default function HomeScreen({ navigation }) {
     daily:  buildAggregateDays(w),
   });
 
-  // Daily aggregato sui provider attivi, con icona prevalente dalle ore di luce
+  // INVARIANTE — vedi CLAUDE.md "Regole intoccabili"
+  // Media giornaliera: dayProviders = providers.filter(p => p?.daily?.[i]) esclude chi non ha il giorno i
+  // providerCount deve essere sempre calcolato e passato al renderer per mostrare il contatore
   const buildAggregateDays = (w) => {
     const providers = [
       w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
@@ -579,6 +582,7 @@ export default function HomeScreen({ navigation }) {
                   {/* Riga 1: Media N fonti | attuale · descrizione > */}
                   <View style={styles.consensusRow}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                       <Text style={styles.consensusLabel}>Media {weather.consensus.providersCount} fonti</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -695,6 +699,7 @@ export default function HomeScreen({ navigation }) {
                           💧{Math.round(day.precipProbability)}%{day.precipitation > 0 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
                         </Text>
                       )}
+                      {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                       {day?.providerCount != null && (
                         <Text style={styles.dayBtnSources}>
                           {day.providerCount > 1 ? `${day.providerCount} fonti` : 'Open-Meteo'}
@@ -798,6 +803,7 @@ export default function HomeScreen({ navigation }) {
                             <Text style={styles.inlineDayDividerLabel}>{dayLabel}</Text>
                             <Text style={styles.inlineDayDividerTemp}>{Math.round(day.tempMax)}°/{Math.round(day.tempMin)}°</Text>
                             <WeatherIcon name={day.icon} size={22} dark={dark} />
+                            {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                             <Text style={styles.inlineDayDividerSources}>
                               {day.providerCount > 1 ? `${day.providerCount} fonti` : 'Open-Meteo'}
                             </Text>
@@ -1003,6 +1009,7 @@ export default function HomeScreen({ navigation }) {
                       <Text style={styles.dayMin}>{Math.round(day.tempMin)}°</Text>
                     </View>
                     {omDay.precipitation > 0 && <Text style={styles.dayRain}>💧 {Math.round(omDay.precipitation)}mm</Text>}
+                    {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
                       <Text style={styles.daySingleBadge}>
                         {day.providerCount > 1 ? `${day.providerCount}f` : 'OM'}

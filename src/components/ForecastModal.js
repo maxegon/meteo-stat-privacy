@@ -202,6 +202,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                     {day.precipProbability > 0 && (
                       <Text style={[styles.dayChipRain, { color: T.rainColor }]}>💧{Math.round(day.precipProbability)}%</Text>
                     )}
+                    {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
                       <Text style={[styles.dayChipFonti, { color: T.fonti }]}>
                         {day.providerCount > 1 ? `${day.providerCount}f` : 'OM'}
@@ -288,7 +289,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                     {waveH != null && (
                       <Text style={[styles.dayDivMeta, { color: T.cyan }]}>🌊 {waveH.toFixed(1)} m</Text>
                     )}
-                    {/* Badge fonti */}
+                    {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
                       <View style={[styles.dayDivFontiBadge, { backgroundColor: dark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.10)' }]}>
                         <Text style={[styles.dayDivFontiText, { color: T.fonti }]}>
@@ -305,8 +306,9 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                   {dayFasciaOrder.map(f => {
                     const slots = daySlots[f];
                     if (!slots?.length) return null;
-                    // Filtra ogni 2 ore ma tieni le ore con pioggia
-                    const filtered = slots.filter((h, j) => j % 2 === 0 || (h.precipProb ?? 0) > 0);
+                    // Filtra ogni 2 ore (ore pari, coerente con tutte le altre schermate)
+                    // ma tieni comunque le ore con probabilità di pioggia
+                    const filtered = slots.filter(h => getHour(h.time) % 2 === 0 || (h.precipProb ?? 0) > 0);
                     if (!filtered.length) return null;
                     const sunInfo =
                       f === 'Mattina' && day.sunrise ? { emoji: '🌄', time: day.sunrise.slice(-5) } :
