@@ -72,9 +72,9 @@ export default function InfoScreen() {
 
         {/* About */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>OnlyOneMeteo</Text>
+          <Text style={styles.sectionTitle}>Solo1Meteo</Text>
           <Text style={styles.body}>
-            OnlyOneMeteo raccoglie le previsioni di 8 servizi meteo ufficiali, le media tra loro e ti mostra un'unica previsione più robusta. Puoi anche confrontare le singole fonti per vedere dove concordano e dove divergono.{'\n\n'}
+            Solo1Meteo raccoglie le previsioni di 8 servizi meteo ufficiali, le media tra loro e ti mostra un'unica previsione più robusta. Puoi anche confrontare le singole fonti per vedere dove concordano e dove divergono.{'\n\n'}
             I dati arrivano direttamente dai server ufficiali di ogni provider, senza passare da siti intermedi.
           </Text>
         </View>
@@ -175,7 +175,7 @@ export default function InfoScreen() {
         {/* Versione — 5 tap rapidi rivelano la diagnostica */}
         <TouchableOpacity onPress={handleVersionTap} activeOpacity={1} style={styles.versionRow}>
           <Text style={styles.versionText}>
-            OnlyOneMeteo v{APP_VERSION}
+            Solo1Meteo v{APP_VERSION}
             {tapCount > 0 && tapCount < DEV_TAPS_REQUIRED
               ? `  ·  ancora ${DEV_TAPS_REQUIRED - tapCount} tap`
               : ''}

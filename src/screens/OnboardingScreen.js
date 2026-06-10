@@ -37,7 +37,7 @@ export default function OnboardingScreen({ onComplete }) {
 
         {/* Logo / titolo */}
         <MaterialCommunityIcons name="weather-partly-cloudy" size={72} color="#38bdf8" style={styles.icon} />
-        <Text style={styles.title}>OnlyOneMeteo</Text>
+        <Text style={styles.title}>Solo1Meteo</Text>
         <Text style={styles.tagline}>Una previsione, tante fonti</Text>
 
         {/* Cosa fa l'app */}

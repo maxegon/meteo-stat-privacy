@@ -5,9 +5,9 @@
  *  - Sviluppo locale (simulatore):   'http://localhost:3000'
  *  - Sviluppo locale (device fisico): 'http://IP_DEL_MAC:3000'
  *    (il tuo IP locale lo trovi con: ifconfig | grep "inet 192")
- *  - Produzione (Railway/Render):    'https://tuo-dominio.railway.app'
+ *  - Produzione (Vercel):             'https://backend-eta-seven-21.vercel.app'
  */
-export const BACKEND_URL = 'http://192.168.1.113:3000';
+export const BACKEND_URL = 'https://backend-eta-seven-21.vercel.app';
 
 // Chiavi di fallback usate solo se il backend non è raggiungibile
 // In produzione le chiavi stanno SOLO nel backend .env

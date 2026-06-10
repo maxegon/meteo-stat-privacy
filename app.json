@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.maxegon.meteostatapp",
-      "buildNumber": "12",
+      "buildNumber": "13",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "La posizione viene usata per mostrare le previsioni meteo della tua città attuale.",
         "NSPrivacyNutritionLabelTypes": [

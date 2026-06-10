@@ -17,7 +17,7 @@ export default function PrivacyPolicyScreen({ onAccept, showAcceptButton = false
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Privacy Policy</Text>
-        <Text style={styles.subtitle}>OnlyOneMeteo</Text>
+        <Text style={styles.subtitle}>Solo1Meteo</Text>
         <Text style={styles.updated}>Ultimo aggiornamento: {LAST_UPDATE}</Text>
 
         <Section title="1. Titolare del trattamento">
@@ -37,7 +37,7 @@ export default function PrivacyPolicyScreen({ onAccept, showAcceptButton = false
         </Section>
 
         <Section title="5. Base giuridica">
-          {`Il trattamento dei dati di posizione si basa sul consenso esplicito dell'utente (art. 6, par. 1, lett. a) del GDPR), espresso al momento della concessione del permesso di geolocalizzazione tramite il sistema operativo iOS/Android.\n\nIl consenso può essere revocato in qualsiasi momento dalle Impostazioni del dispositivo → Privacy → Posizione → OnlyOneMeteo.`}
+          {`Il trattamento dei dati di posizione si basa sul consenso esplicito dell'utente (art. 6, par. 1, lett. a) del GDPR), espresso al momento della concessione del permesso di geolocalizzazione tramite il sistema operativo iOS/Android.\n\nIl consenso può essere revocato in qualsiasi momento dalle Impostazioni del dispositivo → Privacy → Posizione → Solo1Meteo.`}
         </Section>
 
         <Section title="6. Conservazione dei dati">
@@ -49,7 +49,7 @@ export default function PrivacyPolicyScreen({ onAccept, showAcceptButton = false
         </Section>
 
         <Section title="8. Disclaimer previsioni meteo">
-          {`Le previsioni meteo mostrate nell'app sono fornite da servizi terzi (Open-Meteo, OpenWeatherMap, WeatherAPI) e sono da considerarsi indicative. OnlyOneMeteo non garantisce l'accuratezza, la completezza o l'aggiornamento delle previsioni.\n\nL'app non si assume alcuna responsabilità per decisioni prese dall'utente sulla base delle informazioni mostrate, incluse ma non limitate a: attività all'aperto, navigazione, eventi, spostamenti.\n\nIn caso di condizioni meteorologiche potenzialmente pericolose, fare sempre riferimento al Servizio Meteo dell'Aeronautica Militare (meteoam.it) o al servizio meteo ufficiale della propria regione.`}
+          {`Le previsioni meteo mostrate nell'app sono fornite da servizi terzi (Open-Meteo, OpenWeatherMap, WeatherAPI) e sono da considerarsi indicative. Solo1Meteo non garantisce l'accuratezza, la completezza o l'aggiornamento delle previsioni.\n\nL'app non si assume alcuna responsabilità per decisioni prese dall'utente sulla base delle informazioni mostrate, incluse ma non limitate a: attività all'aperto, navigazione, eventi, spostamenti.\n\nIn caso di condizioni meteorologiche potenzialmente pericolose, fare sempre riferimento al Servizio Meteo dell'Aeronautica Militare (meteoam.it) o al servizio meteo ufficiale della propria regione.`}
         </Section>
 
         <Section title="9. Sicurezza">
