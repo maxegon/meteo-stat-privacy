@@ -70,6 +70,17 @@ export default function InfoScreen() {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>ℹ️ Informazioni</Text>
 
+        {/* Disclaimer non-affiliazione — primo elemento visibile, richiesto da policy Google Play */}
+        <View style={styles.disclaimerBanner}>
+          <MaterialCommunityIcons name="alert-outline" size={20} color="#fbbf24" style={{ marginTop: 1 }} />
+          <View style={styles.disclaimerContent}>
+            <Text style={styles.disclaimerTitle}>App indipendente — nessuna affiliazione ufficiale</Text>
+            <Text style={styles.disclaimerBody}>
+              Solo1Meteo non è affiliata, sponsorizzata né gestita da MET Norway, DWD, NOAA o altri enti meteorologici governativi. I dati sono scaricati dalle API pubbliche ufficiali di ciascun provider e mostrati così come ricevuti.
+            </Text>
+          </View>
+        </View>
+
         {/* About */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Solo1Meteo</Text>
@@ -168,7 +179,7 @@ export default function InfoScreen() {
           <Text style={styles.body}>
             Tutti i dati meteo provengono direttamente dai servizi ufficiali dei rispettivi fornitori. L'app non copia o estrae dati da altri siti o applicazioni.{'\n\n'}
             Le previsioni meteo sono indicative. L'app non si assume responsabilità per decisioni prese sulla base delle informazioni mostrate.{'\n\n'}
-            Questa app non è affiliata ad alcuno dei servizi elencati.
+            Solo1Meteo è un'app indipendente, sviluppata da un singolo sviluppatore. Non è affiliata, sponsorizzata o gestita da alcun ente governativo o servizio meteorologico nazionale (inclusi, a titolo esemplificativo, MET Norway/Yr.no, DWD o NOAA). Tutti i marchi e i dati appartengono ai rispettivi proprietari e sono utilizzati tramite le loro API/licenze pubbliche, con attribuzione visibile nell'app.
           </Text>
         </View>
 
@@ -230,6 +241,15 @@ function makeStyles(c) {
   safe: { flex: 1, backgroundColor: 'transparent' },
   scroll: { flex: 1, padding: 16 },
   title: { color: c.text, fontSize: 22, fontWeight: '700', marginBottom: 16 },
+  disclaimerBanner: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: 'rgba(251,191,36,0.10)',
+    borderWidth: 1, borderColor: '#fbbf24',
+    borderRadius: 12, padding: 14, marginBottom: 20,
+  },
+  disclaimerContent: { flex: 1 },
+  disclaimerTitle: { color: '#fbbf24', fontSize: 13, fontWeight: '700', marginBottom: 4 },
+  disclaimerBody: { color: c.textSub, fontSize: 12, lineHeight: 18 },
   section: { marginBottom: 24 },
   sectionTitle: { color: c.textSub, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
   body: { color: c.textSub, fontSize: 14, fontWeight: '300', lineHeight: 22 },
