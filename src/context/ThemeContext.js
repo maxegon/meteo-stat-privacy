@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const THEME_KEY = 'app_theme_v2'; // v2 = reset preferenza salvata, default dark
+const THEME_KEY = 'app_theme_v2'; // v2 = reset preferenza salvata, default light (azzurro)
 
 export const ThemeContext = createContext({
-  dark: true,
+  dark: false,
   toggleTheme: () => {},
   colors: {},
 });
@@ -29,12 +29,19 @@ export const DARK_COLORS = {
 export const LIGHT_COLORS = {
   bg:         '#c0e4fc',
   bgSecond:   '#f0faff',
-  bgCard:     'rgba(255,255,255,0.04)',
+  // bgCard era quasi trasparente (0.04): sulle zone più sature del gradiente
+  // di sfondo il testo scuro scendeva sotto il rapporto di contrasto minimo
+  // (~3.5:1, sotto la soglia AA 4.5:1) e "galleggiava". Portato a 0.55 per
+  // dare alle card una base quasi bianca che garantisce contrasto adeguato.
+  bgCard:     'rgba(255,255,255,0.55)',
   border:     'rgba(56,189,248,0.45)',
-  text:       '#0260a8',
-  textSub:    '#0260a8',
-  textMuted:  '#0369a1',
-  accent:     '#0260a8',
+  // Testo scurito ulteriormente (era #0260a8/#0369a1, contrasto ~3.5:1 sulle
+  // zone più sature del gradiente, sotto la soglia AA 4.5:1). Ora ~6:1/4.6:1
+  // anche fuori dalle card, su tutte le pagine.
+  text:       '#01396b',
+  textSub:    '#01396b',
+  textMuted:  '#03507e',
+  accent:     '#024a82',
   grad: [
     ['#f0faff', '#c8e8fc', '#78c8f0'],
     ['#eaf8ff', '#b8e4f8', '#60b8e8'],
@@ -43,7 +50,7 @@ export const LIGHT_COLORS = {
 };
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then(v => {

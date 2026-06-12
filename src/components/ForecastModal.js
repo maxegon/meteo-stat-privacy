@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Svg, { Path, Circle, Line, Rect, Text as SvgText } from 'react-native-svg';
 import AnimatedGradientBg from './AnimatedGradientBg';
 import { useTheme } from '../context/ThemeContext';
 import { translateDescription } from '../utils/weatherDescriptions';
@@ -17,7 +18,9 @@ const MONTHS_IT = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','
 function formatHour(timeStr) { return timeStr.replace('T', ' ').slice(11, 16); }
 function formatDayShort(dateStr, index) {
   if (index === 0) return 'Oggi';
-  if (index === 1) return 'Dom';
+  // NB: non usare 'Dom' per index===1 — è l'abbreviazione di Domenica e
+  // creava etichette sbagliate (es. "Dom" su un giovedì). Usiamo sempre
+  // il giorno della settimana reale calcolato dalla data.
   const d = new Date(dateStr);
   return DAYS_IT[d.getDay()];
 }
@@ -72,6 +75,144 @@ const FASCIA_COLOR_DARK  = { Notte: '#818cf8', Mattina: '#fbbf24', Pomeriggio: '
 const FASCIA_COLOR_LIGHT = { Notte: '#3730a3', Mattina: '#b45309', Pomeriggio: '#c2410c', Sera: '#6d28d9' };
 const FASCIA_ICON        = { Notte: 'weather-night', Mattina: 'weather-sunny', Pomeriggio: 'white-balance-sunny', Sera: 'weather-night-partly-cloudy' };
 
+/**
+ * Grafico andamento temperatura prossime 24h.
+ * Usa i valori orari già aggregati (media multi-provider, vedi buildAggregateHourly
+ * in HomeScreen.js — CLAUDE.md "Regole intoccabili"): si rigenera automaticamente
+ * ogni volta che `hourly` viene aggiornato (auto-refresh dati ogni 24h/al rientro app).
+ */
+function MiniTrendChart({ hourly, dark, T, width }) {
+  const nowTs = Date.now();
+  const points = (hourly || [])
+    .filter(h => new Date(h.time).getTime() > nowTs && h.temp != null)
+    .slice(0, 24);
+
+  if (points.length < 2) return null;
+
+  const W = width;
+  const H = 100;
+  const PAD_X = 18;
+  const PAD_TOP = 22;
+  const PAD_BOTTOM = 24;
+
+  const temps = points.map(p => p.temp);
+  const min = Math.min(...temps);
+  const max = Math.max(...temps);
+  const range = (max - min) || 1;
+  const stepX = (W - PAD_X * 2) / (points.length - 1);
+  const innerH = H - PAD_TOP - PAD_BOTTOM;
+
+  const coords = points.map((p, i) => ({
+    x: PAD_X + i * stepX,
+    y: PAD_TOP + (1 - (p.temp - min) / range) * innerH,
+    temp: p.temp,
+    time: p.time,
+  }));
+
+  const pathD = coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`).join(' ');
+  const lineColor = T.tempColor;
+  const labelColor = T.muted;
+
+  // Etichette ora: una ogni ~3 punti (circa ogni 3h) per non affollare
+  const labelStep = Math.max(1, Math.ceil(points.length / 8));
+
+  return (
+    <View style={[styles.chartCard, { backgroundColor: T.dividerCard, borderColor: T.divider }]}>
+      <View style={styles.chartHeader}>
+        <MaterialCommunityIcons name="chart-line" size={14} color={T.main} />
+        <Text style={[styles.chartTitle, { color: T.main }]}>Andamento temperatura — prossime 24h</Text>
+      </View>
+      <Svg width={W} height={H}>
+        {/* Linea base (asse) */}
+        <Line x1={PAD_X} y1={H - PAD_BOTTOM} x2={W - PAD_X} y2={H - PAD_BOTTOM} stroke={T.divider} strokeWidth={1} />
+        {/* Curva temperatura */}
+        <Path d={pathD} stroke={lineColor} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" />
+        {coords.map((c, i) => (
+          <React.Fragment key={i}>
+            <Circle cx={c.x} cy={c.y} r={2.5} fill={lineColor} />
+            {(i % labelStep === 0 || i === coords.length - 1) && (
+              <>
+                <SvgText x={c.x} y={c.y - 8} fontSize="10" fontWeight="700" fill={lineColor} textAnchor="middle">
+                  {Math.round(c.temp)}°
+                </SvgText>
+                <SvgText x={c.x} y={H - 6} fontSize="9" fill={labelColor} textAnchor="middle">
+                  {formatHour(c.time)}
+                </SvgText>
+              </>
+            )}
+          </React.Fragment>
+        ))}
+      </Svg>
+    </View>
+  );
+}
+
+/**
+ * Grafico precipitazioni prossime 24h (barre, mm orari).
+ * Usa `precipMm` già aggregato/mediato multi-provider (buildAggregateHourly,
+ * vedi CLAUDE.md "Regole intoccabili") — nessuna nuova logica di media.
+ */
+function MiniRainChart({ hourly, dark, T, width }) {
+  const nowTs = Date.now();
+  const points = (hourly || [])
+    .filter(h => new Date(h.time).getTime() > nowTs)
+    .slice(0, 24);
+
+  if (points.length < 2) return null;
+
+  const W = width;
+  const H = 100;
+  const PAD_X = 18;
+  const PAD_TOP = 22;
+  const PAD_BOTTOM = 24;
+
+  const vals  = points.map(p => p.precipMm ?? 0);
+  const max   = Math.max(...vals, 1); // minimo 1mm per dare scala anche se tutto a zero
+  const innerH = H - PAD_TOP - PAD_BOTTOM;
+  const stepX = (W - PAD_X * 2) / points.length;
+  const barW  = Math.max(2, stepX * 0.5);
+  const labelStep = Math.max(1, Math.ceil(points.length / 8));
+  const barColor   = T.rainColor;
+  const labelColor = T.muted;
+
+  return (
+    <View style={[styles.chartCard, { backgroundColor: T.dividerCard, borderColor: T.divider }]}>
+      <View style={styles.chartHeader}>
+        <MaterialCommunityIcons name="weather-pouring" size={14} color={T.main} />
+        <Text style={[styles.chartTitle, { color: T.main }]}>Pioggia — prossime 24h</Text>
+      </View>
+      <Svg width={W} height={H}>
+        {/* Linea base (asse) */}
+        <Line x1={PAD_X} y1={H - PAD_BOTTOM} x2={W - PAD_X} y2={H - PAD_BOTTOM} stroke={T.divider} strokeWidth={1} />
+        {points.map((p, i) => {
+          const val  = vals[i];
+          const x    = PAD_X + i * stepX + (stepX - barW) / 2;
+          const barH = (val / max) * innerH;
+          const y    = H - PAD_BOTTOM - barH;
+          const showLabel = i % labelStep === 0 || i === points.length - 1;
+          return (
+            <React.Fragment key={i}>
+              {val > 0 && <Rect x={x} y={y} width={barW} height={barH} rx={2} fill={barColor} />}
+              {showLabel && (
+                <>
+                  {val > 0 && (
+                    <SvgText x={x + barW / 2} y={Math.max(y - 4, PAD_TOP - 8)} fontSize="9" fontWeight="700" fill={barColor} textAnchor="middle">
+                      {val.toFixed(1)}
+                    </SvgText>
+                  )}
+                  <SvgText x={x + barW / 2} y={H - 6} fontSize="9" fill={labelColor} textAnchor="middle">
+                    {formatHour(p.time)}
+                  </SvgText>
+                </>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </Svg>
+    </View>
+  );
+}
+
 export default function ForecastModal({ visible, onClose, data, title, color, initialDay = 0, marine }) {
   const [selectedDay, setSelectedDay] = useState(initialDay);
   const inlineScrollRef    = useRef(null);
@@ -89,6 +230,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
   }, [visible, initialDay]);
 
   const { colors, dark } = useTheme();
+  const { width: screenWidth } = useWindowDimensions();
 
   if (!visible || !data) return null;
   const { current, hourly, daily } = data;
@@ -199,9 +341,10 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                     <WeatherIcon name={day.icon || 'weather-partly-cloudy'} size={26} dark={dark} />
                     <Text style={[styles.dayChipMax, { color: T.tempColor }]}>{Math.round(day.tempMax)}°</Text>
                     <Text style={[styles.dayChipMin, { color: T.tempColor }]}>{Math.round(day.tempMin)}°</Text>
-                    {day.precipProbability > 0 && (
-                      <Text style={[styles.dayChipRain, { color: T.rainColor }]}>💧{Math.round(day.precipProbability)}%</Text>
-                    )}
+                    {/* Riga pioggia sempre presente — stessa disposizione/altezza per tutte le card */}
+                    <Text style={[styles.dayChipRain, { color: T.rainColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                      💧{day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}{day.precipitation > 0 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
+                    </Text>
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
                       <Text style={[styles.dayChipFonti, { color: T.fonti }]}>
@@ -263,38 +406,48 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                 <React.Fragment key={dayIdx}>
                   {/* ── Separatore giorno ── */}
                   <View
-                    style={[styles.dayDivider, { backgroundColor: T.dividerCard, borderRightColor: T.divider }]}
+                    style={[styles.dayDivider, { backgroundColor: T.dividerCard, borderColor: T.divider }]}
                     onLayout={e => { inlineDayOffsetsRef.current[dayIdx] = e.nativeEvent.layout.x; }}
                   >
                     <Text style={[styles.dayDivLabel, { color: T.main }]}>{formatDayFull(day.date, dayIdx)}</Text>
-                    <WeatherIcon name={day.icon || 'weather-partly-cloudy'} size={28} dark={dark} />
-                    <Text style={[styles.dayDivTemp, { color: T.tempColor }]}>
-                      {Math.round(day.tempMax)}°<Text style={[styles.dayDivTempMin, { color: T.muted }]}>/{Math.round(day.tempMin)}°</Text>
+                    {/* Riga 1: icona + temp max/min affiancate */}
+                    <View style={styles.dayDivTopRow}>
+                      <WeatherIcon name={day.icon || 'weather-partly-cloudy'} size={26} dark={dark} />
+                      <Text style={[styles.dayDivTemp, { color: T.tempColor }]}>
+                        {Math.round(day.tempMax)}°<Text style={[styles.dayDivTempMin, { color: T.muted }]}>/{Math.round(day.tempMin)}°</Text>
+                      </Text>
+                    </View>
+                    {/* Riga pioggia sempre presente — stessa disposizione/altezza per tutte le card */}
+                    <Text style={[styles.dayDivMeta, { color: T.rainColor }]}>
+                      💧 {day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}{day.precipitation > 0 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
                     </Text>
-                    {day.precipProbability > 0 && (
-                      <Text style={[styles.dayDivMeta, { color: T.rainColor }]}>💧 {Math.round(day.precipProbability)}%</Text>
+                    {/* Riga: alba/tramonto affiancati */}
+                    {(day.sunrise || day.sunset) && (
+                      <View style={styles.dayDivRow2col}>
+                        {day.sunrise && <Text style={[styles.dayDivMetaSm, { color: T.muted }]}>🌄 {day.sunrise.slice(-5)}</Text>}
+                        {day.sunset  && <Text style={[styles.dayDivMetaSm, { color: T.muted }]}>🌇 {day.sunset.slice(-5)}</Text>}
+                      </View>
                     )}
-                    {day.sunrise && <Text style={[styles.dayDivMeta, { color: T.muted }]}>🌄 {day.sunrise.slice(-5)}</Text>}
-                    {day.sunset  && <Text style={[styles.dayDivMeta, { color: T.muted }]}>🌇 {day.sunset.slice(-5)}</Text>}
+                    {/* Riga: vento + scala Beaufort sulla stessa riga */}
                     {windKmh != null && (
                       <Text style={[styles.dayDivMeta, { color: T.wind }]}>
-                        💨 {Math.round(windKmh)} km/h
+                        💨 {Math.round(windKmh)} km/h · {beaufortLabel(windKmh)}
                       </Text>
                     )}
-                    {windKmh != null && (
-                      <Text style={[styles.dayDivMeta, { color: T.muted, fontSize: 9 }]}>
-                        {beaufortLabel(windKmh)}
-                      </Text>
-                    )}
-                    {waveH != null && (
-                      <Text style={[styles.dayDivMeta, { color: T.cyan }]}>🌊 {waveH.toFixed(1)} m</Text>
-                    )}
+                    {/* Riga: onde + badge fonti affiancati */}
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
-                    {day.providerCount != null && (
-                      <View style={[styles.dayDivFontiBadge, { backgroundColor: dark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.10)' }]}>
-                        <Text style={[styles.dayDivFontiText, { color: T.fonti }]}>
-                          {day.providerCount > 1 ? `${day.providerCount} fonti` : 'Open-Meteo'}
-                        </Text>
+                    {(waveH != null || day.providerCount != null) && (
+                      <View style={styles.dayDivRow2col}>
+                        {waveH != null && (
+                          <Text style={[styles.dayDivMetaSm, { color: T.cyan }]}>🌊 {waveH.toFixed(1)} m</Text>
+                        )}
+                        {day.providerCount != null && (
+                          <View style={[styles.dayDivFontiBadge, { backgroundColor: dark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.10)' }]}>
+                            <Text style={[styles.dayDivFontiText, { color: T.fonti }]}>
+                              {day.providerCount > 1 ? `${day.providerCount} fonti` : 'Open-Meteo'}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     )}
                     {!hasData && (
@@ -306,9 +459,10 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                   {dayFasciaOrder.map(f => {
                     const slots = daySlots[f];
                     if (!slots?.length) return null;
-                    // Filtra ogni 2 ore (ore pari, coerente con tutte le altre schermate)
-                    // ma tieni comunque le ore con probabilità di pioggia
-                    const filtered = slots.filter(h => getHour(h.time) % 2 === 0 || (h.precipProb ?? 0) > 0);
+                    // Filtra ogni 2 ore (ore pari, coerente con tutte le altre schermate) —
+                    // SEMPRE, anche se c'è probabilità di pioggia (non aggiungere eccezioni qui,
+                    // altrimenti tornano le ore dispari come già successo in passato)
+                    const filtered = slots.filter(h => getHour(h.time) % 2 === 0);
                     if (!filtered.length) return null;
                     const sunInfo =
                       f === 'Mattina' && day.sunrise ? { emoji: '🌄', time: day.sunrise.slice(-5) } :
@@ -317,20 +471,20 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                     return (
                       <React.Fragment key={f}>
                         {/* Etichetta fascia — stessa dimensione delle card orarie */}
-                        <View style={[styles.hourCard, styles.fasciaLabelCard, { borderLeftColor: FASCIA_COLOR[f], borderLeftWidth: 2 }]}>
+                        <View style={[styles.hourCard, styles.fasciaLabelCard, { backgroundColor: T.dividerCard, borderLeftColor: FASCIA_COLOR[f], borderLeftWidth: 2 }]}>
                           <MaterialCommunityIcons name={FASCIA_ICON[f]} size={18} color={FASCIA_COLOR[f]} />
                           <Text style={[styles.fasciaName, { color: FASCIA_COLOR[f] }]} numberOfLines={2} adjustsFontSizeToFit>{f}</Text>
                           {sunInfo && <Text style={styles.fasciaSunTime}>{sunInfo.emoji} {sunInfo.time}</Text>}
                         </View>
                         {/* Card orarie */}
                         {filtered.map((h, j) => (
-                          <View key={j} style={styles.hourCard}>
+                          <View key={j} style={[styles.hourCard, { backgroundColor: T.dividerCard, borderWidth: 1, borderColor: T.divider }]}>
                             <Text style={[styles.hourTime, { color: T.muted }]}>{formatHour(h.time)}</Text>
                             <WeatherIcon name={h.icon || 'weather-partly-cloudy'} size={32} dark={dark} />
                             <Text style={[styles.hourTemp, { color: T.tempColor }]}>{Math.round(h.temp)}°</Text>
                             <View style={styles.hourMetaRow}>
                               {h.humidity != null && !isNaN(h.humidity) && <Text style={[styles.hourSub, { color: T.wind }]}>💧{Math.round(h.humidity)}%</Text>}
-                              <Text style={[styles.hourSub, { color: T.rainColor }]}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
+                              <Text style={[styles.hourSub, { color: T.rainColor }]}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%{h.precipMm > 0 ? ` · ${h.precipMm.toFixed(1)}mm` : ''}</Text>
                             </View>
                             {h.windspeed != null && (
                               <View style={styles.hourWindRow}>
@@ -350,11 +504,10 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
             })}
           </ScrollView>
 
-          {/* ── Slot pubblicità ── */}
-          <View style={[styles.adSlot, { borderColor: T.dayBorder }]}>
-            <MaterialCommunityIcons name="tag-outline" size={14} color={T.muted} />
-            <Text style={[styles.adSlotText, { color: T.muted }]}>spazio riservato</Text>
-          </View>
+          {/* ── Grafici andamento 24h (si rigenerano con i dati orari aggregati) ── */}
+          {/* width = larghezza modale (screenWidth - 32 di marginHorizontal) - padding interno della card (8+8) */}
+          <MiniRainChart  hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
+          <MiniTrendChart hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
 
           {/* ── Tasto chiudi ── */}
           <SafeAreaView edges={['bottom']} style={[styles.bottomBar, { backgroundColor: T.closeBg, borderTopColor: T.closeBorder }]}>
@@ -395,11 +548,14 @@ const styles = StyleSheet.create({
   metaChip:     { fontSize: 11, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
 
   // Strip giorni
-  dayStrip: { flexGrow: 0, borderBottomWidth: 1 },
+  // Altezza esplicita = dayChip.height (160) + paddingVertical del content (8+8).
+  // Senza altezza fissa la ScrollView orizzontale restava ancorata alla vecchia
+  // altezza (più bassa) e le card da 160px venivano tagliate in basso.
+  dayStrip: { flexGrow: 0, flexShrink: 0, height: 176, borderBottomWidth: 1 },
   dayStripContent: { paddingHorizontal: 12, paddingVertical: 8, gap: 7 },
   dayChip: {
-    alignItems: 'center', gap: 2, paddingVertical: 7, paddingHorizontal: 9,
-    borderRadius: 12, borderWidth: 1, minWidth: 54,
+    alignItems: 'center', justifyContent: 'space-evenly', gap: 2, paddingVertical: 7, paddingHorizontal: 6,
+    borderRadius: 12, borderWidth: 1, width: 72, height: 160,
   },
   dayChipLabel: { fontSize: 10, fontWeight: '700' },
   dayChipMax:   { fontWeight: '700', fontSize: 12 },
@@ -411,29 +567,34 @@ const styles = StyleSheet.create({
   attribRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 5 },
   attribText: { fontSize: 9, fontStyle: 'italic', flex: 1 },
 
-  // Timeline continua
-  timeline: { flex: 1 },
+  // Timeline continua — altezza esplicita = dayDivider/hourCard.height (160) + marginVertical (2+2).
+  // Stesso problema dello strip giorni: senza altezza fissa le card da 160px
+  // venivano tagliate in basso.
+  timeline: { flexGrow: 0, flexShrink: 0, height: 164 },
   timelineContent: { alignItems: 'flex-start' },
 
   // Separatore giorno
   dayDivider: {
-    width: 120, alignSelf: 'stretch', justifyContent: 'center',
-    alignItems: 'center', gap: 4,
-    paddingVertical: 10, paddingHorizontal: 8,
-    borderRightWidth: 1,
+    width: 172, height: 160, justifyContent: 'space-evenly',
+    alignItems: 'stretch', gap: 2,
+    paddingVertical: 8, paddingHorizontal: 10,
+    borderRadius: 12, borderWidth: 1,
+    marginHorizontal: 3, marginVertical: 2,
   },
   dayDivLabel:    { fontSize: 11, fontWeight: '800', textAlign: 'center' },
+  dayDivTopRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  dayDivRow2col:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', gap: 8, marginTop: 2 },
   dayDivTemp:     { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   dayDivTempMin:  { fontSize: 14, fontWeight: '400' },
   dayDivMeta:     { fontSize: 11, textAlign: 'center' },
-  dayDivFontiBadge: { borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, marginTop: 4 },
+  dayDivMetaSm:   { fontSize: 10, textAlign: 'center' },
+  dayDivFontiBadge: { borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
   dayDivFontiText:  { fontSize: 10, fontWeight: '700' },
   dayDivNoData:     { fontSize: 9, fontStyle: 'italic', textAlign: 'center', marginTop: 4 },
 
   // Fascia label card — stessa dimensione delle card orarie
   fasciaLabelCard: {
     justifyContent: 'center', gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.07)',
   },
   fasciaName:    { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.4 },
   fasciaSunTime: { fontSize: 10, color: 'rgba(255,255,255,0.60)', textAlign: 'center' },
@@ -441,8 +602,8 @@ const styles = StyleSheet.create({
   // Card oraria
   hourCard: {
     paddingVertical: 10, paddingHorizontal: 10,
-    alignItems: 'center', gap: 3, minWidth: 72,
-    alignSelf: 'stretch',
+    alignItems: 'center', justifyContent: 'center', gap: 3, minWidth: 72, height: 160,
+    borderRadius: 12, marginHorizontal: 3, marginVertical: 2,
   },
   hourTime:    { fontSize: 11, fontWeight: '700' },
   hourTemp:    { fontSize: 20, fontWeight: '700' },
@@ -459,11 +620,11 @@ const styles = StyleSheet.create({
   },
   closeBtnText: { fontSize: 16, fontWeight: '600' },
 
-  // Ad slot
-  adSlot: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    marginHorizontal: 16, marginVertical: 6,
-    height: 28, borderRadius: 8, borderWidth: 1, borderStyle: 'dashed',
+  // Grafico andamento 24h
+  chartCard: {
+    marginHorizontal: 16, marginTop: 8, marginBottom: 4,
+    borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 8,
   },
-  adSlotText: { fontSize: 9 },
+  chartHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2, marginLeft: 4 },
+  chartTitle: { fontSize: 11, fontWeight: '700' },
 });

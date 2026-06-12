@@ -100,28 +100,45 @@ export default function HomeScreen({ navigation }) {
   // INVARIANTE — vedi CLAUDE.md "Regole intoccabili"
   // Media oraria: solo provider che hanno dati per quell'ora specifica (filter(Boolean) sulla mappa ora→slot)
   const buildAggregateHourly = (w) => {
-    const base = w.openMeteo?.hourly || [];
-    if (!base.length) return [];
-    // Mappa ora→slot per ogni provider secondario
-    const otherMaps = [
-      w.openWeather, w.weatherApi, w.metNorway,
+    const allHourlyProviders = [
+      w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
       w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
-    ].filter(p => p?.hourly?.length).map(p => {
-      const m = {};
-      p.hourly.forEach(h => { m[hourKey(h.time)] = h; });
-      return m;
-    });
+    ].filter(p => p?.hourly?.length);
+    if (!allHourlyProviders.length) return [];
+    // Base: preferiamo Open-Meteo (copertura fino a 16 giorni). Se non disponibile
+    // (es. provider temporaneamente offline), usiamo il provider con più ore
+    // disponibili così "Previsioni orarie" non resta vuota.
+    const base = w.openMeteo?.hourly?.length
+      ? w.openMeteo.hourly
+      : allHourlyProviders.reduce((longest, p) => p.hourly.length > longest.hourly.length ? p : longest, allHourlyProviders[0]).hourly;
+    // Mappa ora→slot per ogni provider secondario (tutti tranne quello usato come base)
+    const otherMaps = allHourlyProviders
+      .filter(p => p.hourly !== base)
+      .map(p => {
+        const m = {};
+        p.hourly.forEach(h => { m[hourKey(h.time)] = h; });
+        return m;
+      });
+    // I mm di pioggia orari sono esposti come `precipitation` da MET Norway/Brightsky
+    // (gli altri provider non forniscono mm orari, solo probabilità `precipProb`).
+    // Prima si cercava un campo `precipMm` che non esiste mai in nessun provider,
+    // quindi i mm orari risultavano sempre assenti.
+    const precipMmOf = s => (s.precipitation != null ? s.precipitation : (s.precipMm != null ? s.precipMm : null));
     return base.map(slot => {
       const key = hourKey(slot.time);
       const others = otherMaps.map(m => m[key]).filter(Boolean);
-      if (!others.length) return slot;
       const all = [slot, ...others];
+      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": media solo sui provider
+      // che hanno un dato di mm per quest'ora specifica (filtrati prima).
+      const precipMmVals = all.map(precipMmOf).filter(v => v != null);
+      const precipMm = precipMmVals.length ? aggAvg(precipMmVals) : null;
+      if (!others.length) return { ...slot, precipMm };
       return {
         ...slot,
         temp:       aggAvg(all.map(s => s.temp))            ?? slot.temp,
         humidity:   aggAvg(all.map(s => pct(s.humidity)))   ?? slot.humidity,
         precipProb: aggAvg(all.map(s => pct(s.precipProb))) ?? slot.precipProb,
-        precipMm:   slot.precipMm ?? null,
+        precipMm,
         windspeed:  aggAvg(all.map(s => s.windspeed))       ?? slot.windspeed,
         icon:        aggMajority(all.map(s => s.icon))        || slot.icon,
         description: aggMajority(all.map(s => s.description)) || slot.description,
@@ -173,6 +190,10 @@ export default function HomeScreen({ navigation }) {
       const maxVals   = dayProviders.map(p => p.daily[i].tempMax).filter(v => v != null);
       const minVals   = dayProviders.map(p => p.daily[i].tempMin).filter(v => v != null);
       const precipVals = dayProviders.map(p => p.daily[i].precipProbability).filter(v => v != null);
+      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": anche i mm di pioggia
+      // devono essere la media dei provider che hanno il dato per quel giorno
+      // (prima venivano presi solo da `base`, violando la regola).
+      const precipMmVals = dayProviders.map(p => p.daily[i].precipitation).filter(v => v != null);
       const icon = i === 0
         ? (aggMajority(providers.map(p => p.current?.icon).filter(Boolean)) || prevalentForDate(day.date, 'icon') || day.icon)
         : (prevalentForDate(day.date, 'icon') || aggMajority(dayProviders.map(p => p.daily[i].icon).filter(Boolean)) || day.icon);
@@ -184,6 +205,7 @@ export default function HomeScreen({ navigation }) {
         tempMax: Math.round(aggAvg(maxVals) ?? day.tempMax),
         tempMin: Math.round(aggAvg(minVals) ?? day.tempMin),
         precipProbability: Math.round(aggAvg(precipVals) ?? day.precipProbability),
+        precipitation: precipMmVals.length ? aggAvg(precipMmVals) : (day.precipitation ?? null),
         icon,
         description,
         providerCount: dayProviders.length,
@@ -475,6 +497,7 @@ export default function HomeScreen({ navigation }) {
               { icon: 'scale-balance', color: '#818cf8', title: 'Media e scostamento', desc: 'Viene calcolata la media tra le fonti meteo. Lo scostamento % indica quanto ogni modello si discosta: verde = accordo, giallo = lieve differenza, rosso = divergenza.' },
               { icon: 'gesture-tap', color: '#4ade80', title: 'Tocca una card', desc: 'Toccando una WeatherCard o la card Media si apre il dettaglio con previsioni orarie e giornaliere fino a 16 giorni.' },
               { icon: 'shield-check-outline', color: '#fbbf24', title: 'Quando fidarsi', desc: 'Quando i 3 modelli concordano la previsione è più affidabile. Quando divergono molto, c\'è incertezza reale — nessun modello è "giusto" in anticipo.' },
+              { icon: 'theme-light-dark', color: '#a78bfa', title: 'Sfondo dinamico (tema scuro)', desc: 'Nel tema scuro lo sfondo cambia leggermente tonalità in base all\'ora del giorno (notte, alba, mattina, mezzogiorno, pomeriggio, sera) per richiamare la luce reale — resta sempre blu navy, mai nero.' },
             ].map((item, i) => (
               <View key={i} style={styles.howToRow}>
                 <View style={[styles.howToIconBox, { backgroundColor: item.color + '20' }]}>
@@ -497,17 +520,19 @@ export default function HomeScreen({ navigation }) {
           {/* City header */}
           <View style={styles.cityHeader}>
             <View style={styles.appTitleRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', overflow: 'visible', paddingTop: 16 }}>
-                <View style={{ position: 'relative', overflow: 'visible' }}>
-                  <MaterialCommunityIcons name="white-balance-sunny" size={54} color="#fbbf24" style={{ position: 'absolute', left: -16, top: -20, zIndex: 0, opacity: 0.9 }} />
-                  <MaterialCommunityIcons name="cloud" size={36} color="#ffffff" style={{ position: 'absolute', left: 4, top: -16, zIndex: 1, opacity: 0.95 }} />
-                  <Text style={[styles.appTitle, { zIndex: 2 }]}>S</Text>
+              {/* Icona sole giallo + nuvola bianca, sovrapposta dietro la "S" del titolo */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+                <View style={{ width: 44, height: 44, marginRight: -13, marginTop: -28, zIndex: 0, elevation: 0 }}>
+                  <MaterialCommunityIcons name="white-balance-sunny" size={34} color="#fbbf24" style={{ position: 'absolute', top: 6, left: 0 }} />
+                  <MaterialCommunityIcons name="cloud" size={30} color="#ffffff" style={{ position: 'absolute', bottom: 4, right: 2 }} />
                 </View>
-                <Text style={styles.appTitle}>olo1Meteo</Text>
+                <Text style={[styles.appTitle, { zIndex: 1, elevation: 1 }]}>Solo1Meteo</Text>
+                {/* Pulsante "Come funziona" spostato accanto al titolo (prima era
+                    isolato in fondo alla riga, in uno spazio vuoto) */}
+                <TouchableOpacity onPress={() => setShowHowTo(true)} accessibilityLabel="Come funziona" accessibilityRole="button" style={styles.howToButton}>
+                  <MaterialCommunityIcons name="information-outline" size={18} color={c.accent} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => setShowHowTo(true)} accessibilityLabel="Come funziona" accessibilityRole="button" style={{ position: 'absolute', right: 0 }}>
-                <MaterialCommunityIcons name="information-outline" size={22} color={c.accent} />
-              </TouchableOpacity>
             </View>
             <Text style={styles.appSubtitle}>Una previsione, tante fonti</Text>
             <Text style={styles.tagline} numberOfLines={1} adjustsFontSizeToFit>
@@ -539,7 +564,7 @@ export default function HomeScreen({ navigation }) {
           {weather.isFallback && (
             <View style={styles.fallbackBanner}>
               <MaterialCommunityIcons name="alert-outline" size={15} color="#fbbf24" />
-              <Text style={styles.fallbackBannerText}>Connessione al server limitata — mostrati 4 provider su 8</Text>
+              <Text style={styles.fallbackBannerText}>Connessione al server limitata — mostrati {weather.consensus?.providersCount ?? 4} provider meteo su 4</Text>
             </View>
           )}
 
@@ -591,21 +616,22 @@ export default function HomeScreen({ navigation }) {
                       <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
                     </View>
                   </View>
-                  {/* Riga 2: temp grande + icona | 🌧 X%  💧 Y% giustificati a destra */}
+                  {/* Riga 2: temp grande + icona */}
                   <View style={styles.consensusMainRow}>
                     <Text style={styles.consensusTemp}>{Math.round(weather.consensus.temperature)}°C</Text>
                     <WeatherIcon name={weather.consensus.icon || 'weather-partly-cloudy'} size={48} dark={dark} />
-                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                      <View style={{ flexDirection: 'row', gap: 10 }}>
-                        {rain != null && (
-                          <Text style={styles.consensusBadge}>
-                            🌧 {Math.round(rain)}%{rainMm != null && rainMm > 0 ? ` · ${rainMm.toFixed(1)}mm` : ''}
-                          </Text>
-                        )}
-                        {humidity != null && <Text style={styles.consensusBadge}>💧 {humidity}%</Text>}
-                      </View>
-                    </View>
                   </View>
+                  {/* Riga 3: 🌧 X%  · mm  💧 umidità% — sotto, giustificati a destra */}
+                  {(rain != null || humidity != null) && (
+                    <View style={styles.consensusBadgeRow}>
+                      {rain != null && (
+                        <Text style={styles.consensusBadge}>
+                          🌧 {Math.round(rain)}%{rainMm != null ? ` · ${rainMm.toFixed(1)}mm` : ''}
+                        </Text>
+                      )}
+                      {humidity != null && <Text style={styles.consensusBadge}>💧 {humidity}%</Text>}
+                    </View>
+                  )}
                 </>);
               })()}
               {/* Riga dati orizzontale */}
@@ -696,7 +722,7 @@ export default function HomeScreen({ navigation }) {
                       )}
                       {day?.precipProbability > 0 && (
                         <Text style={[styles.dayBtnRain, i === 2 && activeDay !== 2 && styles.dayBtnRainThird]}>
-                          💧{Math.round(day.precipProbability)}%{day.precipitation > 0 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
+                          💧{Math.round(day.precipProbability)}%{day.precipitation >= 0.05 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
                         </Text>
                       )}
                       {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
@@ -746,7 +772,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.inlineDayMin}>{Math.round(selDay.tempMin)}°</Text>
                     {selDay.precipProbability > 0 && (
                       <Text style={styles.inlineDayRain}>
-                        💧{Math.round(selDay.precipProbability)}%{selDay.precipitation > 0 ? ` · ${selDay.precipitation.toFixed(1)}mm` : ''}
+                        💧{Math.round(selDay.precipProbability)}%{selDay.precipitation >= 0.05 ? ` · ${selDay.precipitation.toFixed(1)}mm` : ''}
                       </Text>
                     )}
                   </View>
@@ -821,13 +847,13 @@ export default function HomeScreen({ navigation }) {
                                   {sun && <Text style={styles.inlineFasciaSunTime}>{sun.emoji} {sun.time}</Text>}
                                 </View>
                                 {slots.map((h, j) => (
-                                  <View key={j} style={styles.inlineHourCard}>
+                                  <View key={j} style={[styles.inlineHourCard, styles.inlineHourCardBox]}>
                                     <Text style={styles.inlineHourTime}>{h.time.slice(11, 16)}</Text>
                                     <WeatherIcon name={h.icon || 'weather-partly-cloudy'} size={28} dark={dark} />
                                     <Text style={styles.inlineHourTemp}>{Math.round(h.temp)}°</Text>
                                     <View style={styles.inlineHourMeta}>
                                       {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity}>💧{Math.round(h.humidity)}%</Text>}
-                                      <Text style={styles.inlineHourRain}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%{h.precipMm > 0 ? ` · ${h.precipMm.toFixed(1)}mm` : ''}</Text>
+                                      <Text style={styles.inlineHourRain}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%{h.precipMm >= 0.05 ? ` · ${h.precipMm.toFixed(1)}mm` : ''}</Text>
                                     </View>
                                     {h.windspeed != null && (
                                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
@@ -934,7 +960,8 @@ export default function HomeScreen({ navigation }) {
                           <View key={p.provider.id} style={styles.cmpCell}>
                             <Text style={[styles.cmpProvName, { color: p.provider.color }]}>{p.provider.shortName}</Text>
                             <Text style={[styles.cmpVal, { color: p.provider.color }]}>{val != null ? `${Math.round(val)}${unit}` : '—'}</Text>
-                            {diff && <Text style={[styles.cmpPct, { color: col }]}>{diff}</Text>}
+                            {/* Riga sempre presente (anche con "—") così tutte le celle della riga hanno la stessa altezza */}
+                            <Text style={[styles.cmpPct, { color: col }]}>{diff ?? '—'}</Text>
                           </View>
                         );
                       })}
@@ -966,8 +993,11 @@ export default function HomeScreen({ navigation }) {
                               <MaterialCommunityIcons name={d.icon || 'weather-partly-cloudy'} size={16} color={getIconColor(d.icon, dark)} />
                               <Text style={styles.dayCompareMax}>{Math.round(d.tempMax)}°</Text>
                               <Text style={styles.dayCompareMin}>{Math.round(d.tempMin)}°</Text>
-                              {diff && <Text style={[styles.cmpPct, { color: col }]}>{diff}</Text>}
-                              {d.precipProbability > 0 && <Text style={styles.dayCompareRain}>💧{Math.round(d.precipProbability)}%</Text>}
+                              {/* Righe sempre presenti (anche con "—" / "0%") così tutte le celle della riga hanno la stessa altezza */}
+                              <Text style={[styles.cmpPct, { color: col }]}>{diff ?? '—'}</Text>
+                              {/* Solo % (no mm): in 8 colonne strette il suffisso "· X.Xmm" andava a capo
+                                  rompendo l'allineamento dell'altezza riga — vedi CLAUDE.md verifiche */}
+                              <Text style={styles.dayCompareRain} numberOfLines={1}>💧{Math.round(d.precipProbability ?? 0)}%</Text>
                             </>) : <Text style={styles.dayCompareNa}>—</Text>}
                           </View>
                         );
@@ -980,13 +1010,17 @@ export default function HomeScreen({ navigation }) {
           })()}
 
           {/* TAB: 7 GIORNI */}
-          {activeTab === 'forecast' && weather.openMeteo && (() => {
+          {activeTab === 'forecast' && (() => {
             const aggDays = buildAggregateDays(weather);
             const aggData = buildAggregateData(weather);
+            // Niente "weather.openMeteo &&" qui: se Open-Meteo non risponde,
+            // aggDays usa comunque il provider disponibile come base (vedi
+            // buildAggregateDays) — altrimenti questa tab restava vuota.
+            if (!aggDays.length) return null;
             return (
             <View>
               <View style={styles.forecastHeader}>
-                <Text style={styles.sectionTitle}>Prossimi 7 giorni</Text>
+                <Text style={styles.sectionTitle}>Prossimi {aggDays.length} giorni</Text>
               </View>
               {/* Legenda: solo il fatto, senza spiegazioni */}
               <View style={styles.forecastAttrib}>
@@ -995,20 +1029,24 @@ export default function HomeScreen({ navigation }) {
                   Media provider attivi per quel giorno · "Xf" = numero fonti · "OM" = solo Open-Meteo
                 </Text>
               </View>
-              {weather.openMeteo.daily.map((omDay, i) => {
-                const day = aggDays[i] || omDay;
+              {aggDays.map((day, i) => {
                 return (
-                  <TouchableOpacity key={omDay.date} style={[styles.dayRow, i === 0 && styles.dayRowToday]}
+                  <TouchableOpacity key={day.date} style={[styles.dayRow, i === 0 && styles.dayRowToday]}
                     onPress={() => setModal({ data: aggData, title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: '#38bdf8', initialDay: i })}
                     activeOpacity={0.7}>
-                    <Text style={[styles.dayName, i === 0 && styles.dayNameToday]}>{i === 0 ? 'Oggi' : formatDate(omDay.date)}</Text>
+                    <Text style={[styles.dayName, i === 0 && styles.dayNameToday]}>{i === 0 ? 'Oggi' : formatDate(day.date)}</Text>
                     <WeatherIcon name={day.icon} size={24} dark={dark} />
-                    <Text style={styles.dayDesc}>{translateDescription(day.description)}</Text>
+                    <Text style={styles.dayDesc} numberOfLines={1} ellipsizeMode="tail">{translateDescription(day.description)}</Text>
                     <View style={styles.dayTemps}>
                       <Text style={styles.dayMax}>{Math.round(day.tempMax)}°</Text>
                       <Text style={styles.dayMin}>{Math.round(day.tempMin)}°</Text>
                     </View>
-                    {omDay.precipitation > 0 && <Text style={styles.dayRain}>💧 {Math.round(omDay.precipitation)}mm</Text>}
+                    {/* Riga pioggia sempre presente — stessa disposizione/altezza per tutte le righe.
+                        Larghezza fissa + testo allineato a destra: l'allineamento delle righe
+                        non dipende più dalla lunghezza del testo (es. "0%" vs "28% · 0.1mm"). */}
+                    <Text style={styles.dayRain} numberOfLines={1}>
+                      💧 {day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}{day.precipitation >= 0.05 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
+                    </Text>
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
                       <Text style={styles.daySingleBadge}>
@@ -1127,6 +1165,12 @@ function makeStyles(c, dark) {
   scroll: { flex: 1 },
   cityHeader: { padding: 16, paddingBottom: 8, alignItems: 'center', overflow: 'visible' },
   appTitleRow: { width: '100%', alignItems: 'center', justifyContent: 'center', overflow: 'visible' },
+  howToButton: {
+    marginLeft: 8, width: 26, height: 26, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: dark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.55)',
+    borderWidth: 1, borderColor: dark ? 'rgba(255,255,255,0.3)' : 'rgba(56,189,248,0.45)',
+  },
   appTitle: { color: dark ? '#ffffff' : c.accent, fontSize: 32, fontWeight: '800', letterSpacing: 1.5, textAlign: 'center', textShadowColor: dark ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   appSubtitle: { color: dark ? '#ffffff' : c.accent, fontSize: 13, fontWeight: '700', letterSpacing: 1.5, textAlign: 'center', marginTop: 2 },
   tagline: { color: '#fb923c', fontSize: 13, fontWeight: '700', marginTop: 14, textAlign: 'center' },
@@ -1151,7 +1195,8 @@ function makeStyles(c, dark) {
   },
   consensusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   consensusLabel: { color: c.accent, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  consensusMainRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  consensusMainRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+  consensusBadgeRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginBottom: 10 },
   consensusTemp: { color: dark ? '#ffffff' : c.accent, fontSize: 42, fontWeight: '800', lineHeight: 46, textShadowColor: dark ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   consensusTempLabel: { color: c.textSub, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
   consensusDesc: { color: c.accent, fontSize: 13, textTransform: 'capitalize', fontWeight: '500' },
@@ -1225,19 +1270,22 @@ function makeStyles(c, dark) {
   paramValue: { color: c.text, fontSize: 14, fontWeight: '600' },
   forecastHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 12, marginBottom: 0 },
   dayRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 12, paddingVertical: 13,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)',
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
   dayRowToday: { backgroundColor: 'rgba(56,189,248,0.15)' },
-  dayName: { color: c.text, width: 76, fontSize: 13, fontWeight: '500' },
+  dayName: { color: c.text, width: 56, fontSize: 13, fontWeight: '500' },
   dayNameToday: { color: c.accent, fontWeight: '700' },
-  dayDesc: { flex: 1, color: c.textSub, fontSize: 12, textTransform: 'capitalize' },
+  dayDesc: { flex: 1, minWidth: 0, color: c.textSub, fontSize: 12, textTransform: 'capitalize' },
   dayTemps: { flexDirection: 'row', gap: 6 },
   dayMax: { color: '#fb923c', fontWeight: '700', fontSize: 15 },
   dayMin: { color: c.accent, fontSize: 15 },
-  dayRain: { color: c.accent, fontSize: 12 },
+  // INVARIANTE LAYOUT — larghezza fissa + allineamento a destra: garantisce che
+  // dayDesc/badge/freccia siano sempre alla stessa posizione su ogni riga,
+  // indipendentemente dal testo (es. "0%" vs "28% · 0.1mm"), in qualunque città.
+  dayRain: { color: c.accent, fontSize: 12, width: 86, textAlign: 'right' },
   attribSection: { margin: 12, marginTop: 24, padding: 14, backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border },
   attribTitle: { color: c.textMuted, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   attribRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
@@ -1288,7 +1336,11 @@ function makeStyles(c, dark) {
   inlineFasciaName: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.4 },
   inlineFasciaSunTime: { fontSize: 10, color: c.textSub, textAlign: 'center' },
   inlineHourGrid: { flexDirection: 'row', flexWrap: 'nowrap' },
-  inlineHourCard: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, gap: 3, minWidth: 72 },
+  inlineHourCard: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 8, gap: 4, minWidth: 68 },
+  // Box "card" per i dati orari (non per le intestazioni fascia, che hanno
+  // già il loro sfondo): riduce lo spazio vuoto attorno ai valori che
+  // altrimenti "galleggiavano" senza alcun contenitore visivo.
+  inlineHourCardBox: { backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border, marginHorizontal: 3, marginVertical: 2 },
   inlineHourTime: { color: c.textMuted, fontSize: 11, fontWeight: '700' },
   inlineHourTemp: { color: dark ? '#ffffff' : c.accent, fontSize: 20, fontWeight: '700' },
   inlineHourMeta: { flexDirection: 'row', gap: 5, alignItems: 'center' },

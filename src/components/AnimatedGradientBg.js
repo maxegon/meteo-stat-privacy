@@ -4,17 +4,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 
 // Gradiente cielo: [top-chiaro, centro, bottom-scuro]
+//
+// COMPORTAMENTO ATTESO (documentato anche nella schermata "Come funziona"):
+// nel tema scuro lo sfondo cambia leggermente tonalità in base all'ora del
+// giorno (notte/alba/mattina/mezzogiorno/pomeriggio/sera/imbrunire/tarda
+// notte), restando sempre su una base blu navy — mai nero. Nel tema chiaro
+// varia analogamente tra tonalità di celeste. Non è un bug se lo sfondo
+// risulta diverso ricaricando l'app in momenti diversi della giornata.
 function getSkyColors(dark) {
   const h = new Date().getHours();
   if (dark) {
-    if (h >= 0  && h < 5)  return ['#091430', '#04091c', '#01060f'];   // notte
-    if (h >= 5  && h < 7)  return ['#3a68a8', '#122e62', '#050b20'];   // alba
-    if (h >= 7  && h < 10) return ['#4e9cca', '#1c60a0', '#082c5c'];   // mattina
-    if (h >= 10 && h < 14) return ['#4594c4', '#145ca8', '#062870'];   // mezzogiorno
-    if (h >= 14 && h < 17) return ['#4c90c0', '#1050a0', '#052258'];   // pomeriggio
-    if (h >= 17 && h < 20) return ['#2a5e8a', '#0a2448', '#03091c'];   // sera
-    if (h >= 20 && h < 22) return ['#121e44', '#060b1e', '#01030a'];   // imbrunire
-    return ['#091430', '#04091c', '#01060f'];
+    // Tema scuro: sempre tonalità BLU navy (MAI nero), con leggera
+    // variazione di luminosità in base all'ora — INVARIANTE: niente nero,
+    // ogni colore mantiene il canale blu dominante e ben visibile
+    if (h >= 0  && h < 5)  return ['#1a3358', '#15294a', '#122242'];   // notte
+    if (h >= 5  && h < 7)  return ['#22405e', '#1a3358', '#15294a'];   // alba
+    if (h >= 7  && h < 10) return ['#2a4a6e', '#22405e', '#1a3358'];   // mattina
+    if (h >= 10 && h < 14) return ['#2e5080', '#244878', '#1c3a64'];   // mezzogiorno (più chiaro)
+    if (h >= 14 && h < 17) return ['#2a4a72', '#22406a', '#1a3358'];   // pomeriggio
+    if (h >= 17 && h < 20) return ['#244468', '#1c3858', '#16294a'];   // sera
+    if (h >= 20 && h < 22) return ['#1c3858', '#16294a', '#122242'];   // imbrunire
+    return ['#1a3358', '#15294a', '#122242'];                          // tarda notte
   } else {
     if (h >= 0  && h < 5)  return ['#daeeff', '#88c0e8', '#2878c8'];   // notte celeste
     if (h >= 5  && h < 7)  return ['#eef8ff', '#a0d8f8', '#3898d8'];   // alba celeste
@@ -45,7 +55,7 @@ export default function AnimatedGradientBg({ children }) {
   // overlay leggermente spostato per creare il pulsare di luce
   const overlay = [base[2], base[1], base[0]];
 
-  const fallback = dark ? '#080e1e' : '#b8d8f0';
+  const fallback = dark ? '#122242' : '#b8d8f0';
 
   return (
     <View style={[styles.container, { backgroundColor: fallback }]}>
