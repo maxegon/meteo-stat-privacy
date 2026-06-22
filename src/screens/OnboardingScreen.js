@@ -66,6 +66,9 @@ export default function OnboardingScreen({ onComplete }) {
             L'app chiederà il permesso di accedere alla tua posizione GPS per mostrare subito le previsioni della tua zona.
           </Text>
           <Text style={styles.warningDetail}>
+            Per visualizzare le previsioni è necessario attivare la posizione oppure cercare manualmente una città: senza una delle due cose la schermata principale resterà vuota.
+          </Text>
+          <Text style={styles.warningDetail}>
             Le coordinate (latitudine e longitudine) vengono trasmesse ai servizi meteo terzi esclusivamente per ottenere le previsioni. Non vengono mai memorizzate né trasmesse ad altri.
           </Text>
           <Text style={styles.warningDetail}>

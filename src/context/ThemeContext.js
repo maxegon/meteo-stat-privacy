@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const THEME_KEY = 'app_theme_v2'; // v2 = reset preferenza salvata, default light (azzurro)
+const THEME_KEY = 'app_theme_v3'; // v3 = reset preferenza salvata, default scuro
 
 export const ThemeContext = createContext({
-  dark: false,
+  dark: true,
   toggleTheme: () => {},
   colors: {},
 });
@@ -50,7 +50,7 @@ export const LIGHT_COLORS = {
 };
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then(v => {

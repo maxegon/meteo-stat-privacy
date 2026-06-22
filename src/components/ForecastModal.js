@@ -11,6 +11,8 @@ import { useTheme } from '../context/ThemeContext';
 import { translateDescription } from '../utils/weatherDescriptions';
 import WeatherIcon from './WeatherIcon';
 import { windDirArrow, windDirLabel } from '../utils/windDir';
+import { checkDayThresholds, checkHourThresholds } from '../services/weatherAlerts';
+import { isCoastal } from '../utils/isCoastal';
 
 const DAYS_IT   = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 const MONTHS_IT = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
@@ -44,7 +46,7 @@ function seaStateFromWind(kmh) {
   if (kmh <  2) return 'Calmo';
   if (kmh <  6) return 'Quasi calmo';
   if (kmh < 12) return 'Poco increspato';
-  if (kmh < 20) return 'Leggermente mosso';
+  if (kmh < 20) return 'Poco mosso';
   if (kmh < 29) return 'Mosso';
   if (kmh < 39) return 'Molto mosso';
   if (kmh < 50) return 'Agitato';
@@ -213,7 +215,7 @@ function MiniRainChart({ hourly, dark, T, width }) {
   );
 }
 
-export default function ForecastModal({ visible, onClose, data, title, color, initialDay = 0, marine }) {
+export default function ForecastModal({ visible, onClose, data, title, color, initialDay = 0, marine, alertsEnabled, alertThresholds, cityInfo }) {
   const [selectedDay, setSelectedDay] = useState(initialDay);
   const inlineScrollRef    = useRef(null);
   const inlineDayOffsetsRef = useRef([]);
@@ -293,7 +295,11 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
 
           {/* ── HEADER ── */}
           <View style={[styles.topBar, { borderBottomColor: T.divider }]}>
+            <TouchableOpacity onPress={onClose} style={styles.backBtn} accessibilityLabel="Torna indietro" accessibilityRole="button">
+              <MaterialCommunityIcons name="arrow-left" size={22} color={T.main} />
+            </TouchableOpacity>
             <Text style={[styles.providerTitle, { color: T.main }]}>{title}</Text>
+            <View style={styles.backBtnPlaceholder} />
           </View>
 
           {/* ── Condizioni attuali (compatte) ── */}
@@ -324,6 +330,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
             >
               {daily.map((day, i) => {
                 const sel = selectedDay === i;
+                const chipExceeded = alertsEnabled ? checkDayThresholds(day, alertThresholds) : [];
                 return (
                   <TouchableOpacity
                     key={i}
@@ -331,6 +338,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                       styles.dayChip,
                       { backgroundColor: T.dayBg, borderColor: T.dayBorder },
                       sel && { backgroundColor: dark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.12)', borderColor: c },
+                      chipExceeded.length > 0 && !sel && { borderColor: chipExceeded[0].color + '88', borderWidth: 1.5 },
                     ]}
                     onPress={() => handleDayPress(i)}
                     activeOpacity={0.7}
@@ -339,11 +347,16 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                       {formatDayShort(day.date, i)}
                     </Text>
                     <WeatherIcon name={day.icon || 'weather-partly-cloudy'} size={26} dark={dark} />
-                    <Text style={[styles.dayChipMax, { color: T.tempColor }]}>{Math.round(day.tempMax)}°</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                      <Text style={[styles.dayChipMax, { color: T.tempColor }]}>{Math.round(day.tempMax)}°</Text>
+                      {chipExceeded.map(e => (
+                        <MaterialCommunityIcons key={e.id} name={e.icon} size={12} color={e.color} />
+                      ))}
+                    </View>
                     <Text style={[styles.dayChipMin, { color: T.tempColor }]}>{Math.round(day.tempMin)}°</Text>
                     {/* Riga pioggia sempre presente — stessa disposizione/altezza per tutte le card */}
                     <Text style={[styles.dayChipRain, { color: T.rainColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
-                      💧{day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}{day.precipitation > 0 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
+                      🌧{day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}
                     </Text>
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
@@ -402,24 +415,28 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                 : validWaves.length ? validWaves.reduce((a, b) => a + b.waveHeight, 0) / validWaves.length : null;
               const windKmh = day.windMax ?? day.windspeed;
 
+              const divDayExceeded = alertsEnabled ? checkDayThresholds(day, alertThresholds) : [];
               return (
                 <React.Fragment key={dayIdx}>
                   {/* ── Separatore giorno ── */}
                   <View
-                    style={[styles.dayDivider, { backgroundColor: T.dividerCard, borderColor: T.divider }]}
+                    style={[styles.dayDivider, { backgroundColor: T.dividerCard, borderColor: divDayExceeded.length > 0 ? divDayExceeded[0].color + '88' : T.divider }, divDayExceeded.length > 0 && { borderWidth: 1.5 }]}
                     onLayout={e => { inlineDayOffsetsRef.current[dayIdx] = e.nativeEvent.layout.x; }}
                   >
                     <Text style={[styles.dayDivLabel, { color: T.main }]}>{formatDayFull(day.date, dayIdx)}</Text>
-                    {/* Riga 1: icona + temp max/min affiancate */}
+                    {/* Riga 1: icona + temp max/min + alert affiancati */}
                     <View style={styles.dayDivTopRow}>
                       <WeatherIcon name={day.icon || 'weather-partly-cloudy'} size={26} dark={dark} />
                       <Text style={[styles.dayDivTemp, { color: T.tempColor }]}>
                         {Math.round(day.tempMax)}°<Text style={[styles.dayDivTempMin, { color: T.muted }]}>/{Math.round(day.tempMin)}°</Text>
                       </Text>
+                      {divDayExceeded.map(e => (
+                        <MaterialCommunityIcons key={e.id} name={e.icon} size={14} color={e.color} />
+                      ))}
                     </View>
                     {/* Riga pioggia sempre presente — stessa disposizione/altezza per tutte le card */}
                     <Text style={[styles.dayDivMeta, { color: T.rainColor }]}>
-                      💧 {day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}{day.precipitation > 0 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
+                      🌧 {day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}
                     </Text>
                     {/* Riga: alba/tramonto affiancati */}
                     {(day.sunrise || day.sunset) && (
@@ -450,6 +467,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                         )}
                       </View>
                     )}
+                    {/* Indicatori soglie ora spostati nella riga temp sopra */}
                     {!hasData && (
                       <Text style={[styles.dayDivNoData, { color: T.muted }]}>nessun dato orario</Text>
                     )}
@@ -477,25 +495,40 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                           {sunInfo && <Text style={styles.fasciaSunTime}>{sunInfo.emoji} {sunInfo.time}</Text>}
                         </View>
                         {/* Card orarie */}
-                        {filtered.map((h, j) => (
-                          <View key={j} style={[styles.hourCard, { backgroundColor: T.dividerCard, borderWidth: 1, borderColor: T.divider }]}>
+                        {filtered.map((h, j) => {
+                          const hExceeded = alertsEnabled ? checkHourThresholds(h, alertThresholds) : [];
+                          const hTopColor = hExceeded.length ? hExceeded[0].color : null;
+                          return (
+                          <View key={j} style={[styles.hourCard, { backgroundColor: T.dividerCard, borderWidth: 1, borderColor: hTopColor ? hTopColor + '88' : T.divider }, hTopColor && { borderWidth: 1.5 }]}>
                             <Text style={[styles.hourTime, { color: T.muted }]}>{formatHour(h.time)}</Text>
                             <WeatherIcon name={h.icon || 'weather-partly-cloudy'} size={32} dark={dark} />
-                            <Text style={[styles.hourTemp, { color: T.tempColor }]}>{Math.round(h.temp)}°</Text>
-                            <View style={styles.hourMetaRow}>
-                              {h.humidity != null && !isNaN(h.humidity) && <Text style={[styles.hourSub, { color: T.wind }]}>💧{Math.round(h.humidity)}%</Text>}
-                              <Text style={[styles.hourSub, { color: T.rainColor }]}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%{h.precipMm > 0 ? ` · ${h.precipMm.toFixed(1)}mm` : ''}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                              <Text style={[styles.hourTemp, { color: T.tempColor }]}>{Math.round(h.temp)}°</Text>
+                              {hExceeded.map(e => (
+                                <MaterialCommunityIcons key={e.id} name={e.icon} size={13} color={e.color} />
+                              ))}
                             </View>
-                            {h.windspeed != null && (
-                              <View style={styles.hourWindRow}>
+                            <View style={styles.hourMetaRow}>
+                              {h.humidity != null && !isNaN(h.humidity) && <Text style={[styles.hourSub, { color: T.wind }]} numberOfLines={1}>💧{Math.round(h.humidity)}%</Text>}
+                              <Text style={[styles.hourSub, { color: T.rainColor }]} numberOfLines={1}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
+                            </View>
+                            <View style={styles.hourWindRow}>
+                              {h.windspeed != null && (<>
                                 <MaterialCommunityIcons name="weather-windy" size={10} color="#7dd3fc" />
                                 <Text style={[styles.hourWindSub, { color: T.wind }]}>
                                   {Math.round(h.windspeed)}{h.winddir != null ? ` ${windDirArrow(h.winddir)}` : ''}
                                 </Text>
-                              </View>
-                            )}
+                                <Text style={[styles.hourWindSub, { color: T.wind }]}>·</Text>
+                              </>)}
+                              <Text style={[styles.hourSub, { color: T.rainColor }]} numberOfLines={1}>🌧{(h.precipMm ?? 0).toFixed(1)}mm</Text>
+                            </View>
+                            {(() => {
+                              const seaInfo = isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(h.windspeed);
+                              return seaInfo ? <Text style={[styles.hourSub, { color: T.cyan || '#67e8f9' }]} numberOfLines={1}>🌊{seaInfo}</Text> : null;
+                            })()}
                           </View>
-                        ))}
+                          );
+                        })}
                       </React.Fragment>
                     );
                   })}
@@ -529,11 +562,13 @@ const styles = StyleSheet.create({
 
   // Header
   topBar: {
-    alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 12, paddingVertical: 10,
     borderBottomWidth: 1,
   },
   providerTitle: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 },
+  backBtn: { padding: 4 },
+  backBtnPlaceholder: { width: 30 }, // bilancia la freccia ← così il titolo resta centrato
 
   // Condizioni attuali — compatte
   currentCard: {
@@ -575,7 +610,7 @@ const styles = StyleSheet.create({
 
   // Separatore giorno
   dayDivider: {
-    width: 172, height: 160, justifyContent: 'space-evenly',
+    width: 164, height: 160, justifyContent: 'space-evenly',
     alignItems: 'stretch', gap: 2,
     paddingVertical: 8, paddingHorizontal: 10,
     borderRadius: 12, borderWidth: 1,
@@ -599,10 +634,15 @@ const styles = StyleSheet.create({
   fasciaName:    { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.4 },
   fasciaSunTime: { fontSize: 10, color: 'rgba(255,255,255,0.60)', textAlign: 'center' },
 
-  // Card oraria
+  // Card oraria — larghezza FISSA uniforme per TUTTE le card orarie (e per le
+  // intestazioni fascia, che condividono questo stile): dimensionata sul
+  // contenuto più lungo (stato del mare es. "🌊Poco increspato" e riga
+  // umidità+pioggia), così nessun testo va a capo e le card hanno tutte la
+  // stessa larghezza. Allineata alla card oraria della Home (164px).
   hourCard: {
     paddingVertical: 10, paddingHorizontal: 10,
-    alignItems: 'center', justifyContent: 'center', gap: 3, minWidth: 72, height: 160,
+    alignItems: 'center', justifyContent: 'center', gap: 3,
+    width: 164, minWidth: 164, maxWidth: 164, height: 160,
     borderRadius: 12, marginHorizontal: 3, marginVertical: 2,
   },
   hourTime:    { fontSize: 11, fontWeight: '700' },

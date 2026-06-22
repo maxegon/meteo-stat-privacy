@@ -1,65 +1,18 @@
+// Strumenti complementari — Solo1Meteo non include radar live né mappe
+// vento animate; queste app colmano quel gap senza essere alternative dirette.
 export const EXTERNAL_APPS = [
   {
-    name: 'Meteo.it',
-    domain: 'meteo.it',
-    fallback: '🇮🇹',
-    note: 'Previsioni meteo Italia',
-    appStore: 'https://apps.apple.com/it/app/meteo-it-previsioni-meteo/id513324574',
-  },
-  {
-    name: 'ilMeteo',
-    domain: 'ilmeteo.it',
-    fallback: '🌦️',
-    note: 'Meteo italiano con radar',
-    appStore: 'https://apps.apple.com/it/app/meteo-by-ilmeteo-it/id338851554',
-  },
-  {
-    name: '3BMeteo',
-    domain: '3bmeteo.com',
-    fallback: '☁️',
-    note: 'Meteo professionale italiano',
-    appStore: 'https://apps.apple.com/it/app/3b-meteo-weather-forecasts/id346004125',
-  },
-  {
-    name: 'iMeteo',
-    domain: 'imeteo.it',
-    fallback: '📍',
-    note: 'Previsioni locali Italia',
-    appStore: 'https://apps.apple.com/it/app/imeteo-meteo-italia/id325759942',
-  },
-  {
-    name: 'Aeronautica',
-    domain: 'meteoam.it',
-    fallback: '✈️',
-    note: 'Aeronautica Militare',
-    appStore: 'https://apps.apple.com/us/app/meteo-aeronautica/id956516781',
+    name: 'Windy',
+    domain: 'windy.com',
+    fallback: '🌬️',
+    note: 'Mappe interattive vento, pioggia e pressione',
+    appStore: 'https://apps.apple.com/app/windy-wind-weather-forecast/id1161387262',
   },
   {
     name: 'Meteo Radar',
     domain: 'meteoeradar.it',
     fallback: '📡',
-    note: 'Radar pluviometrico live',
+    note: 'Radar pluviometrico in tempo reale',
     appStore: 'https://apps.apple.com/it/app/meteo-radar/id545993260',
-  },
-  {
-    name: 'Windy',
-    domain: 'windy.com',
-    fallback: '🌬️',
-    note: 'Mappe vento e pioggia',
-    appStore: 'https://apps.apple.com/app/windy-wind-weather-forecast/id1161387262',
-  },
-  {
-    name: 'The Weather Channel',
-    domain: 'weather.com',
-    fallback: '🌍',
-    note: 'Meteo globale con allerte',
-    appStore: 'https://apps.apple.com/app/the-weather-channel/id295646461',
-  },
-  {
-    name: 'Meteo Apple',
-    domain: 'weather.apple.com',
-    fallback: '🌤️',
-    note: 'App Meteo integrata iPhone',
-    appStore: 'https://apps.apple.com/it/app/weather/id1069513131',
   },
 ];

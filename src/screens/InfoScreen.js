@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PROVIDERS } from '../services/providers';
 import { EXTERNAL_APPS } from '../services/externalApps';
 import AnimatedGradientBg from '../components/AnimatedGradientBg';
+import AlertSettingsModal from '../components/AlertSettingsModal';
 import PrivacyPolicyScreen from './PrivacyPolicyScreen';
 import AffidabilitaScreen from './AffidabilitaScreen';
 import { useTheme } from '../context/ThemeContext';
@@ -16,6 +17,7 @@ const DEV_TAPS_REQUIRED = 5;
 export default function InfoScreen() {
   const [showPolicy, setShowPolicy]     = useState(false);
   const [showAffid, setShowAffid]       = useState(false);
+  const [showAlertSettings, setShowAlertSettings] = useState(false);
   const [showDiag, setShowDiag]         = useState(false);
   const [logs, setLogs]                 = useState([]);
   const [tapCount, setTapCount]         = useState(0);
@@ -129,11 +131,11 @@ export default function InfoScreen() {
           ))}
         </View>
 
-        {/* App esterne */}
+        {/* Strumenti complementari */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Confronta anche su</Text>
+          <Text style={styles.sectionTitle}>Strumenti complementari</Text>
           <Text style={styles.note}>
-            Tap per aprire o scaricare l'app
+            Solo1Meteo non include radar live o mappe vento animate — queste app li offrono
           </Text>
           {EXTERNAL_APPS.map(app => (
             <TouchableOpacity key={app.name} style={styles.extCard} onPress={() => Linking.openURL(app.appStore)}>
@@ -147,8 +149,37 @@ export default function InfoScreen() {
           ))}
         </View>
 
+        {/* Impostazioni alert meteo */}
+        <AlertSettingsModal
+          visible={showAlertSettings}
+          onClose={() => setShowAlertSettings(false)}
+        />
+        <TouchableOpacity style={styles.policyBtn} onPress={() => setShowAlertSettings(true)}>
+          <MaterialCommunityIcons name="bell-alert-outline" size={18} color="#f59e0b" />
+          <Text style={styles.policyBtnText}>Soglie alert meteo</Text>
+          <MaterialCommunityIcons name="chevron-right" size={18} color="#f59e0b" />
+        </TouchableOpacity>
+
+        {/* Spiegazione alert */}
+        <View style={[styles.section, { marginTop: 14 }]}>
+          <Text style={styles.sectionTitle}>Come funzionano gli alert</Text>
+          {[
+            { icon: 'bell-alert-outline', color: '#f59e0b', title: 'Soglie fisse (personalizzabili)', body: 'L\'app mostra un banner nella schermata principale quando le previsioni superano una soglia critica: caldo ≥35°C, freddo ≤0°C, pioggia ≥20mm, vento ≥60km/h, UV ≥8. Puoi modificare ogni soglia dal pulsante qui sopra.' },
+            { icon: 'chart-timeline-variant-shimmer', color: '#a855f7', title: 'Anomalia climatica (automatico)', body: 'Oltre alle soglie fisse, l\'app confronta le previsioni con le medie storiche della tua zona (ultimi 3 anni, stesso periodo). Se un valore si discosta molto dalla norma, appare un alert "anomalia" — anche se la soglia fissa non è superata.' },
+            { icon: 'information-outline', color: '#38bdf8', title: 'Priorità e visualizzazione', body: 'Tutti gli alert attivi sono visibili contemporaneamente. Se una condizione supera sia la soglia fissa sia l\'anomalia, viene mostrato solo l\'alert fisso (più urgente). Ogni banner è chiudibile singolarmente.' },
+          ].map((item, i) => (
+            <View key={i} style={{ flexDirection: 'row', marginBottom: 10, gap: 10 }}>
+              <MaterialCommunityIcons name={item.icon} size={18} color={item.color} style={{ marginTop: 2 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.body, { fontWeight: '600', marginBottom: 2 }]}>{item.title}</Text>
+                <Text style={styles.body}>{item.body}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
         {/* Affidabilità */}
-        <TouchableOpacity style={styles.policyBtn} onPress={() => setShowAffid(true)}>
+        <TouchableOpacity style={[styles.policyBtn, { marginTop: 6 }]} onPress={() => setShowAffid(true)}>
           <MaterialCommunityIcons name="shield-check-outline" size={18} color="#38bdf8" />
           <Text style={styles.policyBtnText}>Affidabilità delle previsioni</Text>
           <MaterialCommunityIcons name="chevron-right" size={18} color="#38bdf8" />
