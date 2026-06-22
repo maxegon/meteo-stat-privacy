@@ -22,6 +22,11 @@ import { getIconColor } from '../utils/weatherIconColor';
 import { windDirArrow, windDirLabel } from '../utils/windDir';
 import { translateDescription } from '../utils/weatherDescriptions';
 import { isCoastal } from '../utils/isCoastal';
+import WeatherAlertBanner from '../components/WeatherAlertBanner';
+import OfficialAlertBanner from '../components/OfficialAlertBanner';
+import AlertSettingsModal from '../components/AlertSettingsModal';
+import { detectAlerts, extractOfficialAlerts, loadThresholds, loadAlertsEnabled, checkDayThresholds, checkHourThresholds } from '../services/weatherAlerts';
+import { getClimateNormals } from '../services/climateNormals';
 
 // Scala di Douglas (WMO) basata su velocità del vento — restituisce { label, note }
 function seaStateFromWind(kmh) {
@@ -29,7 +34,7 @@ function seaStateFromWind(kmh) {
   if (kmh <  2) return { label: 'Calmo',              note: 'mare a specchio' };
   if (kmh <  6) return { label: 'Quasi calmo',        note: 'onde ~0.1 m' };
   if (kmh < 12) return { label: 'Poco increspato',    note: 'onde ~0.2 m' };
-  if (kmh < 20) return { label: 'Leggermente mosso',  note: 'onde ~0.5 m' };
+  if (kmh < 20) return { label: 'Poco mosso',         note: 'onde ~0.5 m' };
   if (kmh < 29) return { label: 'Mosso',              note: 'onde ~1 m' };
   if (kmh < 39) return { label: 'Molto mosso',        note: 'onde ~2 m' };
   if (kmh < 50) return { label: 'Agitato',            note: 'onde ~3.5 m' };
@@ -63,6 +68,7 @@ export default function HomeScreen({ navigation }) {
   const [activeDay, setActiveDay] = useState(0);
   const inlineScrollRef = useRef(null);
   const inlineDayOffsetsRef = useRef([0, 0, 0]);
+  const inlineForecastYRef = useRef(0);
   const [showCompare, setShowCompare] = useState(false);
   const [recentCities, setRecentCities] = useState([]);
   const [modal, setModal] = useState(null); // { data, title, color }
@@ -70,6 +76,15 @@ export default function HomeScreen({ navigation }) {
   const [gpsBlocked, setGpsBlocked] = useState(false);
   const [showHowTo, setShowHowTo] = useState(false);
   const [tooltip, setTooltip] = useState(null); // 'provider' | 'compare' | null
+  const [weatherAlerts, setWeatherAlerts] = useState([]);
+  const [showAlertSettings, setShowAlertSettings] = useState(false);
+  const [alertThresholds, setAlertThresholds] = useState(null);
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
+  const [climateNormals, setClimateNormals] = useState(null);
+  // Allerte UFFICIALI (da WeatherAPI, riprodotte senza calcolo) — distinte
+  // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
+  // weather, nessun bisogno di effect/storage.
+  const officialAlerts = useMemo(() => extractOfficialAlerts(weather), [weather]);
   const hasAutoLoaded = useRef(false);
   const scrollRef = useRef(null);
   const cityInfoRef = useRef(null);
@@ -91,6 +106,26 @@ export default function HomeScreen({ navigation }) {
     const freq = {};
     v.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+  };
+  // Vota icona+descrizione INSIEME (come coppia), così l'icona mostrata
+  // corrisponde sempre alla descrizione testuale e non a quella di un altro
+  // provider/slot (es. "Sereno" con icona nuvola).
+  const aggMajorityPair = items => {
+    const v = items.filter(x => x?.icon && x?.description);
+    if (!v.length) return null;
+    // Le descrizioni contengono spazi (es. "clear sky"): non si puo'
+    // ricostruire la coppia da una stringa concatenata, quindi la coppia
+    // originale viene conservata insieme al conteggio per ogni chiave.
+    const freq = new Map();
+    v.forEach(x => {
+      const key = x.icon + '\u0001' + x.description;
+      const entry = freq.get(key);
+      if (entry) entry.count += 1;
+      else freq.set(key, { count: 1, pair: { icon: x.icon, description: x.description } });
+    });
+    let best = null;
+    freq.forEach(entry => { if (!best || entry.count > best.count) best = entry; });
+    return best.pair;
   };
   // Normalizza timestamp a "YYYY-MM-DDTHH" per matching tra provider
   const hourKey = t => t.replace(' ', 'T').slice(0, 13);
@@ -140,8 +175,10 @@ export default function HomeScreen({ navigation }) {
         precipProb: aggAvg(all.map(s => pct(s.precipProb))) ?? slot.precipProb,
         precipMm,
         windspeed:  aggAvg(all.map(s => s.windspeed))       ?? slot.windspeed,
-        icon:        aggMajority(all.map(s => s.icon))        || slot.icon,
-        description: aggMajority(all.map(s => s.description)) || slot.description,
+        // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": icona e descrizione
+        // vengono votate INSIEME come coppia (stesso provider/slot), così non
+        // si presentano combinazioni incoerenti (es. "Sereno" con icona nuvola).
+        ...(aggMajorityPair(all.map(s => ({ icon: s.icon, description: s.description }))) || { icon: slot.icon, description: slot.description }),
       };
     });
   };
@@ -170,19 +207,37 @@ export default function HomeScreen({ navigation }) {
     if (!providers.length) return w.openMeteo?.daily || [];
     const base = w.openMeteo?.daily || providers[0].daily;
 
+    // COERENZA temp (richiesta utente): max/min del giorno derivati dalla STESSA
+    // serie oraria aggregata mostrata nelle card (media dei provider ora per ora,
+    // stessa granularità di 2 ore). Così la max e la min mostrate nella card del
+    // giorno compaiono SEMPRE in almeno una card oraria, e provengono dallo stesso
+    // tipo di calcolo (media) della temperatura oraria — non dalla media dei
+    // max/min giornalieri dichiarati dai provider (calcolo diverso).
+    const aggHourly = buildAggregateHourly(w);
+    const nowTs = new Date();
+    const hourlyByDate = {};
+    aggHourly.forEach(h => {
+      if (h?.temp == null || isNaN(h.temp)) return;
+      if (getHour(h.time) % 2 !== 0) return; // stessa granularità delle card (ogni 2 ore)
+      const d = getDateStr(h.time);
+      (hourlyByDate[d] = hourlyByDate[d] || []).push(h);
+    });
+
     // Icona e descrizione prevalente dalle ore di luce su tutti i provider con hourly
     const allHourly = [
       w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
       w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
     ].filter(p => p?.hourly?.length).flatMap(p => p.hourly);
 
-    const prevalentForDate = (date, field) => {
-      const vals = allHourly.filter(h => {
+    // Icona+descrizione prevalenti come COPPIA (stesso slot orario), così
+    // l'icona corrisponde sempre al testo della previsione mostrata.
+    const prevalentPairForDate = (date) => {
+      const items = allHourly.filter(h => {
         const hDate = h.time.replace(' ', 'T').slice(0, 10);
         const hr = parseInt(h.time.replace(' ', 'T').slice(11, 13), 10);
         return hDate === date && hr >= 6 && hr < 20;
-      }).map(h => h[field]).filter(Boolean);
-      return aggMajority(vals);
+      }).map(h => ({ icon: h.icon, description: h.description }));
+      return aggMajorityPair(items);
     };
 
     return base.map((day, i) => {
@@ -194,24 +249,81 @@ export default function HomeScreen({ navigation }) {
       // devono essere la media dei provider che hanno il dato per quel giorno
       // (prima venivano presi solo da `base`, violando la regola).
       const precipMmVals = dayProviders.map(p => p.daily[i].precipitation).filter(v => v != null);
-      const icon = i === 0
-        ? (aggMajority(providers.map(p => p.current?.icon).filter(Boolean)) || prevalentForDate(day.date, 'icon') || day.icon)
-        : (prevalentForDate(day.date, 'icon') || aggMajority(dayProviders.map(p => p.daily[i].icon).filter(Boolean)) || day.icon);
-      const description = i === 0
-        ? (aggMajority(providers.map(p => p.current?.description).filter(Boolean)) || day.description)
-        : (prevalentForDate(day.date, 'description') || aggMajority(dayProviders.map(p => p.daily[i].description).filter(Boolean)) || day.description);
+      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": UV aggregato come media
+      const uvVals = dayProviders.map(p => p.daily[i].uvIndex).filter(v => v != null);
+      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": icona e descrizione
+      // vengono votate INSIEME come coppia (stesso provider/slot orario), mai
+      // separatamente — altrimenti l'icona "vincente" può appartenere a un
+      // provider diverso da quello della descrizione "vincente" e mostrare
+      // combinazioni incoerenti (es. testo "Sereno" con icona nuvola).
+      const pair = i === 0
+        ? (aggMajorityPair(providers.map(p => ({ icon: p.current?.icon, description: p.current?.description })))
+            || prevalentPairForDate(day.date)
+            || { icon: day.icon, description: day.description })
+        : (prevalentPairForDate(day.date)
+            || aggMajorityPair(dayProviders.map(p => ({ icon: p.daily[i].icon, description: p.daily[i].description })))
+            || { icon: day.icon, description: day.description });
+      // Ore aggregate di questo giorno (per oggi, i===0, solo ore future come le
+      // card). Se disponibili, max/min derivano da queste (così compaiono nelle
+      // card orarie); altrimenti fallback alla media dei max/min giornalieri.
+      const dayHours = hourlyByDate[day.date] || [];
+      // INVARIANTE COERENZA: tempMax/tempMin usano TUTTE le ore del giorno (passate
+      // + future), così il massimo non è mai inferiore alla temperatura attuale
+      // mostrata in card (che può essere il picco già raggiunto stamattina).
+      // Per i===0 aggiungiamo anche consensus.temperature come candidato floor,
+      // eliminando la discrepanza "banner 35° / card 36°" quando il picco è già
+      // passato ma la temperatura attuale supera le previsioni rimanenti.
+      const allDayTemps = dayHours.map(h => h.temp).filter(v => v != null && !isNaN(v));
+      if (i === 0 && w.consensus?.temperature != null) allDayTemps.push(w.consensus.temperature);
+      const tempMaxVal = allDayTemps.length ? Math.round(Math.max(...allDayTemps)) : Math.round(aggAvg(maxVals) ?? day.tempMax);
+      const tempMinVal = allDayTemps.length ? Math.round(Math.min(...allDayTemps)) : Math.round(aggAvg(minVals) ?? day.tempMin);
       return {
         ...day,
-        tempMax: Math.round(aggAvg(maxVals) ?? day.tempMax),
-        tempMin: Math.round(aggAvg(minVals) ?? day.tempMin),
+        tempMax: tempMaxVal,
+        tempMin: tempMinVal,
         precipProbability: Math.round(aggAvg(precipVals) ?? day.precipProbability),
         precipitation: precipMmVals.length ? aggAvg(precipMmVals) : (day.precipitation ?? null),
-        icon,
-        description,
+        uvIndex: uvVals.length ? Math.round(aggAvg(uvVals) * 10) / 10 : (day.uvIndex ?? null),
+        icon: pair.icon,
+        description: pair.description,
         providerCount: dayProviders.length,
       };
     });
   };
+
+  // Carica soglie alert al mount
+  useEffect(() => {
+    Promise.all([loadThresholds(), loadAlertsEnabled()]).then(([t, e]) => {
+      setAlertThresholds(t);
+      setAlertsEnabled(e);
+    });
+  }, []);
+
+  // Carica medie climatiche quando cambia la città (in background, non blocca la UI)
+  useEffect(() => {
+    if (cityInfo?.lat != null && cityInfo?.lon != null) {
+      getClimateNormals(cityInfo.lat, cityInfo.lon)
+        .then(setClimateNormals)
+        .catch(() => setClimateNormals(null));
+    }
+  }, [cityInfo?.lat, cityInfo?.lon]);
+
+  // Ricalcola alert ogni volta che cambiano dati meteo, soglie o medie climatiche
+  useEffect(() => {
+    if (!weather || !alertThresholds || !alertsEnabled) {
+      setWeatherAlerts([]);
+      return;
+    }
+    const daily  = buildAggregateDays(weather);
+    const hourly = buildAggregateHourly(weather);
+    const alerts = detectAlerts({
+      daily, hourly,
+      consensus: weather.consensus,
+      thresholds: alertThresholds,
+      climate: climateNormals,
+    });
+    setWeatherAlerts(alerts);
+  }, [weather, alertThresholds, alertsEnabled, climateNormals]);
 
   // Carica città recenti e avvia GPS al primo mount
   useEffect(() => {
@@ -470,9 +582,17 @@ export default function HomeScreen({ navigation }) {
             <MaterialCommunityIcons name="weather-partly-cloudy" size={80} color="#38bdf8" />
             <Text style={styles.welcomeTitle}>Solo1Meteo</Text>
             <Text style={styles.welcomeText}>
-              Dati da più fonti meteo in un'unica app.{'\n'}
-              Cerca una città o usa la tua posizione.
+              Dati da più fonti meteo in un'unica app.
             </Text>
+            <View style={styles.welcomeCta}>
+              <Text style={styles.welcomeCtaText}>
+                Per iniziare, attiva la posizione oppure cerca la tua città nella barra in alto.
+              </Text>
+              <TouchableOpacity style={styles.welcomeLocBtn} onPress={useMyLocation} accessibilityLabel="Usa la mia posizione" accessibilityRole="button">
+                <MaterialCommunityIcons name="crosshairs-gps" size={18} color="#0f172a" />
+                <Text style={styles.welcomeLocBtnText}>Usa la mia posizione</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.providerRow}>
               {Object.values(PROVIDERS).map(p => (
                 <ProviderBadge key={p.id} provider={p} size="md" />
@@ -495,8 +615,8 @@ export default function HomeScreen({ navigation }) {
             {[
               { icon: 'cloud-download-outline', color: '#38bdf8', title: 'Dati da 8 provider attivi', desc: 'L\'app chiama in parallelo fino a 8 servizi meteo indipendenti: Open-Meteo, OpenWeatherMap, WeatherAPI, MET Norway e altri.' },
               { icon: 'scale-balance', color: '#818cf8', title: 'Media e scostamento', desc: 'Viene calcolata la media tra le fonti meteo. Lo scostamento % indica quanto ogni modello si discosta: verde = accordo, giallo = lieve differenza, rosso = divergenza.' },
-              { icon: 'gesture-tap', color: '#4ade80', title: 'Tocca una card', desc: 'Toccando una WeatherCard o la card Media si apre il dettaglio con previsioni orarie e giornaliere fino a 16 giorni.' },
-              { icon: 'shield-check-outline', color: '#fbbf24', title: 'Quando fidarsi', desc: 'Quando i 3 modelli concordano la previsione è più affidabile. Quando divergono molto, c\'è incertezza reale — nessun modello è "giusto" in anticipo.' },
+              { icon: 'gesture-tap', color: '#4ade80', title: 'Naviga le previsioni', desc: 'Tocca la card Media per aprire le previsioni orarie. Usa "+Giorni" per la lista multi-giorno fino a 16 giorni. Tocca una WeatherCard per il dettaglio del singolo provider.' },
+              { icon: 'shield-check-outline', color: '#fbbf24', title: 'Quando fidarsi', desc: 'Quando le 8 fonti concordano la previsione è più affidabile. Quando divergono molto, c\'è incertezza reale — nessun modello è "giusto" in anticipo.' },
               { icon: 'theme-light-dark', color: '#a78bfa', title: 'Sfondo dinamico (tema scuro)', desc: 'Nel tema scuro lo sfondo cambia leggermente tonalità in base all\'ora del giorno (notte, alba, mattina, mezzogiorno, pomeriggio, sera) per richiamare la luce reale — resta sempre blu navy, mai nero.' },
             ].map((item, i) => (
               <View key={i} style={styles.howToRow}>
@@ -583,8 +703,24 @@ export default function HomeScreen({ navigation }) {
             ))}
           </View>
 
+          {/* Modal impostazioni alert */}
+          <AlertSettingsModal
+            visible={showAlertSettings}
+            onClose={() => setShowAlertSettings(false)}
+            onSave={(t, e) => { setAlertThresholds(t); setAlertsEnabled(e); }}
+          />
+
           {/* Vista principale: visibile quando non si è in Confronto o +Giorni */}
           {activeTab !== 'compare' && activeTab !== 'forecast' && <View>
+
+          {/* Banner allerte UFFICIALI (WeatherAPI) — sopra gli alert calcolati */}
+          <OfficialAlertBanner alerts={officialAlerts} />
+
+          {/* Banner alert condizioni estreme */}
+          <WeatherAlertBanner
+            alerts={weatherAlerts}
+            onOpenSettings={() => setShowAlertSettings(true)}
+          />
 
           {/* Card consenso */}
           {weather.consensus && (
@@ -598,9 +734,8 @@ export default function HomeScreen({ navigation }) {
               {/* Header: Media N fonti — — — attuale · descrizione > */}
               {(() => {
                 const today = buildAggregateDays(weather)[0];
-                const humVals = [weather.openMeteo, weather.openWeather, weather.weatherApi, weather.metNorway, weather.brightsky, weather.visualCrossing, weather.tomorrowIo]
-                  .map(p => p?.current?.humidity).filter(v => v != null && v > 0);
-                const humidity = humVals.length ? Math.round(humVals.reduce((a,b) => a+b,0) / humVals.length) : null;
+                const humidity = weather.consensus?.humidity != null ? Math.round(weather.consensus.humidity) : null;
+                const pressure = weather.consensus?.pressure != null ? Math.round(weather.consensus.pressure) : null;
                 const rain = today?.precipProbability ?? null;
                 const rainMm = today?.precipitation ?? null;
                 return (<>
@@ -621,8 +756,8 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.consensusTemp}>{Math.round(weather.consensus.temperature)}°C</Text>
                     <WeatherIcon name={weather.consensus.icon || 'weather-partly-cloudy'} size={48} dark={dark} />
                   </View>
-                  {/* Riga 3: 🌧 X%  · mm  💧 umidità% — sotto, giustificati a destra */}
-                  {(rain != null || humidity != null) && (
+                  {/* Riga 3: 🌧 X%  · mm  💧 umidità%  📊 pressione hPa — sotto, giustificati a destra */}
+                  {(rain != null || humidity != null || pressure != null) && (
                     <View style={styles.consensusBadgeRow}>
                       {rain != null && (
                         <Text style={styles.consensusBadge}>
@@ -630,6 +765,7 @@ export default function HomeScreen({ navigation }) {
                         </Text>
                       )}
                       {humidity != null && <Text style={styles.consensusBadge}>💧 {humidity}%</Text>}
+                      {pressure != null && <Text style={styles.consensusBadge}>📊 {pressure} hPa</Text>}
                     </View>
                   )}
                 </>);
@@ -699,30 +835,37 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.dayBtnsRow}>
                 {[0, 1, 2].map(i => {
                   const day = aggDays[i];
-                  const label = i === 0 ? 'Oggi' : i === 1 ? 'Domani' : 'Dopo';
-                  const dateLabel = i === 2 && day ? `${new Date(day.date).getDate()} ${MONTHS_IT[new Date(day.date).getMonth()]}` : null;
+                  const label = i === 0 ? 'Oggi' : i === 1 ? 'Domani' : 'Dopodomani';
+                  const dayBtnExceeded = (day && alertsEnabled) ? checkDayThresholds(day, alertThresholds) : [];
                   return (
                     <TouchableOpacity
                       key={i}
-                      style={[styles.dayBtn, activeDay === i && styles.dayBtnActive]}
+                      style={[styles.dayBtn, activeDay === i && styles.dayBtnActive, dayBtnExceeded.length > 0 && { borderColor: dayBtnExceeded[0].color + '88', borderWidth: 1.5 }]}
                       onPress={() => {
                         setActiveDay(i);
                         const offset = inlineDayOffsetsRef.current[i] ?? 0;
                         inlineScrollRef.current?.scrollTo({ x: offset, animated: true });
+                        // Scorre la pagina fino alla sezione previsioni, appena sotto i pulsanti
+                        const y = Math.max(0, inlineForecastYRef.current - 12);
+                        scrollRef.current?.scrollTo({ y, animated: true });
                       }}
                     >
                       <Text style={[styles.dayBtnLabel, activeDay === i && styles.dayBtnLabelActive, i === 2 && activeDay !== 2 && styles.dayBtnLabelThird]}>{label}</Text>
-                      {dateLabel && <Text style={[styles.dayBtnDate, activeDay === 2 && styles.dayBtnDateActive]}>{dateLabel}</Text>}
                       {day && <WeatherIcon name={day.icon} size={30} dark={dark} />}
                       {day && (
                         <View style={styles.dayBtnTemps}>
-                          <Text style={styles.dayBtnMax}>{Math.round(day.tempMax)}°</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                            <Text style={styles.dayBtnMax}>{Math.round(day.tempMax)}°</Text>
+                            {dayBtnExceeded.map(e => (
+                              <MaterialCommunityIcons key={e.id} name={e.icon} size={12} color={e.color} />
+                            ))}
+                          </View>
                           <Text style={[styles.dayBtnMin, i === 2 && activeDay !== 2 && styles.dayBtnMinThird]}>{Math.round(day.tempMin)}°</Text>
                         </View>
                       )}
-                      {day?.precipProbability > 0 && (
+                      {day != null && (
                         <Text style={[styles.dayBtnRain, i === 2 && activeDay !== 2 && styles.dayBtnRainThird]}>
-                          💧{Math.round(day.precipProbability)}%{day.precipitation >= 0.05 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
+                          🌧{Math.round(day.precipProbability ?? 0)}%{day.precipitation >= 0.05 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
                         </Text>
                       )}
                       {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
@@ -762,21 +905,10 @@ export default function HomeScreen({ navigation }) {
               : { Mattina: '#b45309', Pomeriggio: '#c2410c', Notte: '#3730a3' };
 
             return (
-              <View style={styles.inlineForecast}>
-                {selDay && (
-                  <View style={styles.inlineDayHeader}>
-                    <WeatherIcon name={selDay.icon} size={32} dark={dark} />
-                    <Text style={styles.inlineDayDesc}>{translateDescription(selDay.description)}</Text>
-                    <Text style={styles.inlineDayMax}>{Math.round(selDay.tempMax)}°</Text>
-                    <Text style={styles.inlineDaySep}>/</Text>
-                    <Text style={styles.inlineDayMin}>{Math.round(selDay.tempMin)}°</Text>
-                    {selDay.precipProbability > 0 && (
-                      <Text style={styles.inlineDayRain}>
-                        💧{Math.round(selDay.precipProbability)}%{selDay.precipitation >= 0.05 ? ` · ${selDay.precipitation.toFixed(1)}mm` : ''}
-                      </Text>
-                    )}
-                  </View>
-                )}
+              <View
+                style={styles.inlineForecast}
+                onLayout={e => { inlineForecastYRef.current = e.nativeEvent.layout.y; }}
+              >
 <ScrollView
                   ref={inlineScrollRef}
                   horizontal
@@ -818,16 +950,22 @@ export default function HomeScreen({ navigation }) {
                         Pomeriggio: null,
                         Notte:      day.sunset  ? { emoji: '🌇', time: day.sunset.slice(11,16) }  : null,
                       };
-                      const dayLabel = dayIdx === 0 ? 'Oggi' : dayIdx === 1 ? 'Domani' : `${new Date(day.date).getDate()} ${MONTHS_IT[new Date(day.date).getMonth()]}`;
+                      const dayLabel = dayIdx === 0 ? 'Oggi' : dayIdx === 1 ? 'Domani' : 'Dopodomani';
+                      const inlineDayExceeded = alertsEnabled ? checkDayThresholds(day, alertThresholds) : [];
                       return (
                         <React.Fragment key={dayIdx}>
                           {/* Separatore giorno */}
                           <View
-                            style={styles.inlineDayDivider}
+                            style={[styles.inlineDayDivider, inlineDayExceeded.length > 0 && { borderColor: inlineDayExceeded[0].color + '88', borderWidth: 1.5 }]}
                             onLayout={e => { inlineDayOffsetsRef.current[dayIdx] = e.nativeEvent.layout.x; }}
                           >
                             <Text style={styles.inlineDayDividerLabel}>{dayLabel}</Text>
-                            <Text style={styles.inlineDayDividerTemp}>{Math.round(day.tempMax)}°/{Math.round(day.tempMin)}°</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                              <Text style={styles.inlineDayDividerTemp}>{Math.round(day.tempMax)}°/{Math.round(day.tempMin)}°</Text>
+                              {inlineDayExceeded.map(e => (
+                                <MaterialCommunityIcons key={e.id} name={e.icon} size={12} color={e.color} />
+                              ))}
+                            </View>
                             <WeatherIcon name={day.icon} size={22} dark={dark} />
                             {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                             <Text style={styles.inlineDayDividerSources}>
@@ -846,26 +984,40 @@ export default function HomeScreen({ navigation }) {
                                   <Text style={[styles.inlineFasciaName, { color: BLOCK_COLOR[f] }]} numberOfLines={2} adjustsFontSizeToFit>{f}</Text>
                                   {sun && <Text style={styles.inlineFasciaSunTime}>{sun.emoji} {sun.time}</Text>}
                                 </View>
-                                {slots.map((h, j) => (
-                                  <View key={j} style={[styles.inlineHourCard, styles.inlineHourCardBox]}>
+                                {slots.map((h, j) => {
+                                  const hourExceeded = alertsEnabled ? checkHourThresholds(h, alertThresholds) : [];
+                                  const topColor = hourExceeded.length ? hourExceeded[0].color : null;
+                                  const seaLabel = isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(h.windspeed) ? seaStateFromWind(h.windspeed).label : null;
+                                  return (
+                                  <View key={j} style={[styles.inlineHourCard, styles.inlineHourCardBox, hourExceeded.length > 0 && { borderColor: topColor + '88', borderWidth: 1.5 }]}>
                                     <Text style={styles.inlineHourTime}>{h.time.slice(11, 16)}</Text>
                                     <WeatherIcon name={h.icon || 'weather-partly-cloudy'} size={28} dark={dark} />
-                                    <Text style={styles.inlineHourTemp}>{Math.round(h.temp)}°</Text>
-                                    <View style={styles.inlineHourMeta}>
-                                      {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity}>💧{Math.round(h.humidity)}%</Text>}
-                                      <Text style={styles.inlineHourRain}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%{h.precipMm >= 0.05 ? ` · ${h.precipMm.toFixed(1)}mm` : ''}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                      <Text style={styles.inlineHourTemp}>{Math.round(h.temp)}°</Text>
+                                      {hourExceeded.map(e => (
+                                        <MaterialCommunityIcons key={e.id} name={e.icon} size={13} color={e.color} />
+                                      ))}
                                     </View>
-                                    {h.windspeed != null && (
-                                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                    <View style={styles.inlineHourMeta}>
+                                      {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity} numberOfLines={1}>💧{Math.round(h.humidity)}%</Text>}
+                                      <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                      {h.windspeed != null && (<>
                                         <MaterialCommunityIcons name="weather-windy" size={10} color={TW} />
                                         <Text style={styles.inlineHourWind}>
                                           {Math.round(h.windspeed)}{h.winddir != null ? ` ${windDirArrow(h.winddir)}` : ''}
-                                          {isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(h.windspeed) ? ` 🌊${seaStateFromWind(h.windspeed).label}` : ''}
                                         </Text>
-                                      </View>
+                                        <Text style={styles.inlineHourWind}>·</Text>
+                                      </>)}
+                                      <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{(h.precipMm ?? 0).toFixed(1)}mm</Text>
+                                    </View>
+                                    {seaLabel && (
+                                      <Text style={styles.inlineHourSea} numberOfLines={1}>🌊{seaLabel}</Text>
                                     )}
                                   </View>
-                                ))}
+                                  );
+                                })}
                               </React.Fragment>
                             );
                           })}
@@ -901,7 +1053,7 @@ export default function HomeScreen({ navigation }) {
               weather.openMeteo, weather.openWeather, weather.weatherApi, weather.metNorway,
               weather.brightsky, weather.visualCrossing, weather.sevenTimer, weather.tomorrowIo,
             ].filter(Boolean);
-            const days = ['Oggi', 'Domani', 'Dopo'];
+            const days = ['Oggi', 'Domani', 'Dopodomani'];
             const pct = (val, mean) => {
               if (val == null || !mean) return null;
               const d = ((val - mean) / Math.abs(mean)) * 100;
@@ -1030,23 +1182,27 @@ export default function HomeScreen({ navigation }) {
                 </Text>
               </View>
               {aggDays.map((day, i) => {
+                const dayExceeded = alertsEnabled ? checkDayThresholds(day, alertThresholds) : [];
                 return (
-                  <TouchableOpacity key={day.date} style={[styles.dayRow, i === 0 && styles.dayRowToday]}
+                  <TouchableOpacity key={day.date} style={[styles.dayRow, i === 0 && styles.dayRowToday, dayExceeded.length > 0 && { borderColor: dayExceeded[0].color + '88', borderWidth: 1.5 }]}
                     onPress={() => setModal({ data: aggData, title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: '#38bdf8', initialDay: i })}
                     activeOpacity={0.7}>
                     <Text style={[styles.dayName, i === 0 && styles.dayNameToday]}>{i === 0 ? 'Oggi' : formatDate(day.date)}</Text>
                     <WeatherIcon name={day.icon} size={24} dark={dark} />
                     <Text style={styles.dayDesc} numberOfLines={1} ellipsizeMode="tail">{translateDescription(day.description)}</Text>
                     <View style={styles.dayTemps}>
-                      <Text style={styles.dayMax}>{Math.round(day.tempMax)}°</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                        <Text style={styles.dayMax}>{Math.round(day.tempMax)}°</Text>
+                        {dayExceeded.map(e => (
+                          <MaterialCommunityIcons key={e.id} name={e.icon} size={13} color={e.color} />
+                        ))}
+                      </View>
                       <Text style={styles.dayMin}>{Math.round(day.tempMin)}°</Text>
                     </View>
                     {/* Riga pioggia sempre presente — stessa disposizione/altezza per tutte le righe.
                         Larghezza fissa + testo allineato a destra: l'allineamento delle righe
                         non dipende più dalla lunghezza del testo (es. "0%" vs "28% · 0.1mm"). */}
-                    <Text style={styles.dayRain} numberOfLines={1}>
-                      💧 {day.precipProbability > 0 ? `${Math.round(day.precipProbability)}%` : '0%'}{day.precipitation >= 0.05 ? ` · ${day.precipitation.toFixed(1)}mm` : ''}
-                    </Text>
+                    <Text style={styles.dayRain} numberOfLines={1}>🌧 {Math.round(day.precipProbability ?? 0)}%</Text>
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                     {day.providerCount != null && (
                       <Text style={styles.daySingleBadge}>
@@ -1115,6 +1271,9 @@ export default function HomeScreen({ navigation }) {
         color={modal?.color}
         initialDay={modal?.initialDay ?? 0}
         marine={weather?.marine}
+        alertsEnabled={alertsEnabled}
+        alertThresholds={alertThresholds}
+        cityInfo={cityInfo}
       />
     </SafeAreaView>
     </AnimatedGradientBg>
@@ -1161,6 +1320,16 @@ function makeStyles(c, dark) {
   welcome: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, gap: 12 },
   welcomeTitle: { color: c.text, fontSize: 22, fontWeight: '700', marginTop: 8 },
   welcomeText: { color: c.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 22 },
+  welcomeCta: {
+    width: '100%', alignItems: 'center', gap: 12, marginTop: 4,
+    padding: 16, borderRadius: 14, backgroundColor: c.bgCard, borderWidth: 1, borderColor: c.border,
+  },
+  welcomeCtaText: { color: c.text, fontSize: 13, textAlign: 'center', lineHeight: 20, fontWeight: '500' },
+  welcomeLocBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#38bdf8', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 20,
+  },
+  welcomeLocBtnText: { color: '#0f172a', fontSize: 14, fontWeight: '700' },
   providerRow: { flexDirection: 'row', gap: 8, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' },
   scroll: { flex: 1 },
   cityHeader: { padding: 16, paddingBottom: 8, alignItems: 'center', overflow: 'visible' },
@@ -1336,7 +1505,11 @@ function makeStyles(c, dark) {
   inlineFasciaName: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.4 },
   inlineFasciaSunTime: { fontSize: 10, color: c.textSub, textAlign: 'center' },
   inlineHourGrid: { flexDirection: 'row', flexWrap: 'nowrap' },
-  inlineHourCard: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 8, gap: 4, minWidth: 68 },
+  // Larghezza fissa uniforme per TUTTE le card orarie (e intestazioni fascia):
+  // dimensionata sul contenuto più lungo (riga umidità+pioggia "💧100% 🌧100% · 25.4mm"
+  // e stati del mare tipo "🌊Poco increspato") così nessun testo va a capo e le card
+  // hanno tutte la stessa larghezza.
+  inlineHourCard: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, gap: 4, width: 164, minWidth: 164, maxWidth: 164 },
   // Box "card" per i dati orari (non per le intestazioni fascia, che hanno
   // già il loro sfondo): riduce lo spazio vuoto attorno ai valori che
   // altrimenti "galleggiavano" senza alcun contenitore visivo.
@@ -1347,6 +1520,7 @@ function makeStyles(c, dark) {
   inlineHourHumidity: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 10 },
   inlineHourRain: { color: dark ? '#a5f3fc' : '#0e7490', fontSize: 10, fontWeight: '700' },
   inlineHourWind: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 11 },
+  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center' },
   // Pulsanti azione (Confronto + 7 giorni)
   actionBtnsSection: { marginHorizontal: 12, marginTop: 12, gap: 8 },
   actionBtn: {
