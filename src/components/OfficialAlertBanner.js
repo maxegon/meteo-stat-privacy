@@ -173,7 +173,7 @@ export default function OfficialAlertBanner({ alerts = [] }) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 10 },
+  container: { marginBottom: 0 },
   badgeRow: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     marginBottom: 6, paddingHorizontal: 2,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 10, borderWidth: 1.5,
     paddingVertical: 10, paddingHorizontal: 11,
-    marginBottom: 6, gap: 9,
+    marginBottom: 8, gap: 9,
   },
   textWrap: { flex: 1, minWidth: 0 },
   headline: { fontSize: 12, fontWeight: '700' },

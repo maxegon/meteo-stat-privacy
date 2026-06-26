@@ -17,7 +17,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,6 +31,14 @@ import { WeatherProvider } from './src/context/WeatherContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { logError } from './src/utils/errorLogger';
+
+// Nasconde il box giallo LogBox ("Open debugger to view warnings.") che compare
+// SOLO nella build di sviluppo — non è mai presente nell'app pubblicata sugli
+// store. I warning restano comunque leggibili nel terminale Metro. Toglie
+// l'overlay che copriva il fondo della UI in dev.
+if (__DEV__) {
+  LogBox.ignoreAllLogs();
+}
 
 const Tab = createMaterialTopTabNavigator();
 const ONBOARDING_KEY = 'onboarding_accepted_v1';

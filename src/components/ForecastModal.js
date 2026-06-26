@@ -537,10 +537,15 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
             })}
           </ScrollView>
 
-          {/* ── Grafici andamento 24h (si rigenerano con i dati orari aggregati) ── */}
-          {/* width = larghezza modale (screenWidth - 32 di marginHorizontal) - padding interno della card (8+8) */}
-          <MiniRainChart  hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
-          <MiniTrendChart hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
+          {/* ── Grafici andamento 24h (si rigenerano con i dati orari aggregati) ──
+              In ScrollView verticale (flex:1) così su schermi bassi il grafico
+              temperatura non viene mai tagliato: l'area grafici prende lo spazio
+              rimanente e scorre se non basta. width = larghezza modale
+              (screenWidth - 32 marginHorizontal) - padding interno card (8+8). */}
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 4 }} showsVerticalScrollIndicator={false}>
+            <MiniRainChart  hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
+            <MiniTrendChart hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
+          </ScrollView>
 
           {/* ── Tasto chiudi ── */}
           <SafeAreaView edges={['bottom']} style={[styles.bottomBar, { backgroundColor: T.closeBg, borderTopColor: T.closeBorder }]}>

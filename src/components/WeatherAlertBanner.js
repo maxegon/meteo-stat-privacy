@@ -101,7 +101,7 @@ export default function WeatherAlertBanner({ alerts = [], onOpenSettings }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 10,
+    marginBottom: 0,
   },
   headerRow: {
     flexDirection: 'row',
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingVertical: 9,
     paddingHorizontal: 11,
-    marginBottom: 6,
+    marginBottom: 8,
     gap: 9,
   },
   textWrap: { flex: 1 },
