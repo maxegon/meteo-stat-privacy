@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert,
+  ActivityIndicator, Alert, Modal, FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -15,10 +15,11 @@ import { useWeather } from '../context/WeatherContext';
 
 const MONTHS_IT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 const thisYear = new Date().getFullYear();
-const END_YEAR = thisYear - 1;
-const START_YEAR = thisYear - 10;
-// Decennio dinamico: ultimi 10 anni interi rispetto a oggi, più recente per primo
-const DECADE_YEARS = Array.from({ length: 10 }, (_, i) => END_YEAR - i);
+const MIN_YEAR = 1940; // limite Open-Meteo Archive API (ERA5)
+const MAX_YEAR = thisYear - 1;
+const PRESET_YEARS = [thisYear-1, thisYear-2, thisYear-3, thisYear-4];
+// Lista per il picker "Altro anno…", più recente per primo
+const ALL_YEARS = Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => MAX_YEAR - i);
 
 function avg(arr) {
   const v = arr.filter(x => x != null);
@@ -26,10 +27,9 @@ function avg(arr) {
 }
 function round1(n) { return n != null ? Math.round(n * 10) / 10 : null; }
 
-// Estrae e aggrega le statistiche di un singolo anno dal dataset decennale già
-// scaricato (nessuna nuova richiesta di rete al cambio anno). Null-safe: se la
-// località non ha dati per quell'anno, ritorna null invece di rompere la UI
-// (es. Math.max su array vuoto darebbe -Infinity).
+// Aggrega le statistiche di un anno dai dati giornalieri grezzi dell'Archive API.
+// Null-safe: se la località non ha dati per quell'anno, ritorna null invece di
+// rompere la UI (es. Math.max su array vuoto darebbe -Infinity).
 function statsForYear(daily, year) {
   if (!daily?.time) return null;
   const idxs = [];
@@ -77,26 +77,31 @@ function statsForYear(daily, year) {
 
 export default function StatsScreen({ navigation }) {
   const { selectedCity: cityInfo } = useWeather();
-  const [year, setYear] = useState(END_YEAR);
-  const [decadeDaily, setDecadeDaily] = useState(null);
+  const [year, setYear] = useState(MAX_YEAR);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [monthly, setMonthly] = useState(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
   const { colors: c, dark } = useTheme();
   const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
 
-  // Carica l'intero decennio in UNA sola richiesta Archive API appena c'è una
-  // città selezionata (può essere lenta: ~10 anni di dati giornalieri).
+  // Carica automaticamente appena c'è una città selezionata
   useEffect(() => {
-    if (cityInfo && !decadeDaily && !loading) {
-      loadDecade(cityInfo);
+    if (cityInfo && !stats && !loading) {
+      loadYear(cityInfo, year);
     }
   }, [cityInfo]);
 
-  const loadDecade = async (city) => {
+  const loadYear = async (city, y) => {
     if (!city) { Alert.alert('', 'Prima seleziona una città dalla scheda Meteo.'); return; }
     setLoading(true);
     try {
-      const data = await fetchHistoricalRange(city.lat, city.lon, START_YEAR, END_YEAR);
-      setDecadeDaily(data.daily);
+      // Un solo anno per richiesta: fetchHistoricalRange con startYear===endYear
+      // restituisce esattamente i dati di quell'anno (stesso endpoint Archive API).
+      const data = await fetchHistoricalRange(city.lat, city.lon, y, y);
+      const result = statsForYear(data.daily, y);
+      setStats(result?.stats ?? null);
+      setMonthly(result?.monthly ?? null);
     } catch (e) {
       Alert.alert('Errore', 'Impossibile caricare i dati storici.');
     } finally {
@@ -104,30 +109,12 @@ export default function StatsScreen({ navigation }) {
     }
   };
 
-  // Anno selezionato: derivato istantaneamente dal decennio già in memoria —
-  // cambiare anno non fa nessuna nuova richiesta di rete.
-  const current = useMemo(
-    () => (decadeDaily ? statsForYear(decadeDaily, year) : null),
-    [decadeDaily, year]
-  );
-  const stats = current?.stats ?? null;
-  const monthly = current?.monthly ?? null;
+  const selectYear = (y) => {
+    setYear(y);
+    if (cityInfo) loadYear(cityInfo, y);
+  };
 
-  // Tendenza decennale: media annuale di temperatura per ciascuno dei 10 anni,
-  // ordine cronologico. Anni senza dati per questa località restano null
-  // (barra minima + "—") invece di far saltare l'intera vista.
-  const decadeTrend = useMemo(() => {
-    if (!decadeDaily) return [];
-    return DECADE_YEARS.slice().reverse().map(y => {
-      const r = statsForYear(decadeDaily, y);
-      return { year: y, avgTemp: r?.stats?.meanAnnual ?? null };
-    });
-  }, [decadeDaily]);
-
-  const trendTemps = decadeTrend.map(d => d.avgTemp).filter(x => x != null);
-  const trendMin = trendTemps.length ? Math.min(...trendTemps) : 0;
-  const trendMax = trendTemps.length ? Math.max(...trendTemps) : 1;
-  const trendRange = trendMax - trendMin || 1;
+  const isPreset = PRESET_YEARS.includes(year);
 
   const formatDate = (d) => {
     if (!d) return '—';
@@ -140,27 +127,35 @@ export default function StatsScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>📊 Statistiche Storiche</Text>
-        <Text style={styles.sub}>Dati climatici annuali e mensili — ultimi 10 anni</Text>
+        <Text style={styles.sub}>Dati climatici annuali e mensili</Text>
 
-        {/* Year selector — chip orizzontali scrollabili (decennio {START_YEAR}-{END_YEAR}) */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.yearScroll}
-          contentContainerStyle={styles.yearRow}
-        >
-          {DECADE_YEARS.map(y => (
+        {/* 4 bottoni rapidi (ultimi 4 anni) */}
+        <View style={styles.yearRow}>
+          {PRESET_YEARS.map(y => (
             <TouchableOpacity
               key={y}
-              style={[styles.yearChip, year === y && styles.yearChipActive]}
-              onPress={() => setYear(y)}
+              style={[styles.yearBtn, year === y && styles.yearBtnActive]}
+              onPress={() => selectYear(y)}
               accessibilityRole="button"
               accessibilityLabel={`Anno ${y}`}
             >
               <Text style={[styles.yearLabel, year === y && styles.yearLabelActive]}>{y}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
+
+        {/* Selettore "Altro anno…" — picker con lista 1940-{MAX_YEAR} */}
+        <TouchableOpacity
+          style={[styles.otherYearBtn, !isPreset && styles.otherYearBtnActive]}
+          onPress={() => setPickerVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Scegli un altro anno"
+        >
+          <MaterialCommunityIcons name="calendar-search" size={16} color={!isPreset ? c.accent : c.textMuted} />
+          <Text style={[styles.otherYearText, !isPreset && styles.otherYearTextActive]}>
+            {!isPreset ? `Anno selezionato: ${year}` : 'Altro anno…'}
+          </Text>
+        </TouchableOpacity>
 
         {!cityInfo ? (
           <View style={styles.empty}>
@@ -180,118 +175,120 @@ export default function StatsScreen({ navigation }) {
         ) : loading ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color="#38bdf8" />
-            <Text style={styles.loadingText}>Caricamento dati {START_YEAR}-{END_YEAR}...</Text>
+            <Text style={styles.loadingText}>Caricamento dati {year}...</Text>
           </View>
-        ) : decadeDaily ? (
+        ) : stats ? (
           <>
             <View style={styles.provRow}>
               <ProviderBadge provider={PROVIDERS.OPEN_METEO} size="md" />
               <Text style={styles.provNote}>Archive API — dati ERA5/ECMWF</Text>
             </View>
 
-            {/* Tendenza decennale — discreta, sopra il dettaglio del singolo anno */}
-            {trendTemps.length > 0 && (
-              <View style={styles.trendBlock}>
-                <Text style={styles.sectionTitle}>Tendenza decennale — temperatura media annua</Text>
-                <View style={styles.trendRow}>
-                  {decadeTrend.map(d => {
-                    const h = d.avgTemp != null ? 6 + ((d.avgTemp - trendMin) / trendRange) * 34 : 2;
-                    const sel = d.year === year;
-                    return (
-                      <TouchableOpacity
-                        key={d.year}
-                        style={styles.trendBar}
-                        onPress={() => setYear(d.year)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Vai all'anno ${d.year}`}
-                      >
-                        <Text style={[styles.trendBarLabel, sel && { color: c.accent }]}>
-                          {d.avgTemp != null ? `${Math.round(d.avgTemp)}°` : '—'}
-                        </Text>
-                        <View style={styles.trendBarTrack}>
-                          <View style={[
-                            styles.trendBarFill,
-                            { height: h, backgroundColor: sel ? c.accent : c.border },
-                          ]} />
-                        </View>
-                        <Text style={[styles.trendYearLabel, sel && { color: c.accent, fontWeight: '700' }]}>
-                          {"'" + String(d.year).slice(2)}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+            {/* Summary stats */}
+            <View style={styles.grid}>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>🌡️ Max assoluta</Text>
+                <Text style={[styles.statVal, { color: '#fb923c' }]}>{stats.absMax != null ? `${round1(stats.absMax)}°C` : '—'}</Text>
+                <Text style={styles.statDate}>{formatDate(stats.dateMax)}</Text>
               </View>
-            )}
-
-            {!stats ? (
-              <View style={styles.empty}>
-                <MaterialCommunityIcons name="cloud-off-outline" size={48} color="#38bdf8" />
-                <Text style={styles.emptyText}>Nessun dato disponibile per il {year} in questa località.</Text>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>🥶 Min assoluta</Text>
+                <Text style={[styles.statVal, { color: '#38bdf8' }]}>{stats.absMin != null ? `${round1(stats.absMin)}°C` : '—'}</Text>
+                <Text style={styles.statDate}>{formatDate(stats.dateMin)}</Text>
               </View>
-            ) : (
-              <>
-                {/* Summary stats */}
-                <View style={styles.grid}>
-                  <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>🌡️ Max assoluta</Text>
-                    <Text style={[styles.statVal, { color: '#fb923c' }]}>{stats.absMax != null ? `${round1(stats.absMax)}°C` : '—'}</Text>
-                    <Text style={styles.statDate}>{formatDate(stats.dateMax)}</Text>
-                  </View>
-                  <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>🥶 Min assoluta</Text>
-                    <Text style={[styles.statVal, { color: '#38bdf8' }]}>{stats.absMin != null ? `${round1(stats.absMin)}°C` : '—'}</Text>
-                    <Text style={styles.statDate}>{formatDate(stats.dateMin)}</Text>
-                  </View>
-                  <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>📊 Media annuale</Text>
-                    <Text style={styles.statVal}>{stats.meanAnnual != null ? `${stats.meanAnnual}°C` : '—'}</Text>
-                    <Text style={styles.statDate}>Temperatura media giornaliera</Text>
-                  </View>
-                  <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>🌧️ Pioggia totale</Text>
-                    <Text style={[styles.statVal, { color: '#38bdf8' }]}>{stats.totalRain != null ? `${stats.totalRain} mm` : '—'}</Text>
-                    <Text style={styles.statDate}>{stats.rainDays} giorni di pioggia (≥1mm)</Text>
-                  </View>
-                  <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>☀️ Giorni caldi ≥30°</Text>
-                    <Text style={[styles.statVal, { color: '#fb923c' }]}>{stats.hotDays}</Text>
-                    <Text style={styles.statDate}>Ondate di calore</Text>
-                  </View>
-                  <View style={styles.statCard}>
-                    <Text style={styles.statLabel}>❄️ Giorni gelo ≤0°</Text>
-                    <Text style={[styles.statVal, { color: '#a5f3fc' }]}>{stats.coldDays}</Text>
-                    <Text style={styles.statDate}>Notti sotto zero</Text>
-                  </View>
-                </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>📊 Media annuale</Text>
+                <Text style={styles.statVal}>{stats.meanAnnual != null ? `${stats.meanAnnual}°C` : '—'}</Text>
+                <Text style={styles.statDate}>Temperatura media giornaliera</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>🌧️ Pioggia totale</Text>
+                <Text style={[styles.statVal, { color: '#38bdf8' }]}>{stats.totalRain != null ? `${stats.totalRain} mm` : '—'}</Text>
+                <Text style={styles.statDate}>{stats.rainDays} giorni di pioggia (≥1mm)</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>☀️ Giorni caldi ≥30°</Text>
+                <Text style={[styles.statVal, { color: '#fb923c' }]}>{stats.hotDays}</Text>
+                <Text style={styles.statDate}>Ondate di calore</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>❄️ Giorni gelo ≤0°</Text>
+                <Text style={[styles.statVal, { color: '#a5f3fc' }]}>{stats.coldDays}</Text>
+                <Text style={styles.statDate}>Notti sotto zero</Text>
+              </View>
+            </View>
 
-                {/* Monthly table */}
-                <Text style={styles.sectionTitle}>Medie mensili {stats.year}</Text>
-                {monthly && MONTHS_IT.map((m, i) => (
-                  <View key={m} style={styles.monthRow}>
-                    <Text style={styles.monthName}>{m}</Text>
-                    {/* Temp bar */}
-                    <View style={styles.monthBar}>
-                      <View
-                        style={[styles.monthBarFill, {
-                          width: `${Math.max(5, Math.min(100, ((monthly[i].avgTemp + 5) / 40) * 100))}%`,
-                          backgroundColor: monthly[i].avgTemp > 20 ? '#fb923c' : monthly[i].avgTemp > 10 ? '#4ade80' : '#38bdf8',
-                        }]}
-                      />
-                    </View>
-                    <Text style={styles.monthTemp}>
-                      {monthly[i].avgTemp != null ? `${monthly[i].avgTemp}°C` : '—'}
-                    </Text>
-                    <Text style={styles.monthRain}>
-                      {monthly[i].totalRain != null ? `${monthly[i].totalRain}mm` : '—'}
-                    </Text>
-                  </View>
-                ))}
-              </>
-            )}
+            {/* Monthly table */}
+            <Text style={styles.sectionTitle}>Medie mensili {stats.year}</Text>
+            {monthly && MONTHS_IT.map((m, i) => (
+              <View key={m} style={styles.monthRow}>
+                <Text style={styles.monthName}>{m}</Text>
+                {/* Temp bar */}
+                <View style={styles.monthBar}>
+                  <View
+                    style={[styles.monthBarFill, {
+                      width: `${Math.max(5, Math.min(100, ((monthly[i].avgTemp + 5) / 40) * 100))}%`,
+                      backgroundColor: monthly[i].avgTemp > 20 ? '#fb923c' : monthly[i].avgTemp > 10 ? '#4ade80' : '#38bdf8',
+                    }]}
+                  />
+                </View>
+                <Text style={styles.monthTemp}>
+                  {monthly[i].avgTemp != null ? `${monthly[i].avgTemp}°C` : '—'}
+                </Text>
+                <Text style={styles.monthRain}>
+                  {monthly[i].totalRain != null ? `${monthly[i].totalRain}mm` : '—'}
+                </Text>
+              </View>
+            ))}
           </>
-        ) : null}
+        ) : (
+          <View style={styles.empty}>
+            <MaterialCommunityIcons name="cloud-off-outline" size={48} color="#38bdf8" />
+            <Text style={styles.emptyText}>Nessun dato disponibile per il {year} in questa località.</Text>
+          </View>
+        )}
       </ScrollView>
+
+      {/* Picker anno custom (1940 - {MAX_YEAR}) */}
+      <Modal visible={pickerVisible} animationType="slide" onRequestClose={() => setPickerVisible(false)}>
+        <AnimatedGradientBg>
+          <SafeAreaView style={styles.safe}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>Scegli un anno</Text>
+              <TouchableOpacity
+                onPress={() => setPickerVisible(false)}
+                style={styles.closeBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Chiudi"
+              >
+                <MaterialCommunityIcons name="close" size={20} color={c.accent} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={ALL_YEARS}
+              keyExtractor={(y) => String(y)}
+              initialScrollIndex={Math.max(0, ALL_YEARS.indexOf(year))}
+              getItemLayout={(_, index) => ({ length: 52, offset: 52 * index, index })}
+              style={styles.modalList}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+              renderItem={({ item: y }) => {
+                const sel = y === year;
+                return (
+                  <TouchableOpacity
+                    style={[styles.modalRow, sel && styles.modalRowActive]}
+                    onPress={() => { setPickerVisible(false); selectYear(y); }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Anno ${y}`}
+                  >
+                    <Text style={[styles.modalRowText, sel && styles.modalRowTextActive]}>{y}</Text>
+                    {sel && <MaterialCommunityIcons name="check" size={18} color={c.accent} />}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </SafeAreaView>
+        </AnimatedGradientBg>
+      </Modal>
     </SafeAreaView>
     </AnimatedGradientBg>
   );
@@ -303,12 +300,19 @@ function makeStyles(c, dark) {
   scroll: { flex: 1, padding: 16 },
   title: { color: dark ? c.text : c.accent, fontSize: 22, fontWeight: '700', marginBottom: 4 },
   sub: { color: c.textMuted, fontSize: 14, marginBottom: 16 },
-  yearScroll: { marginBottom: 16 },
-  yearRow: { flexDirection: 'row', gap: 8, paddingRight: 8 },
-  yearChip: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: c.bgCard, alignItems: 'center', borderWidth: 1, borderColor: c.border },
-  yearChipActive: { backgroundColor: c.accent + '22', borderColor: c.accent },
+  yearRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  yearBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: c.bgCard, alignItems: 'center', borderWidth: 1, borderColor: c.border },
+  yearBtnActive: { backgroundColor: c.accent + '22', borderColor: c.accent },
   yearLabel: { color: c.textMuted, fontWeight: '600' },
   yearLabelActive: { color: c.accent },
+  otherYearBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 8, borderRadius: 10, backgroundColor: c.bgCard,
+    borderWidth: 1, borderColor: c.border, marginBottom: 16,
+  },
+  otherYearBtnActive: { backgroundColor: c.accent + '22', borderColor: c.accent },
+  otherYearText: { color: c.textMuted, fontWeight: '600', fontSize: 13 },
+  otherYearTextActive: { color: c.accent },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 16 },
   emptyText: { color: c.textMuted, textAlign: 'center', lineHeight: 22 },
   goSearchBtn: {
@@ -321,13 +325,6 @@ function makeStyles(c, dark) {
   loadingText: { color: c.textSub },
   provRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   provNote: { color: c.textMuted, fontSize: 11 },
-  trendBlock: { marginBottom: 16 },
-  trendRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 6 },
-  trendBar: { flex: 1, alignItems: 'center', gap: 2 },
-  trendBarTrack: { height: 40, justifyContent: 'flex-end' },
-  trendBarFill: { width: 10, borderRadius: 3, minHeight: 2 },
-  trendBarLabel: { color: c.textMuted, fontSize: 9, fontWeight: '600' },
-  trendYearLabel: { color: c.textMuted, fontSize: 9 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   statCard: { flex: 1, minWidth: '45%', backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 14 },
   statLabel: { color: c.textSub, fontSize: 12, marginBottom: 4 },
@@ -340,5 +337,23 @@ function makeStyles(c, dark) {
   monthBarFill: { height: '100%', borderRadius: 4 },
   monthTemp: { color: c.text, width: 52, textAlign: 'right', fontSize: 13, fontWeight: '600' },
   monthRain: { color: c.accent, width: 52, textAlign: 'right', fontSize: 12 },
+  // Modal "Altro anno…"
+  modalHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 12,
+  },
+  modalHeaderTitle: { color: c.text, fontSize: 18, fontWeight: '700' },
+  closeBtn: {
+    backgroundColor: c.bgCard, borderRadius: 20,
+    padding: 6, borderWidth: 1, borderColor: c.border,
+  },
+  modalList: { flex: 1 },
+  modalRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, height: 52, borderBottomWidth: 1, borderBottomColor: c.border,
+  },
+  modalRowActive: { backgroundColor: c.accent + '14' },
+  modalRowText: { color: c.text, fontSize: 16, fontWeight: '600' },
+  modalRowTextActive: { color: c.accent, fontWeight: '700' },
   };
 }
