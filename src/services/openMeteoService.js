@@ -185,30 +185,6 @@ export async function fetchMarine(lat, lon) {
 }
 
 /**
- * Dati storici per anno (per statistiche)
- * @returns {Promise<Object>}
- */
-export async function fetchHistorical(lat, lon, year) {
-  const { data } = await axios.get(`${ARCHIVE}/archive`, {
-    params: {
-      latitude: lat,
-      longitude: lon,
-      start_date: `${year}-01-01`,
-      end_date: `${year}-12-31`,
-      daily: [
-        'temperature_2m_max',
-        'temperature_2m_min',
-        'temperature_2m_mean',
-        'precipitation_sum',
-        'windspeed_10m_max',
-      ].join(','),
-      timezone: 'auto',
-    },
-  });
-  return { provider: PROVIDERS.OPEN_METEO, year, daily: data.daily };
-}
-
-/**
  * Dati storici su un range di anni in UNA sola chiamata (per la tendenza
  * decennale in StatsScreen) — evita N richieste separate, l'Archive API
  * accetta range arbitrari.

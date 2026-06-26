@@ -97,6 +97,5 @@ async function fetchAllDirect(lat, lon) {
 }
 
 export const searchCity           = OpenMeteo.searchCity;
-export const fetchHistorical      = OpenMeteo.fetchHistorical;
 export const fetchHistoricalRange = OpenMeteo.fetchHistoricalRange;
 export const fetchMarine          = OpenMeteo.fetchMarine;
