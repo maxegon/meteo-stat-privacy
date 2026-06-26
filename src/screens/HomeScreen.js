@@ -28,6 +28,66 @@ import AlertSettingsModal from '../components/AlertSettingsModal';
 import { detectAlerts, extractOfficialAlerts, loadThresholds, loadAlertsEnabled, checkDayThresholds, checkHourThresholds } from '../services/weatherAlerts';
 import { getClimateNormals } from '../services/climateNormals';
 
+// Geocoding inverso via OpenStreetMap (Nominatim) — restituisce i nomi popolari
+// di quartiere/rione (es. "Trastevere") che i geocoder nativi Apple/Google non
+// espongono (per Roma Apple dà "Municipio IX"). Identificato con email come da
+// policy Nominatim; usato solo su richiesta utente (entro il limite ~1 req/s).
+async function reverseGeocodeOSM(latitude, longitude) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=it&zoom=16&addressdetails=1&email=maxegonit@gmail.com`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'Solo1Meteo/1.1 (maxegonit@gmail.com)' } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const a = data.address || {};
+    const isAdmin = (s) => s && /municipi|circoscrizione/i.test(s);
+    const rawQ = a.neighbourhood || a.suburb || a.quarter || a.city_district || a.borough;
+    const quartiere = isAdmin(rawQ) ? null : rawQ;
+    const comune = a.city || a.town || a.village || a.municipality || a.county;
+    const name = (quartiere && comune && quartiere !== comune)
+      ? `${quartiere}, ${comune}`
+      : (quartiere || comune);
+    if (name) {
+      return {
+        name,
+        region: a.state || '',
+        country: a.country || '',
+        countryCode: (a.country_code || '').toUpperCase(),
+        lat: latitude,
+        lon: longitude,
+      };
+    }
+  } catch (_) {}
+  return null;
+}
+
+// Geocoding inverso (coordinate → nome località) tramite il geocoder nativo di
+// expo-location. Fallback quando OSM non risponde. Restituisce "Quartiere,
+// Comune" o solo il comune; o null in caso di errore.
+async function reverseGeocodeCity(latitude, longitude) {
+  try {
+    const arr = await Location.reverseGeocodeAsync({ latitude, longitude });
+    if (arr && arr.length) {
+      const a = arr[0];
+      const comune = a.city || a.subregion || a.region || a.name;
+      const quartiere = a.district;
+      const name = (quartiere && comune && quartiere !== comune)
+        ? `${quartiere}, ${comune}`
+        : (comune || quartiere);
+      if (name) {
+        return {
+          name,
+          region: a.region || a.subregion || '',
+          country: a.country || '',
+          countryCode: a.isoCountryCode || '',
+          lat: latitude,
+          lon: longitude,
+        };
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
 // Scala di Douglas (WMO) basata su velocità del vento — restituisce { label, note }
 function seaStateFromWind(kmh) {
   if (kmh == null || isNaN(kmh)) return null;
@@ -352,6 +412,42 @@ export default function HomeScreen({ navigation }) {
     return () => subscription.remove();
   }, []);
 
+  // Auto-refresh periodico ogni 10 minuti mentre l'app resta in foreground
+  // (il listener AppState sopra copre solo il rientro da background/foreground:
+  // se l'utente lascia l'app aperta e attiva, senza questo timer i dati non si
+  // aggiornerebbero mai finché non tocca refresh manualmente). Il timer gira
+  // solo da 'active' a 'background'/'inactive' per non sprecare batteria.
+  useEffect(() => {
+    const REFRESH_MS = 10 * 60 * 1000;
+    let intervalId = null;
+
+    const tick = () => {
+      const city = cityInfoRef.current;
+      if (city?.lat != null && city?.lon != null) {
+        loadWeather(city.lat, city.lon);
+      }
+    };
+    const startInterval = () => {
+      if (intervalId) return;
+      intervalId = setInterval(tick, REFRESH_MS);
+    };
+    const stopInterval = () => {
+      clearInterval(intervalId);
+      intervalId = null;
+    };
+
+    startInterval(); // l'app è in foreground al mount
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') startInterval();
+      else stopInterval();
+    });
+
+    return () => {
+      stopInterval();
+      subscription.remove();
+    };
+  }, []);
+
   // Torna al tab iniziale quando si preme Meteo dal menu in basso
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', () => {
@@ -408,16 +504,12 @@ export default function HomeScreen({ navigation }) {
     try {
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const { latitude, longitude } = loc.coords;
-      const results = await searchCity(`${latitude},${longitude}`).catch(() => []);
-      let city;
-      if (results.length) {
-        city = results[0];
-      } else {
-        city = { name: 'La tua posizione', lat: latitude, lon: longitude };
-      }
+      const geo = await reverseGeocodeOSM(latitude, longitude)
+        || await reverseGeocodeCity(latitude, longitude);
+      const city = geo || { name: 'La tua posizione', lat: latitude, lon: longitude };
       setCityInfo(city);
       setSelectedCity(city);
-      setQuery(city.name);
+      setQuery('');
       await loadWeather(latitude, longitude);
     } catch (_) {
       setLoading(false);
@@ -440,7 +532,7 @@ export default function HomeScreen({ navigation }) {
 
   const selectCity = async (city) => {
     setSuggestions([]);
-    setQuery(city.name);
+    setQuery('');
     setCityInfo(city);
     setSelectedCity(city);
     await saveRecentCity(city);
@@ -457,16 +549,12 @@ export default function HomeScreen({ navigation }) {
     try {
       const loc = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = loc.coords;
-      const results = await searchCity(`${latitude},${longitude}`).catch(() => []);
-      let city;
-      if (results.length) {
-        city = results[0];
-      } else {
-        city = { name: 'La tua posizione', lat: latitude, lon: longitude };
-      }
+      const geo = await reverseGeocodeOSM(latitude, longitude)
+        || await reverseGeocodeCity(latitude, longitude);
+      const city = geo || { name: 'La tua posizione', lat: latitude, lon: longitude };
       setCityInfo(city);
       setSelectedCity(city);
-      setQuery(city.name);
+      setQuery('');
       await loadWeather(latitude, longitude);
     } catch (e) {
       Alert.alert('Errore posizione', e.message);
@@ -528,7 +616,9 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <AnimatedGradientBg>
-    <SafeAreaView style={styles.safe}>
+    {/* edges senza 'bottom': il margine di sicurezza inferiore lasciava ~34px
+        vuoti tra lo slot e la tab bar. La tab bar gestisce già il fondo. */}
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       {/* Autocomplete — overlay assoluto, visibile sopra ScrollView */}
       {suggestions.length > 0 && (
         <View style={[styles.suggestBox, { position: 'absolute', top: 70, left: 0, right: 0, zIndex: 100 }]}>
@@ -635,7 +725,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Stato: meteo caricato — searchBar scorre con il contenuto */}
       {!loading && weather && (
-        <ScrollView ref={scrollRef} style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {searchBar}
           {/* City header */}
           <View style={styles.cityHeader}>
@@ -710,8 +800,9 @@ export default function HomeScreen({ navigation }) {
             onSave={(t, e) => { setAlertThresholds(t); setAlertsEnabled(e); }}
           />
 
-          {/* Vista principale: visibile quando non si è in Confronto o +Giorni */}
-          {activeTab !== 'compare' && activeTab !== 'forecast' && <View>
+          {/* Vista principale: visibile quando non si è in Confronto o +Giorni.
+              flexGrow:1 così lo slot pubblicitario in fondo riempie lo spazio rimanente. */}
+          {activeTab !== 'compare' && activeTab !== 'forecast' && <View style={{ flexGrow: 1 }}>
 
           {/* Banner allerte UFFICIALI (WeatherAPI) — sopra gli alert calcolati */}
           <OfficialAlertBanner alerts={officialAlerts} />
@@ -815,13 +906,14 @@ export default function HomeScreen({ navigation }) {
               {isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(weather.consensus.windspeed) && (() => {
                 const sea = seaStateFromWind(weather.consensus.windspeed);
                 return (
-                  <View style={styles.consensusMareRow}>
-                    <Text style={styles.consensusMareLabel}>🌊 Mare</Text>
-                    <Text style={styles.consensusMareState}>{sea.label}</Text>
-                    <Text style={styles.consensusMareSub}> · {sea.note}</Text>
-                    {weather.marine?.current?.waveHeight != null && (
-                      <Text style={styles.consensusMareSub}> · {weather.marine.current.waveHeight.toFixed(1)} m</Text>
-                    )}
+                  <View style={styles.consensusMareCol}>
+                    <View style={styles.consensusMareRow}>
+                      <Text style={styles.consensusMareLabel}>🌊 Mare</Text>
+                      <Text style={styles.consensusMareState}>{sea.label}</Text>
+                    </View>
+                    <Text style={styles.consensusMareSub} numberOfLines={1}>
+                      {sea.note}{weather.marine?.current?.waveHeight != null ? ` · ${weather.marine.current.waveHeight.toFixed(1)} m` : ''}
+                    </Text>
                   </View>
                 );
               })()}
@@ -1044,6 +1136,12 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
+          {/* Spazio rimanente in fondo riservato (slot a pagamento). flexGrow:1 lo
+              fa espandere fino a riempire lo spazio libero della pagina. */}
+          <View style={styles.homeAdSlot}>
+            <MaterialCommunityIcons name="tag-outline" size={14} color={c.textMuted} />
+            <Text style={styles.homeAdSlotText}>Spazio riservato</Text>
+          </View>
 
           </View>}{/* fine vista principale */}
 
@@ -1347,7 +1445,7 @@ function makeStyles(c, dark) {
   updatedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 4, gap: 4 },
   updatedText: { color: c.textMuted, fontSize: 11, fontWeight: '400' },
   refreshBtn: { padding: 2 },
-  tabs: { flexDirection: 'row', marginHorizontal: 12, marginBottom: 12, gap: 6 },
+  tabs: { flexDirection: 'row', marginHorizontal: 12, marginBottom: 8, gap: 6 },
   tabBtn: {
     flex: 1, paddingVertical: 8, borderRadius: 10,
     backgroundColor: dark ? 'rgba(255,255,255,0.10)' : c.bgCard,
@@ -1358,7 +1456,7 @@ function makeStyles(c, dark) {
   tabLabel: { color: dark ? '#ffffff' : c.accent, fontSize: 11, fontWeight: '700', textAlign: 'center' },
   tabLabelActive: { color: '#ffffff', fontWeight: '800' },
   consensusCard: {
-    marginHorizontal: 12, marginBottom: 10, marginTop: 4,
+    marginHorizontal: 12, marginBottom: 8, marginTop: 0,
     padding: 12, borderRadius: 14,
     backgroundColor: c.bgCard, borderWidth: 1, borderColor: c.accent + '30',
   },
@@ -1375,10 +1473,11 @@ function makeStyles(c, dark) {
   consensusDataLabel: { color: c.textSub, fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
   consensusDataVal: { color: c.text, fontSize: 14, fontWeight: '700' },
   consensusDataUnit: { fontSize: 10, fontWeight: '400' },
-  consensusMareRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: c.border, paddingTop: 8, marginTop: 2, gap: 6 },
+  consensusMareCol: { borderTopWidth: 1, borderTopColor: c.border, paddingTop: 8, marginTop: 2 },
+  consensusMareRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   consensusMareLabel: { color: c.text, fontSize: 13, fontWeight: '700' },
-  consensusMareState: { color: c.text, fontSize: 13, fontWeight: '600', flex: 1 },
-  consensusMareSub: { color: c.textMuted, fontSize: 12 },
+  consensusMareState: { color: c.text, fontSize: 13, fontWeight: '600' },
+  consensusMareSub: { color: c.textMuted, fontSize: 12, marginTop: 3 },
   consensusStats: { alignItems: 'flex-end', gap: 4 },
   consensusMeta: { color: c.textMuted, fontSize: 12 },
   sectionTitle: { color: c.textSub, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginHorizontal: 12, marginBottom: 8, marginTop: 4 },
@@ -1460,7 +1559,9 @@ function makeStyles(c, dark) {
   attribRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   attribLine: { flex: 1, color: c.textMuted, fontSize: 11, fontWeight: '300', lineHeight: 18 },
   // 3 pulsanti giorni
-  dayBtnsRow: { flexDirection: 'row', marginHorizontal: 12, marginTop: 10, marginBottom: 4, gap: 8 },
+  // Spaziatura uniforme home = 8px (come il gap tra i due bottoni azione):
+  // sopra = consensusCard.marginBottom(8); sotto = marginBottom(8) + inlineForecast.marginTop(0).
+  dayBtnsRow: { flexDirection: 'row', marginHorizontal: 12, marginTop: 0, marginBottom: 8, gap: 8 },
   dayBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.10)',
@@ -1489,7 +1590,7 @@ function makeStyles(c, dark) {
   forecastAttribText: { color: c.textMuted, fontSize: 10, fontStyle: 'italic', flex: 1 },
   daySingleBadge: { color: c.textMuted, fontSize: 9, fontWeight: '700', backgroundColor: c.border, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
   // Previsioni inline
-  inlineForecast: { marginHorizontal: 12, marginTop: 8 },
+  inlineForecast: { marginHorizontal: 12, marginTop: 0, marginBottom: 8 },
   inlineDayHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10, padding: 10, backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border },
   inlineDayDesc: { flex: 1, color: c.textSub, fontSize: 12, textTransform: 'capitalize' },
   inlineDayMax: { color: '#fb923c', fontWeight: '700', fontSize: 20 },
@@ -1522,13 +1623,24 @@ function makeStyles(c, dark) {
   inlineHourWind: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 11 },
   inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center' },
   // Pulsanti azione (Confronto + 7 giorni)
-  actionBtnsSection: { marginHorizontal: 12, marginTop: 12, gap: 8 },
+  // Spaziatura uniforme home = 8px: sopra (forecast) 8, sotto (ad slot) 8.
+  actionBtnsSection: { marginHorizontal: 12, marginTop: 0, marginBottom: 8, gap: 8 },
   actionBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: c.bgCard, borderRadius: 14, padding: 14,
     borderWidth: 1, borderColor: c.border,
   },
   actionBtnText: { flex: 1, color: c.text, fontSize: 15, fontWeight: '600' },
+  // Slot pubblicitario in fondo alla home: occupa lo spazio rimanente.
+  homeAdSlot: {
+    flexGrow: 1, minHeight: 90,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    // marginBottom:8 → lo slot si ferma 8px sopra la tab bar (stesso ritmo 8px
+    // del resto della home). flexGrow lo fa arrivare quasi a fondo pagina.
+    marginHorizontal: 12, marginTop: 0, marginBottom: 8,
+    borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: c.border,
+  },
+  homeAdSlotText: { color: c.textMuted, fontSize: 11 },
   // Modal confronto
   tabCloseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 18, marginTop: 8 },
   tabCloseBtnText: { color: c.textMuted, fontSize: 15, fontWeight: '600' },
