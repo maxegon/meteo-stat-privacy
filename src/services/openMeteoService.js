@@ -209,6 +209,32 @@ export async function fetchHistorical(lat, lon, year) {
 }
 
 /**
+ * Dati storici su un range di anni in UNA sola chiamata (per la tendenza
+ * decennale in StatsScreen) — evita N richieste separate, l'Archive API
+ * accetta range arbitrari.
+ * @returns {Promise<Object>}
+ */
+export async function fetchHistoricalRange(lat, lon, startYear, endYear) {
+  const { data } = await axios.get(`${ARCHIVE}/archive`, {
+    params: {
+      latitude: lat,
+      longitude: lon,
+      start_date: `${startYear}-01-01`,
+      end_date: `${endYear}-12-31`,
+      daily: [
+        'temperature_2m_max',
+        'temperature_2m_min',
+        'temperature_2m_mean',
+        'precipitation_sum',
+        'windspeed_10m_max',
+      ].join(','),
+      timezone: 'auto',
+    },
+  });
+  return { provider: PROVIDERS.OPEN_METEO, startYear, endYear, daily: data.daily };
+}
+
+/**
  * Geocoding — cerca città per nome
  * Open-Meteo ha anche una Geocoding API gratuita
  */
