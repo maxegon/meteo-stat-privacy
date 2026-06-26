@@ -94,9 +94,9 @@ const ANOMALY_TYPES = {
  * @returns {Array}
  */
 // Formattazione compatta del valore per ciascun tipo (usata quando la stessa
-// soglia è superata sia oggi che domani: "Oggi e domani: max 36°C e 38°C").
+// soglia è superata sia oggi che domani: "Oggi e domani: temperatura max prevista 36° e 38°").
 const METRIC = {
-  heat: { prefix: 'max ', short: v => `${Math.round(v)}°C` },
+  heat: { prefix: 'temperatura max prevista ', short: v => `${Math.round(v)}°` },
   cold: { prefix: 'min ', short: v => `${Math.round(v)}°C` },
   uv:   { prefix: '',     short: v => `UV ${Math.round(v)}` },
   rain: { prefix: '',     short: v => `${v.toFixed(1)} mm` },
@@ -111,11 +111,11 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
   // entrambi, alla fine i due trigger vengono fusi in un unico banner con
   // l'etichetta "Oggi e domani".
   const raw = [];
-  const push = (typeInfo, { day, value, source, detail }) => {
+  const push = (typeInfo, { day, value, source, detail, note }) => {
     raw.push({
       id: typeInfo.id, label: typeInfo.label, icon: typeInfo.icon, color: typeInfo.color,
       bgColor: typeInfo.bgColor, borderColor: typeInfo.borderColor,
-      day, value, source, detail, seasonal: !!typeInfo.seasonal,
+      day, value, source, detail, note: note || null, seasonal: !!typeInfo.seasonal,
     });
   };
 
@@ -130,7 +130,7 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
 
     // ── SOGLIE FISSE ────────────────────────────────────────────────────
     if (day.tempMax != null && Math.round(day.tempMax) >= t.heatMax) {
-      push(ALERT_TYPES.heat, { day: label, value: day.tempMax, source: 'fixed', detail: `max ${Math.round(day.tempMax)}°C` });
+      push(ALERT_TYPES.heat, { day: label, value: day.tempMax, source: 'fixed', detail: `temperatura max prevista ${Math.round(day.tempMax)}°` });
     }
     if (day.tempMin != null && Math.round(day.tempMin) <= t.coldMin) {
       push(ALERT_TYPES.cold, { day: label, value: day.tempMin, source: 'fixed', detail: `min ${Math.round(day.tempMin)}°C` });
@@ -148,14 +148,14 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
         const threshold = climate.avgTempMax + ANOMALY_DELTA.heatDelta;
         if (day.tempMax >= threshold) {
           const diff = Math.round(day.tempMax - climate.avgTempMax);
-          push(ANOMALY_TYPES.heat, { day: label, value: day.tempMax, source: 'anomaly', detail: `${Math.round(day.tempMax)}°C (+${diff}° sulla media stagionale)` });
+          push(ANOMALY_TYPES.heat, { day: label, value: day.tempMax, source: 'anomaly', detail: `temperatura max prevista ${Math.round(day.tempMax)}° (+${diff}° sulla media stagionale)`, note: `+${diff}° sulla media stagionale` });
         }
       }
       if (day.tempMin != null && climate.avgTempMin != null) {
         const threshold = climate.avgTempMin - ANOMALY_DELTA.coldDelta;
         if (day.tempMin <= threshold) {
           const diff = Math.round(climate.avgTempMin - day.tempMin);
-          push(ANOMALY_TYPES.cold, { day: label, value: day.tempMin, source: 'anomaly', detail: `${Math.round(day.tempMin)}°C (${diff}° sotto la media stagionale)` });
+          push(ANOMALY_TYPES.cold, { day: label, value: day.tempMin, source: 'anomaly', detail: `${Math.round(day.tempMin)}°C (${diff}° sotto la media stagionale)`, note: `${diff}° sotto la media stagionale` });
         }
       }
       // NB: nessuna anomalia UV — l'archivio storico Open-Meteo usato in
@@ -165,7 +165,7 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
         const threshold = climate.avgPrecip * ANOMALY_DELTA.rainFactor;
         if (day.precipitation >= threshold) {
           const factor = (day.precipitation / climate.avgPrecip).toFixed(1);
-          push(ANOMALY_TYPES.rain, { day: label, value: day.precipitation, source: 'anomaly', detail: `${day.precipitation.toFixed(1)} mm (${factor}× la media stagionale)` });
+          push(ANOMALY_TYPES.rain, { day: label, value: day.precipitation, source: 'anomaly', detail: `${day.precipitation.toFixed(1)} mm (${factor}× la media stagionale)`, note: `${factor}× la media stagionale` });
         }
       }
     }
@@ -193,7 +193,7 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
       const threshold = climate.avgWindMax * ANOMALY_DELTA.windFactor;
       if (maxWind >= threshold) {
         const factor = (maxWind / climate.avgWindMax).toFixed(1);
-        push(ANOMALY_TYPES.wind, { day: label, value: maxWind, source: 'anomaly', detail: `${Math.round(maxWind)} km/h (${factor}× la media stagionale)` });
+        push(ANOMALY_TYPES.wind, { day: label, value: maxWind, source: 'anomaly', detail: `${Math.round(maxWind)} km/h (${factor}× la media stagionale)`, note: `${factor}× la media stagionale` });
       }
     }
   });
@@ -202,7 +202,14 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
   //    poi fonde Oggi+Domani in un unico banner "Oggi e domani". ─────────────
   const byType = new Map();
   for (const r of raw) {
-    const entry = byType.get(r.id) || { id: r.id, perDay: new Map() };
+    const entry = byType.get(r.id) || { id: r.id, perDay: new Map(), seasonalByDay: new Map() };
+    // Conserva il contesto stagionale (anomaly) per quel giorno ANCHE se poi vince
+    // il fixed: così su un giorno "estremo + sopra la media" il banner estremo può
+    // comunque mostrare di quanto si è sopra la media stagionale.
+    if (r.source === 'anomaly' && r.note) {
+      const exS = entry.seasonalByDay.get(r.day);
+      if (!exS || Math.abs(r.value) > Math.abs(exS.value)) entry.seasonalByDay.set(r.day, r);
+    }
     const ex = entry.perDay.get(r.day);
     if (!ex) entry.perDay.set(r.day, r);
     else if (r.source === 'fixed' && ex.source === 'anomaly') entry.perDay.set(r.day, r);
@@ -224,22 +231,37 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
                   : (domani && domani.source === 'fixed') ? domani
                   : (oggi || domani);
 
+    // Nota stagionale disponibile per i giorni mostrati (anche se vince il fixed)
+    const seasonalNote = (entry.seasonalByDay.get('Oggi') || entry.seasonalByDay.get('Domani'))?.note || null;
+
     let dayPhrase, message;
     if (days.length === 2) {
       dayPhrase = 'Oggi e domani';
       const m = METRIC[entry.id] || { prefix: '', short: v => `${v}` };
-      message = `${dayPhrase}: ${m.prefix}${m.short(oggi.value)} e ${m.short(domani.value)}`;
+      const shortOggi = m.short(oggi.value);
+      const shortDomani = m.short(domani.value);
+      // Se i valori mostrati (già arrotondati) coincidono, scrivilo una volta sola:
+      // "Oggi e domani: temperatura max prevista 35°" invece di "35° e 35°".
+      message = shortOggi === shortDomani
+        ? `${dayPhrase}: ${m.prefix}${shortOggi}`
+        : `${dayPhrase}: ${m.prefix}${shortOggi} e ${shortDomani}`;
       if (primary.source === 'anomaly') message += ' (oltre la media stagionale)';
+      else if (seasonalNote) message += ` · ${seasonalNote}`;
     } else {
       const only = oggi || domani;
       dayPhrase = days[0];
       message = `${dayPhrase}: ${only.detail}`;
+      // Giorno "estremo + sopra la media": accoda lo scarto stagionale al banner estremo.
+      if (only.source === 'fixed' && seasonalNote) message += ` · ${seasonalNote}`;
     }
 
     out.push({
       id: entry.id, label: primary.label, icon: primary.icon, color: primary.color,
       bgColor: primary.bgColor, borderColor: primary.borderColor,
       message, day: dayPhrase, value: primary.value, source: primary.source,
+      // Tag "scostamento, non un valore estremo" solo per l'anomalia PURA; sul
+      // caso estremo+sopra-media lo scarto è già nel messaggio (niente tag, che
+      // direbbe "non un valore estremo" mentre estremo lo è).
       seasonal: primary.source === 'anomaly',
     });
   });
