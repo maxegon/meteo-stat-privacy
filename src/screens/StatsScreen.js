@@ -12,68 +12,14 @@ import { fetchHistoricalRange } from '../services/aggregator';
 import ProviderBadge from '../components/ProviderBadge';
 import { PROVIDERS } from '../services/providers';
 import { useWeather } from '../context/WeatherContext';
+import { MIN_YEAR, MAX_YEAR, round1, statsForYear } from '../utils/yearlyStats';
+import TrendChart from '../components/TrendChart';
 
 const MONTHS_IT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 const thisYear = new Date().getFullYear();
-const MIN_YEAR = 1940; // limite Open-Meteo Archive API (ERA5)
-const MAX_YEAR = thisYear - 1;
 const PRESET_YEARS = [thisYear-1, thisYear-2, thisYear-3, thisYear-4];
 // Lista per il picker "Altro anno…", più recente per primo
 const ALL_YEARS = Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => MAX_YEAR - i);
-
-function avg(arr) {
-  const v = arr.filter(x => x != null);
-  return v.length ? v.reduce((a,b) => a+b,0) / v.length : null;
-}
-function round1(n) { return n != null ? Math.round(n * 10) / 10 : null; }
-
-// Aggrega le statistiche di un anno dai dati giornalieri grezzi dell'Archive API.
-// Null-safe: se la località non ha dati per quell'anno, ritorna null invece di
-// rompere la UI (es. Math.max su array vuoto darebbe -Infinity).
-function statsForYear(daily, year) {
-  if (!daily?.time) return null;
-  const idxs = [];
-  daily.time.forEach((t, i) => { if (t.startsWith(String(year))) idxs.push(i); });
-  if (!idxs.length) return null;
-
-  const maxT  = idxs.map(i => daily.temperature_2m_max[i]);
-  const minT  = idxs.map(i => daily.temperature_2m_min[i]);
-  const meanT = idxs.map(i => daily.temperature_2m_mean[i]);
-  const rain  = idxs.map(i => daily.precipitation_sum[i]);
-  const time  = idxs.map(i => daily.time[i]);
-
-  const validMax = maxT.filter(x => x != null);
-  const validMin = minT.filter(x => x != null);
-  const absMax = validMax.length ? Math.max(...validMax) : null;
-  const absMin = validMin.length ? Math.min(...validMin) : null;
-  const idxMax = absMax != null ? maxT.indexOf(absMax) : -1;
-  const idxMin = absMin != null ? minT.indexOf(absMin) : -1;
-
-  const stats = {
-    year,
-    absMax, absMin,
-    dateMax: idxMax >= 0 ? time[idxMax] : null,
-    dateMin: idxMin >= 0 ? time[idxMin] : null,
-    meanAnnual: round1(avg(meanT)),
-    totalRain: round1(rain.reduce((a,b) => a + (b||0), 0)),
-    rainDays: rain.filter(x => x != null && x >= 1).length,
-    hotDays: maxT.filter(x => x != null && x >= 30).length,
-    coldDays: minT.filter(x => x != null && x <= 0).length,
-  };
-
-  const m = Array(12).fill(null).map(() => ({ temps: [], rain: 0 }));
-  time.forEach((t, i) => {
-    const mo = new Date(t).getMonth();
-    if (meanT[i] != null) m[mo].temps.push(meanT[i]);
-    if (rain[i] != null) m[mo].rain += rain[i];
-  });
-  const monthly = m.map(mo => ({
-    avgTemp: round1(avg(mo.temps)),
-    totalRain: round1(mo.rain),
-  }));
-
-  return { stats, monthly };
-}
 
 export default function StatsScreen({ navigation }) {
   const { selectedCity: cityInfo } = useWeather();
@@ -128,6 +74,15 @@ export default function StatsScreen({ navigation }) {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>📊 Statistiche Storiche</Text>
         <Text style={styles.sub}>Dati climatici annuali e mensili</Text>
+
+        {/* Mini-grafico tendenza — sopra i bottoni anno, tap su una barra = seleziona anno */}
+        {cityInfo && (
+          <TrendChart
+            cityInfo={cityInfo}
+            selectedYear={year}
+            onSelectYear={selectYear}
+          />
+        )}
 
         {/* 4 bottoni rapidi (ultimi 4 anni) */}
         <View style={styles.yearRow}>

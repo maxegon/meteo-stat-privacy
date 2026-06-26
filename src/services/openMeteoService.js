@@ -206,6 +206,10 @@ export async function fetchHistoricalRange(lat, lon, startYear, endYear) {
       ].join(','),
       timezone: 'auto',
     },
+    // Range ampi (es. 1940-oggi per il grafico tendenza "Tutto") restituiscono
+    // payload grandi: l'Archive API non documenta un limite di range, ma niente
+    // timeout di default significherebbe attesa potenzialmente infinita.
+    timeout: 45000,
   });
   return { provider: PROVIDERS.OPEN_METEO, startYear, endYear, daily: data.daily };
 }
