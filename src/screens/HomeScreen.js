@@ -27,6 +27,7 @@ import OfficialAlertBanner from '../components/OfficialAlertBanner';
 import AlertSettingsModal from '../components/AlertSettingsModal';
 import { detectAlerts, extractOfficialAlerts, loadThresholds, loadAlertsEnabled, checkDayThresholds, checkHourThresholds } from '../services/weatherAlerts';
 import { getClimateNormals } from '../services/climateNormals';
+import { getNowcast } from '../services/nowcastService';
 
 // Geocoding inverso via OpenStreetMap (Nominatim) — restituisce i nomi popolari
 // di quartiere/rione (es. "Trastevere") che i geocoder nativi Apple/Google non
@@ -123,6 +124,7 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [weather, setWeather] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [nowcast, setNowcast] = useState(null);
   const [cityInfo, setCityInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('current');
   const [activeDay, setActiveDay] = useState(0);
@@ -569,6 +571,9 @@ export default function HomeScreen({ navigation }) {
       const data = await fetchAll(lat, lon);
       setWeather(data);
       setLastUpdated(new Date());
+      // Nowcasting radar in parallelo, stessa cadenza del meteo: è un'aggiunta
+      // "best effort", un suo fallimento non deve bloccare la card meteo.
+      getNowcast(lat, lon).then(setNowcast).catch(() => setNowcast(null));
     } catch (e) {
       Alert.alert('Errore', 'Impossibile caricare i dati meteo. Controlla la connessione.');
     } finally {
@@ -829,6 +834,12 @@ export default function HomeScreen({ navigation }) {
                 const pressure = weather.consensus?.pressure != null ? Math.round(weather.consensus.pressure) : null;
                 const rain = today?.precipProbability ?? null;
                 const rainMm = today?.precipitation ?? null;
+                // Nowcasting radar (RainViewer): se rileva pioggia ORA in zona, sovrascrive
+                // solo icona+descrizione mostrate (mai i valori numerici/la media provider —
+                // vedi invariante CLAUDE.md). Badge "Radar live" per trasparenza sulla fonte.
+                const isRainingNow = nowcast?.isRainingNow === true;
+                const displayDesc = isRainingNow ? '🌧 Pioggia in corso' : translateDescription(weather.consensus.description);
+                const displayIcon = isRainingNow ? 'weather-pouring' : (weather.consensus.icon || 'weather-partly-cloudy');
                 return (<>
                   {/* Riga 1: Media N fonti | attuale · descrizione > */}
                   <View style={styles.consensusRow}>
@@ -838,18 +849,19 @@ export default function HomeScreen({ navigation }) {
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={styles.consensusTempLabel}>attuale</Text>
-                      <Text style={styles.consensusDesc} numberOfLines={1}>{translateDescription(weather.consensus.description)}</Text>
+                      <Text style={styles.consensusDesc} numberOfLines={1}>{displayDesc}</Text>
                       <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
                     </View>
                   </View>
                   {/* Riga 2: temp grande + icona */}
                   <View style={styles.consensusMainRow}>
                     <Text style={styles.consensusTemp}>{Math.round(weather.consensus.temperature)}°C</Text>
-                    <WeatherIcon name={weather.consensus.icon || 'weather-partly-cloudy'} size={48} dark={dark} />
+                    <WeatherIcon name={displayIcon} size={48} dark={dark} />
                   </View>
-                  {/* Riga 3: 🌧 X%  · mm  💧 umidità%  📊 pressione hPa — sotto, giustificati a destra */}
-                  {(rain != null || humidity != null || pressure != null) && (
+                  {/* Riga 3: 📡 radar live · 🌧 X%  · mm  💧 umidità%  📊 pressione hPa — sotto, giustificati a destra */}
+                  {(rain != null || humidity != null || pressure != null || isRainingNow) && (
                     <View style={styles.consensusBadgeRow}>
+                      {isRainingNow && <Text style={styles.consensusBadge}>📡 Radar live</Text>}
                       {rain != null && (
                         <Text style={styles.consensusBadge}>
                           🌧 {Math.round(rain)}%{rainMm != null ? ` · ${rainMm.toFixed(1)}mm` : ''}
