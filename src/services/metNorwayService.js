@@ -10,6 +10,7 @@
 import axios from 'axios';
 import { PROVIDERS } from './providers';
 import { wmoIcon } from './openMeteoService';
+import { CONTACT_EMAIL } from './config';
 
 const BASE = 'https://api.met.no/weatherapi/locationforecast/2.0';
 
@@ -52,7 +53,7 @@ export async function fetchForecast(lat, lon) {
   const { data } = await axios.get(`${BASE}/compact`, {
     params: { lat: parseFloat(lat).toFixed(4), lon: parseFloat(lon).toFixed(4) },
     headers: {
-      'User-Agent': 'Solo1Meteo/1.0 maxegonit@gmail.com',
+      'User-Agent': `Solo1Meteo/1.0 ${CONTACT_EMAIL}`,
     },
     timeout: 8000,
   });

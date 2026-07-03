@@ -8,12 +8,15 @@
  */
 
 import axios from 'axios';
-import { BACKEND_URL } from './config';
+import { BACKEND_URL, APP_SECRET_TOKEN } from './config';
+
+const authHeaders = APP_SECRET_TOKEN ? { 'X-App-Token': APP_SECRET_TOKEN } : {};
 
 export async function getNowcast(lat, lon) {
   try {
     const { data } = await axios.get(`${BACKEND_URL}/nowcast`, {
       params: { lat, lon },
+      headers: authHeaders,
       timeout: 10000,
     });
     return data;

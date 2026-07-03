@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+MeteoAggregator_snapshot.txt
+
+# Build artifacts (non committare mai i binari)
+*.ipa
+*.aab
+*.save

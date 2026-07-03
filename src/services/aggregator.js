@@ -8,13 +8,16 @@
  */
 
 import axios from 'axios';
-import { BACKEND_URL } from './config';
+import { BACKEND_URL, APP_SECRET_TOKEN } from './config';
 import * as OpenMeteo from './openMeteoService';
 import * as OpenWeather from './openWeatherService';
 import * as WeatherApi from './weatherApiService';
 import * as MetNorway from './metNorwayService';
 import { withRetry } from '../utils/withRetry';
 import { logError } from '../utils/errorLogger';
+
+// Header di autenticazione da allegare a tutte le chiamate al backend proxy
+const authHeaders = APP_SECRET_TOKEN ? { 'X-App-Token': APP_SECRET_TOKEN } : {};
 
 /**
  * Recupera meteo da tutti i provider tramite backend proxy.
@@ -26,6 +29,7 @@ export async function fetchAll(lat, lon) {
     const data = await withRetry(
       () => axios.get(`${BACKEND_URL}/weather`, {
         params: { lat, lon },
+        headers: authHeaders,
         timeout: 12000, // 12s: provider hanno 8-10s timeout, cold start Vercel aggiunge ~2s
       }).then(r => r.data),
       2,   // maxTries

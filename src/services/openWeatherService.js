@@ -12,10 +12,11 @@
 
 import axios from 'axios';
 import { PROVIDERS } from './providers';
-import { API_KEYS } from './config';
 
 const BASE = PROVIDERS.OPEN_WEATHER.baseUrl;
-const KEY  = API_KEYS.OPEN_WEATHER_MAP;
+// KEY non disponibile lato app: le chiamate dirette sono disabilitate.
+// Il provider è raggiunto esclusivamente tramite il backend proxy.
+const KEY = undefined;
 
 // Riempie i "buchi" di un array hourly con risoluzione nativa di 3h (OpenWeather)
 // interpolando linearmente i valori numerici, così le viste possono filtrare in

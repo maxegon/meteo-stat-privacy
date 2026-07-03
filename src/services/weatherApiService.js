@@ -12,10 +12,11 @@
 
 import axios from 'axios';
 import { PROVIDERS } from './providers';
-import { API_KEYS } from './config';
 
 const BASE = PROVIDERS.WEATHER_API.baseUrl;
-const KEY  = API_KEYS.WEATHER_API;
+// KEY non disponibile lato app: le chiamate dirette sono disabilitate.
+// Il provider è raggiunto esclusivamente tramite il backend proxy.
+const KEY = undefined;
 
 function wapiIcon(condCode, isDay) {
   // WeatherAPI usa codici condizione propri
