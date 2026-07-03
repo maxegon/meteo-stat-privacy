@@ -9,6 +9,7 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { fetchAll, searchCity } from '../services/aggregator';
+import { CONTACT_EMAIL } from '../services/config';
 import WeatherCard from '../components/WeatherCard';
 import ProviderBadge from '../components/ProviderBadge';
 import WeatherIcon from '../components/WeatherIcon';
@@ -22,12 +23,17 @@ import { getIconColor } from '../utils/weatherIconColor';
 import { windDirArrow, windDirLabel } from '../utils/windDir';
 import { translateDescription } from '../utils/weatherDescriptions';
 import { isCoastal } from '../utils/isCoastal';
-import WeatherAlertBanner from '../components/WeatherAlertBanner';
-import OfficialAlertBanner from '../components/OfficialAlertBanner';
+import AlertsButton from '../components/AlertsButton';
+import AlertsSheet from '../components/AlertsSheet';
 import AlertSettingsModal from '../components/AlertSettingsModal';
 import { detectAlerts, extractOfficialAlerts, loadThresholds, loadAlertsEnabled, checkDayThresholds, checkHourThresholds } from '../services/weatherAlerts';
+import { loadFavorites, toggleFavorite, isFavorite } from '../services/favorites';
 import { getClimateNormals } from '../services/climateNormals';
 import { getNowcast } from '../services/nowcastService';
+import {
+  buildAggregateHourly, buildAggregateDays, buildAggregateData,
+  getDateStr, getHour,
+} from '../services/weatherAggregator';
 
 // Geocoding inverso via OpenStreetMap (Nominatim) — restituisce i nomi popolari
 // di quartiere/rione (es. "Trastevere") che i geocoder nativi Apple/Google non
@@ -35,8 +41,8 @@ import { getNowcast } from '../services/nowcastService';
 // policy Nominatim; usato solo su richiesta utente (entro il limite ~1 req/s).
 async function reverseGeocodeOSM(latitude, longitude) {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=it&zoom=16&addressdetails=1&email=maxegonit@gmail.com`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'Solo1Meteo/1.1 (maxegonit@gmail.com)' } });
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=it&zoom=16&addressdetails=1&email=${encodeURIComponent(CONTACT_EMAIL)}`;
+    const res = await fetch(url, { headers: { 'User-Agent': `Solo1Meteo/1.1 (${CONTACT_EMAIL})` } });
     if (!res.ok) return null;
     const data = await res.json();
     const a = data.address || {};
@@ -122,8 +128,6 @@ export default function HomeScreen({ navigation }) {
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [weather, setWeather] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
   const [nowcast, setNowcast] = useState(null);
   const [cityInfo, setCityInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('current');
@@ -133,6 +137,8 @@ export default function HomeScreen({ navigation }) {
   const inlineForecastYRef = useRef(0);
   const [showCompare, setShowCompare] = useState(false);
   const [recentCities, setRecentCities] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [showFavSheet, setShowFavSheet] = useState(false);
   const [modal, setModal] = useState(null); // { data, title, color }
   const [showBanner, setShowBanner] = useState(true);
   const [gpsBlocked, setGpsBlocked] = useState(false);
@@ -140,6 +146,7 @@ export default function HomeScreen({ navigation }) {
   const [tooltip, setTooltip] = useState(null); // 'provider' | 'compare' | null
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [showAlertSettings, setShowAlertSettings] = useState(false);
+  const [showAlertsSheet, setShowAlertsSheet] = useState(false); // pannello alert (bottone lampeggiante)
   const [alertThresholds, setAlertThresholds] = useState(null);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [climateNormals, setClimateNormals] = useState(null);
@@ -151,207 +158,25 @@ export default function HomeScreen({ navigation }) {
   const scrollRef = useRef(null);
   const cityInfoRef = useRef(null);
   const lastUpdatedRef = useRef(null);
-  const { setSelectedCity } = useWeather();
+  const {
+    selectedCity: _selectedCity,
+    setSelectedCity,
+    weatherData: weather,
+    setWeatherData,
+    aggregateHourly,
+    aggregateDays,
+    lastUpdated,
+    isLoading: _ctxLoading,
+    setIsLoading: _setCtxLoading,
+    isPartial,
+    setIsPartial,
+  } = useWeather();
   const { dark, toggleTheme, colors: c } = useTheme();
   const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
   // Colori turchese e viola adattivi (più scuri nel tema chiaro)
   const TC = dark ? '#67e8f9' : '#0369a1';   // turchese → blu scuro
   const TW = dark ? '#7dd3fc' : '#0369a1';   // vento celeste → blu scuro
   const TP = dark ? '#818cf8' : '#3730a3';   // viola notte → indigo scuro
-
-  // Costruisce dati aggregati con orario medio tra i provider
-  // Utility condivise
-  const aggAvg = arr => { const v = arr.filter(x => x != null && !isNaN(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
-  const aggMajority = arr => {
-    const v = arr.filter(Boolean);
-    if (!v.length) return null;
-    const freq = {};
-    v.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-    return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
-  };
-  // Vota icona+descrizione INSIEME (come coppia), così l'icona mostrata
-  // corrisponde sempre alla descrizione testuale e non a quella di un altro
-  // provider/slot (es. "Sereno" con icona nuvola).
-  const aggMajorityPair = items => {
-    const v = items.filter(x => x?.icon && x?.description);
-    if (!v.length) return null;
-    // Le descrizioni contengono spazi (es. "clear sky"): non si puo'
-    // ricostruire la coppia da una stringa concatenata, quindi la coppia
-    // originale viene conservata insieme al conteggio per ogni chiave.
-    const freq = new Map();
-    v.forEach(x => {
-      const key = x.icon + '\u0001' + x.description;
-      const entry = freq.get(key);
-      if (entry) entry.count += 1;
-      else freq.set(key, { count: 1, pair: { icon: x.icon, description: x.description } });
-    });
-    let best = null;
-    freq.forEach(entry => { if (!best || entry.count > best.count) best = entry; });
-    return best.pair;
-  };
-  // Normalizza timestamp a "YYYY-MM-DDTHH" per matching tra provider
-  const hourKey = t => t.replace(' ', 'T').slice(0, 13);
-  // Normalizza valori che alcuni provider mandano come frazione 0-1 invece di 0-100
-  const pct = v => { if (v == null || isNaN(v)) return null; return (v > 0 && v <= 1) ? v * 100 : v; };
-
-  // INVARIANTE — vedi CLAUDE.md "Regole intoccabili"
-  // Media oraria: solo provider che hanno dati per quell'ora specifica (filter(Boolean) sulla mappa ora→slot)
-  const buildAggregateHourly = (w) => {
-    const allHourlyProviders = [
-      w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
-      w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
-    ].filter(p => p?.hourly?.length);
-    if (!allHourlyProviders.length) return [];
-    // Base: preferiamo Open-Meteo (copertura fino a 16 giorni). Se non disponibile
-    // (es. provider temporaneamente offline), usiamo il provider con più ore
-    // disponibili così "Previsioni orarie" non resta vuota.
-    const base = w.openMeteo?.hourly?.length
-      ? w.openMeteo.hourly
-      : allHourlyProviders.reduce((longest, p) => p.hourly.length > longest.hourly.length ? p : longest, allHourlyProviders[0]).hourly;
-    // Mappa ora→slot per ogni provider secondario (tutti tranne quello usato come base)
-    const otherMaps = allHourlyProviders
-      .filter(p => p.hourly !== base)
-      .map(p => {
-        const m = {};
-        p.hourly.forEach(h => { m[hourKey(h.time)] = h; });
-        return m;
-      });
-    // I mm di pioggia orari sono esposti come `precipitation` da MET Norway/Brightsky
-    // (gli altri provider non forniscono mm orari, solo probabilità `precipProb`).
-    // Prima si cercava un campo `precipMm` che non esiste mai in nessun provider,
-    // quindi i mm orari risultavano sempre assenti.
-    const precipMmOf = s => (s.precipitation != null ? s.precipitation : (s.precipMm != null ? s.precipMm : null));
-    return base.map(slot => {
-      const key = hourKey(slot.time);
-      const others = otherMaps.map(m => m[key]).filter(Boolean);
-      const all = [slot, ...others];
-      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": media solo sui provider
-      // che hanno un dato di mm per quest'ora specifica (filtrati prima).
-      const precipMmVals = all.map(precipMmOf).filter(v => v != null);
-      const precipMm = precipMmVals.length ? aggAvg(precipMmVals) : null;
-      if (!others.length) return { ...slot, precipMm };
-      return {
-        ...slot,
-        temp:       aggAvg(all.map(s => s.temp))            ?? slot.temp,
-        humidity:   aggAvg(all.map(s => pct(s.humidity)))   ?? slot.humidity,
-        precipProb: aggAvg(all.map(s => pct(s.precipProb))) ?? slot.precipProb,
-        precipMm,
-        windspeed:  aggAvg(all.map(s => s.windspeed))       ?? slot.windspeed,
-        // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": icona e descrizione
-        // vengono votate INSIEME come coppia (stesso provider/slot), così non
-        // si presentano combinazioni incoerenti (es. "Sereno" con icona nuvola).
-        ...(aggMajorityPair(all.map(s => ({ icon: s.icon, description: s.description }))) || { icon: slot.icon, description: slot.description }),
-      };
-    });
-  };
-
-  const buildAggregateData = (w) => ({
-    current: w.consensus ? {
-      temperature: w.consensus.temperature,
-      feelsLike:   w.consensus.feelsLike,
-      humidity:    w.consensus.humidity,
-      windspeed:   w.consensus.windspeed,
-      description: w.consensus.description,
-      icon:        w.consensus.icon || 'weather-partly-cloudy',
-    } : null,
-    hourly: buildAggregateHourly(w),
-    daily:  buildAggregateDays(w),
-  });
-
-  // INVARIANTE — vedi CLAUDE.md "Regole intoccabili"
-  // Media giornaliera: dayProviders = providers.filter(p => p?.daily?.[i]) esclude chi non ha il giorno i
-  // providerCount deve essere sempre calcolato e passato al renderer per mostrare il contatore
-  const buildAggregateDays = (w) => {
-    const providers = [
-      w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
-      w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
-    ].filter(p => p?.daily?.length);
-    if (!providers.length) return w.openMeteo?.daily || [];
-    const base = w.openMeteo?.daily || providers[0].daily;
-
-    // COERENZA temp (richiesta utente): max/min del giorno derivati dalla STESSA
-    // serie oraria aggregata mostrata nelle card (media dei provider ora per ora,
-    // stessa granularità di 2 ore). Così la max e la min mostrate nella card del
-    // giorno compaiono SEMPRE in almeno una card oraria, e provengono dallo stesso
-    // tipo di calcolo (media) della temperatura oraria — non dalla media dei
-    // max/min giornalieri dichiarati dai provider (calcolo diverso).
-    const aggHourly = buildAggregateHourly(w);
-    const nowTs = new Date();
-    const hourlyByDate = {};
-    aggHourly.forEach(h => {
-      if (h?.temp == null || isNaN(h.temp)) return;
-      if (getHour(h.time) % 2 !== 0) return; // stessa granularità delle card (ogni 2 ore)
-      const d = getDateStr(h.time);
-      (hourlyByDate[d] = hourlyByDate[d] || []).push(h);
-    });
-
-    // Icona e descrizione prevalente dalle ore di luce su tutti i provider con hourly
-    const allHourly = [
-      w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
-      w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
-    ].filter(p => p?.hourly?.length).flatMap(p => p.hourly);
-
-    // Icona+descrizione prevalenti come COPPIA (stesso slot orario), così
-    // l'icona corrisponde sempre al testo della previsione mostrata.
-    const prevalentPairForDate = (date) => {
-      const items = allHourly.filter(h => {
-        const hDate = h.time.replace(' ', 'T').slice(0, 10);
-        const hr = parseInt(h.time.replace(' ', 'T').slice(11, 13), 10);
-        return hDate === date && hr >= 6 && hr < 20;
-      }).map(h => ({ icon: h.icon, description: h.description }));
-      return aggMajorityPair(items);
-    };
-
-    return base.map((day, i) => {
-      const dayProviders = providers.filter(p => p?.daily?.[i]);
-      const maxVals   = dayProviders.map(p => p.daily[i].tempMax).filter(v => v != null);
-      const minVals   = dayProviders.map(p => p.daily[i].tempMin).filter(v => v != null);
-      const precipVals = dayProviders.map(p => p.daily[i].precipProbability).filter(v => v != null);
-      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": anche i mm di pioggia
-      // devono essere la media dei provider che hanno il dato per quel giorno
-      // (prima venivano presi solo da `base`, violando la regola).
-      const precipMmVals = dayProviders.map(p => p.daily[i].precipitation).filter(v => v != null);
-      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": UV aggregato come media
-      const uvVals = dayProviders.map(p => p.daily[i].uvIndex).filter(v => v != null);
-      // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": icona e descrizione
-      // vengono votate INSIEME come coppia (stesso provider/slot orario), mai
-      // separatamente — altrimenti l'icona "vincente" può appartenere a un
-      // provider diverso da quello della descrizione "vincente" e mostrare
-      // combinazioni incoerenti (es. testo "Sereno" con icona nuvola).
-      const pair = i === 0
-        ? (aggMajorityPair(providers.map(p => ({ icon: p.current?.icon, description: p.current?.description })))
-            || prevalentPairForDate(day.date)
-            || { icon: day.icon, description: day.description })
-        : (prevalentPairForDate(day.date)
-            || aggMajorityPair(dayProviders.map(p => ({ icon: p.daily[i].icon, description: p.daily[i].description })))
-            || { icon: day.icon, description: day.description });
-      // Ore aggregate di questo giorno (per oggi, i===0, solo ore future come le
-      // card). Se disponibili, max/min derivano da queste (così compaiono nelle
-      // card orarie); altrimenti fallback alla media dei max/min giornalieri.
-      const dayHours = hourlyByDate[day.date] || [];
-      // INVARIANTE COERENZA: tempMax/tempMin usano TUTTE le ore del giorno (passate
-      // + future), così il massimo non è mai inferiore alla temperatura attuale
-      // mostrata in card (che può essere il picco già raggiunto stamattina).
-      // Per i===0 aggiungiamo anche consensus.temperature come candidato floor,
-      // eliminando la discrepanza "banner 35° / card 36°" quando il picco è già
-      // passato ma la temperatura attuale supera le previsioni rimanenti.
-      const allDayTemps = dayHours.map(h => h.temp).filter(v => v != null && !isNaN(v));
-      if (i === 0 && w.consensus?.temperature != null) allDayTemps.push(w.consensus.temperature);
-      const tempMaxVal = allDayTemps.length ? Math.round(Math.max(...allDayTemps)) : Math.round(aggAvg(maxVals) ?? day.tempMax);
-      const tempMinVal = allDayTemps.length ? Math.round(Math.min(...allDayTemps)) : Math.round(aggAvg(minVals) ?? day.tempMin);
-      return {
-        ...day,
-        tempMax: tempMaxVal,
-        tempMin: tempMinVal,
-        precipProbability: Math.round(aggAvg(precipVals) ?? day.precipProbability),
-        precipitation: precipMmVals.length ? aggAvg(precipMmVals) : (day.precipitation ?? null),
-        uvIndex: uvVals.length ? Math.round(aggAvg(uvVals) * 10) / 10 : (day.uvIndex ?? null),
-        icon: pair.icon,
-        description: pair.description,
-        providerCount: dayProviders.length,
-      };
-    });
-  };
 
   // Carica soglie alert al mount
   useEffect(() => {
@@ -376,26 +201,29 @@ export default function HomeScreen({ navigation }) {
       setWeatherAlerts([]);
       return;
     }
-    const daily  = buildAggregateDays(weather);
-    const hourly = buildAggregateHourly(weather);
     const alerts = detectAlerts({
-      daily, hourly,
+      daily: aggregateDays,
+      hourly: aggregateHourly,
       consensus: weather.consensus,
       thresholds: alertThresholds,
       climate: climateNormals,
     });
     setWeatherAlerts(alerts);
-  }, [weather, alertThresholds, alertsEnabled, climateNormals]);
+  }, [aggregateHourly, aggregateDays, weather, alertThresholds, alertsEnabled, climateNormals]);
 
-  // Carica città recenti e avvia GPS al primo mount
+  // Carica città recenti + preferite e avvia GPS al primo mount
   useEffect(() => {
     loadRecentCities();
+    loadFavorites().then(setFavorites);
     autoLoadGPS();
   }, []);
 
   // Tiene allineati i ref con lo stato corrente, da usare nei listener AppState
   useEffect(() => { cityInfoRef.current = cityInfo; }, [cityInfo]);
   useEffect(() => { lastUpdatedRef.current = lastUpdated; }, [lastUpdated]);
+  // Sincronizza isLoading locale con il context (usato da componenti che leggono
+  // isLoading dal context, es. futuri widget nella tab Statistiche).
+  useEffect(() => { _setCtxLoading(loading); }, [loading, _setCtxLoading]);
 
   // Aggiorna automaticamente i dati meteo quando l'app torna in primo piano,
   // se i dati sono più vecchi di 10 minuti (stessa durata della cache backend).
@@ -463,9 +291,6 @@ export default function HomeScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  // Helper per dati orari inline
-  function getDateStr(t) { return t.replace('T', ' ').slice(0, 10); }
-  function getHour(t) { return parseInt(t.replace('T', ' ').slice(11, 13), 10); }
   function fasciaOf(hr) {
     if (hr < 6) return 'Notte';
     if (hr < 12) return 'Mattina';
@@ -495,6 +320,12 @@ export default function HomeScreen({ navigation }) {
       await AsyncStorage.setItem(RECENT_CITIES_KEY, JSON.stringify(list));
       setRecentCities(list);
     } catch (_) {}
+  };
+
+  const handleToggleFavorite = async (city) => {
+    if (!city?.lat) return;
+    const next = await toggleFavorite(city, favorites);
+    setFavorites(next);
   };
 
   const autoLoadGPS = async () => {
@@ -569,8 +400,25 @@ export default function HomeScreen({ navigation }) {
     setSuggestions([]);
     try {
       const data = await fetchAll(lat, lon);
-      setWeather(data);
-      setLastUpdated(new Date());
+      // Aggiorna il context: weatherData, lastUpdated e ricalcola gli aggregati.
+      // La città viene aggiornata dai caller (autoLoadGPS, selectCity, ecc.)
+      // tramite setSelectedCity prima di chiamare loadWeather.
+      setWeatherData(data);
+      // Gestione risposta parziale: se il backend ha risposto con partial:true
+      // (timeout hard 6s), segnala il flag e pianifica un re-fetch dopo 8s.
+      if (data?.partial === true) {
+        setIsPartial(true);
+        const tid = setTimeout(() => {
+          loadWeather(lat, lon);
+        }, 8000);
+        // Il timeout viene annullato automaticamente se il componente è smontato
+        // prima dei 8s (cleanup gestito nel return del useEffect chiamante).
+        // Qui non possiamo fare cleanup diretto, ma il rischio è basso (re-fetch
+        // extra di 1 chiamata) e accettabile per la versione semplificata.
+        void tid; // evita warning lint "variable declared but not used"
+      } else {
+        setIsPartial(false);
+      }
       // Nowcasting radar in parallelo, stessa cadenza del meteo: è un'aggiunta
       // "best effort", un suo fallimento non deve bloccare la card meteo.
       getNowcast(lat, lon).then(setNowcast).catch(() => setNowcast(null));
@@ -608,7 +456,12 @@ export default function HomeScreen({ navigation }) {
           onFocus={handleSearchFocus}
           returnKeyType="search"
         />
-        {searching && <ActivityIndicator size="small" color={c.accent} />}
+        {searching
+          ? <ActivityIndicator size="small" color={c.accent} />
+          : <TouchableOpacity onPress={() => setShowFavSheet(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Città preferite" accessibilityRole="button">
+              <MaterialCommunityIcons name="star" size={20} color={favorites.length > 0 ? '#fbbf24' : c.textMuted} />
+            </TouchableOpacity>
+        }
       </View>
       <TouchableOpacity style={[styles.locBtn, { backgroundColor: c.bgCard, borderColor: c.border }]} onPress={useMyLocation} accessibilityLabel="Usa la mia posizione" accessibilityRole="button">
         <MaterialCommunityIcons name="crosshairs-gps" size={22} color={c.accent} />
@@ -628,12 +481,21 @@ export default function HomeScreen({ navigation }) {
       {suggestions.length > 0 && (
         <View style={[styles.suggestBox, { position: 'absolute', top: 70, left: 0, right: 0, zIndex: 100 }]}>
           {suggestions.map(city => (
-            <TouchableOpacity key={city.id} style={styles.suggestItem} onPress={() => selectCity(city)}>
+            <View key={city.id} style={styles.suggestItem}>
               <MaterialCommunityIcons name="map-marker-outline" size={16} color={c.textMuted} />
-              <Text style={styles.suggestText}>
-                {city.name}{city.region ? `, ${city.region}` : ''} <Text style={styles.suggestCountry}>({city.countryCode})</Text>
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => selectCity(city)}>
+                <Text style={styles.suggestText}>
+                  {city.name}{city.region ? `, ${city.region}` : ''} <Text style={styles.suggestCountry}>({city.countryCode})</Text>
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleToggleFavorite(city)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <MaterialCommunityIcons
+                  name={isFavorite(city, favorites) ? 'star' : 'star-outline'}
+                  size={18}
+                  color={isFavorite(city, favorites) ? '#fbbf24' : c.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
       )}
@@ -659,6 +521,19 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.gpsBannerText}>GPS non disponibile — tocca per attivarlo in Impostazioni</Text>
               <MaterialCommunityIcons name="chevron-right" size={16} color="#fbbf24" />
             </TouchableOpacity>
+          )}
+          {suggestions.length === 0 && favorites.length > 0 && (
+            <View style={styles.recentSection}>
+              <Text style={styles.recentLabel}>Preferite</Text>
+              <View style={styles.recentRow}>
+                {favorites.map((city, i) => (
+                  <TouchableOpacity key={i} style={[styles.recentChip, styles.favChip]} onPress={() => selectCity(city)}>
+                    <MaterialCommunityIcons name="star" size={13} color="#fbbf24" />
+                    <Text style={styles.recentChipText}>{city.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
           )}
           {suggestions.length === 0 && recentCities.length > 0 && (
             <View style={styles.recentSection}>
@@ -696,6 +571,52 @@ export default function HomeScreen({ navigation }) {
           </View>
         </>
       )}
+
+      {/* Bottom sheet — Città preferite */}
+      <Modal visible={showFavSheet} animationType="slide" transparent onRequestClose={() => setShowFavSheet(false)}>
+        <View style={styles.howToOverlay}>
+          <View style={styles.howToCard}>
+            <View style={styles.howToHeader}>
+              <Text style={styles.howToTitle}>Città preferite</Text>
+              <TouchableOpacity onPress={() => setShowFavSheet(false)} accessibilityLabel="Chiudi" accessibilityRole="button">
+                <MaterialCommunityIcons name="close" size={22} color={c.textMuted} />
+              </TouchableOpacity>
+            </View>
+            {favorites.length === 0 ? (
+              <View style={{ alignItems: 'center', paddingVertical: 32, gap: 10 }}>
+                <MaterialCommunityIcons name="star-outline" size={48} color={c.textMuted} />
+                <Text style={{ color: c.textMuted, fontSize: 14, textAlign: 'center' }}>
+                  Nessuna città preferita.{'\n'}Cerca una città e tocca ★ per aggiungerla.
+                </Text>
+              </View>
+            ) : (
+              favorites.map((city, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.favSheetItem}
+                  onPress={() => { setShowFavSheet(false); selectCity(city); }}
+                >
+                  <MaterialCommunityIcons name="star" size={16} color="#fbbf24" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.favSheetName}>{city.name}</Text>
+                    {(city.region || city.country) ? (
+                      <Text style={styles.favSheetSub}>{[city.region, city.country].filter(Boolean).join(', ')}</Text>
+                    ) : null}
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleToggleFavorite(city)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel="Rimuovi dai preferiti"
+                    accessibilityRole="button"
+                  >
+                    <MaterialCommunityIcons name="close-circle-outline" size={20} color={c.textMuted} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal Come funziona */}
       <Modal visible={showHowTo} animationType="slide" transparent onRequestClose={() => setShowHowTo(false)}>
@@ -752,12 +673,30 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.appSubtitle}>Una previsione, tante fonti</Text>
             <Text style={styles.tagline} numberOfLines={1} adjustsFontSizeToFit>
               {weather
-                ? `Previsioni da ${weather.consensus?.providersCount ?? 8} provider meteo ufficiali`
+                ? (weather.isFallback
+                    ? `Modalità offline temporanea — ${weather.consensus?.providersCount ?? 0} fonti disponibili`
+                    : `Previsioni da ${weather.consensus?.providersCount ?? 8} provider meteo ufficiali`)
                 : 'Previsioni da più fonti meteo ufficiali'}
             </Text>
-            <Text style={styles.cityName}>
-              📍 {cityInfo?.name || query}{[cityInfo?.region, cityInfo?.country].filter(Boolean).length > 0 ? `, ${[cityInfo?.region, cityInfo?.country].filter(Boolean).join(', ')}` : ''}
-            </Text>
+            <View style={styles.cityNameRow}>
+              <Text style={styles.cityName}>
+                📍 {cityInfo?.name || query}{[cityInfo?.region, cityInfo?.country].filter(Boolean).length > 0 ? `, ${[cityInfo?.region, cityInfo?.country].filter(Boolean).join(', ')}` : ''}
+              </Text>
+              {cityInfo?.lat != null && (
+                <TouchableOpacity
+                  onPress={() => handleToggleFavorite(cityInfo)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityLabel={isFavorite(cityInfo, favorites) ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+                  accessibilityRole="button"
+                >
+                  <MaterialCommunityIcons
+                    name={isFavorite(cityInfo, favorites) ? 'star' : 'star-outline'}
+                    size={16}
+                    color={isFavorite(cityInfo, favorites) ? '#fbbf24' : c.textMuted}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
             {lastUpdated && (
               <View style={styles.updatedRow}>
                 <Text style={styles.updatedText}>
@@ -775,11 +714,15 @@ export default function HomeScreen({ navigation }) {
           </View>
 
 
-          {/* Banner fallback: backend non raggiungibile */}
+          {/* Banner fallback: backend non raggiungibile — l'app passa a chiamate dirette
+              a un sottoinsieme di 4 provider (vedi aggregator.js:fetchAllDirect). Testo
+              chiarito il 2026-07-02 (segnalato "scritto male" da un tester Android):
+              prima diceva "su 4" dando l'impressione che l'app abbia solo 4 fonti in
+              totale — ora confronta col numero normale (8) e chiarisce che è temporaneo. */}
           {weather.isFallback && (
             <View style={styles.fallbackBanner}>
               <MaterialCommunityIcons name="alert-outline" size={15} color="#fbbf24" />
-              <Text style={styles.fallbackBannerText}>Connessione al server limitata — mostrati {weather.consensus?.providersCount ?? 4} provider meteo su 4</Text>
+              <Text style={styles.fallbackBannerText}>Connessione al server meteo limitata — dati da {weather.consensus?.providersCount ?? 0} fonti su 8 (numero normale). Riprova tra poco.</Text>
             </View>
           )}
 
@@ -809,13 +752,14 @@ export default function HomeScreen({ navigation }) {
               flexGrow:1 così lo slot pubblicitario in fondo riempie lo spazio rimanente. */}
           {activeTab !== 'compare' && activeTab !== 'forecast' && <View style={{ flexGrow: 1 }}>
 
-          {/* Banner allerte UFFICIALI (WeatherAPI) — sopra gli alert calcolati */}
-          <OfficialAlertBanner alerts={officialAlerts} />
-
-          {/* Banner alert condizioni estreme */}
-          <WeatherAlertBanner
-            alerts={weatherAlerts}
-            onOpenSettings={() => setShowAlertSettings(true)}
+          {/* FIX 2026-07-02: prima qui c'erano i banner alert sempre visibili
+              (potevano riempire tutta la pagina con 3-4 alert attivi insieme —
+              vedi MEMORIA_METEO_PROGETTO.md). Ora solo un bottone compatto che
+              apre il dettaglio in AlertsSheet (overlay animato, fuori da qui
+              per non farlo scrollare via con il resto della pagina). */}
+          <AlertsButton
+            count={officialAlerts.length + weatherAlerts.length}
+            onPress={() => setShowAlertsSheet(true)}
           />
 
           {/* Card consenso */}
@@ -829,7 +773,7 @@ export default function HomeScreen({ navigation }) {
             >
               {/* Header: Media N fonti — — — attuale · descrizione > */}
               {(() => {
-                const today = buildAggregateDays(weather)[0];
+                const today = aggregateDays[0];
                 const humidity = weather.consensus?.humidity != null ? Math.round(weather.consensus.humidity) : null;
                 const pressure = weather.consensus?.pressure != null ? Math.round(weather.consensus.pressure) : null;
                 const rain = today?.precipProbability ?? null;
@@ -838,8 +782,30 @@ export default function HomeScreen({ navigation }) {
                 // solo icona+descrizione mostrate (mai i valori numerici/la media provider —
                 // vedi invariante CLAUDE.md). Badge "Radar live" per trasparenza sulla fonte.
                 const isRainingNow = nowcast?.isRainingNow === true;
-                const displayDesc = isRainingNow ? '🌧 Pioggia in corso' : translateDescription(weather.consensus.description);
-                const displayIcon = isRainingNow ? 'weather-pouring' : (weather.consensus.icon || 'weather-partly-cloudy');
+                // FIX 2026-07-02 — segnalato: media provider dice "Pioggia" ma cielo sereno
+                // e radar senza echi. Prima la correzione radar funzionava solo in un verso
+                // (radar conferma pioggia → sovrascrive testo); ora corregge anche il verso
+                // opposto: radar conferma ESPLICITAMENTE "nessuna pioggia" (non un errore di
+                // rete/fetch — il backend distingue i due casi col campo `error`) mentre la
+                // media dei modelli dice pioggia → mostra il segnale radar invece del testo
+                // modello (che in questo istante è verificabilmente sbagliato). I valori
+                // numerici (temperatura, umidità, ecc.) restano SEMPRE la media provider,
+                // qui si corregge solo testo/icona con lo stesso badge di trasparenza già
+                // usato per la correzione positiva.
+                const RAIN_ICONS = ['weather-rainy', 'weather-pouring', 'weather-lightning-rainy', 'weather-snowy-rainy'];
+                const radarConfirmedDry = nowcast != null && nowcast.isRainingNow === false && nowcast.error !== true;
+                const consensusSaysRain = RAIN_ICONS.includes(weather.consensus.icon);
+                const radarOverridesDry = radarConfirmedDry && consensusSaysRain;
+                const displayDesc = isRainingNow
+                  ? '🌧 Pioggia in corso'
+                  : radarOverridesDry
+                    ? '☀️ Nessuna pioggia dal radar'
+                    : translateDescription(weather.consensus.description);
+                const displayIcon = isRainingNow
+                  ? 'weather-pouring'
+                  : radarOverridesDry
+                    ? 'weather-partly-cloudy'
+                    : (weather.consensus.icon || 'weather-partly-cloudy');
                 return (<>
                   {/* Riga 1: Media N fonti | attuale · descrizione > */}
                   <View style={styles.consensusRow}>
@@ -859,9 +825,9 @@ export default function HomeScreen({ navigation }) {
                     <WeatherIcon name={displayIcon} size={48} dark={dark} />
                   </View>
                   {/* Riga 3: 📡 radar live · 🌧 X%  · mm  💧 umidità%  📊 pressione hPa — sotto, giustificati a destra */}
-                  {(rain != null || humidity != null || pressure != null || isRainingNow) && (
+                  {(rain != null || humidity != null || pressure != null || isRainingNow || radarOverridesDry) && (
                     <View style={styles.consensusBadgeRow}>
-                      {isRainingNow && <Text style={styles.consensusBadge}>📡 Radar live</Text>}
+                      {(isRainingNow || radarOverridesDry) && <Text style={styles.consensusBadge}>📡 Radar live</Text>}
                       {rain != null && (
                         <Text style={styles.consensusBadge}>
                           🌧 {Math.round(rain)}%{rainMm != null ? ` · ${rainMm.toFixed(1)}mm` : ''}
@@ -875,7 +841,7 @@ export default function HomeScreen({ navigation }) {
               })()}
               {/* Riga dati orizzontale */}
               {(() => {
-                const today = buildAggregateDays(weather)[0];
+                const today = aggregateDays[0];
                 return (
                   <View style={styles.consensusDataRow}>
                     {weather.consensus.feelsLike != null && (
@@ -934,7 +900,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* 3 pulsanti giorni — usa dati aggregati tra tutti i provider */}
           {(() => {
-            const aggDays = buildAggregateDays(weather);
+            const aggDays = aggregateDays;
             return (
               <View style={styles.dayBtnsRow}>
                 {[0, 1, 2].map(i => {
@@ -1273,7 +1239,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* TAB: 7 GIORNI */}
           {activeTab === 'forecast' && (() => {
-            const aggDays = buildAggregateDays(weather);
+            const aggDays = aggregateDays;
             const aggData = buildAggregateData(weather);
             // Niente "weather.openMeteo &&" qui: se Open-Meteo non risponde,
             // aggDays usa comunque il provider disponibile come base (vedi
@@ -1385,6 +1351,19 @@ export default function HomeScreen({ navigation }) {
         alertThresholds={alertThresholds}
         cityInfo={cityInfo}
       />
+
+      {/* Pannello alert (aperto dal bottone lampeggiante) — overlay in-tree,
+          fuori dallo ScrollView così resta fisso indipendentemente da dove
+          si è scrollato. Vedi AlertsSheet per il motivo per cui non è una
+          <Modal> nativa (evita l'annidamento con la Modal di dettaglio
+          dentro OfficialAlertBanner). */}
+      <AlertsSheet
+        visible={showAlertsSheet}
+        onClose={() => setShowAlertsSheet(false)}
+        officialAlerts={officialAlerts}
+        weatherAlerts={weatherAlerts}
+        onOpenSettings={() => { setShowAlertsSheet(false); setShowAlertSettings(true); }}
+      />
     </SafeAreaView>
     </AnimatedGradientBg>
   );
@@ -1453,7 +1432,9 @@ function makeStyles(c, dark) {
   appTitle: { color: dark ? '#ffffff' : c.accent, fontSize: 32, fontWeight: '800', letterSpacing: 1.5, textAlign: 'center', textShadowColor: dark ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   appSubtitle: { color: dark ? '#ffffff' : c.accent, fontSize: 13, fontWeight: '700', letterSpacing: 1.5, textAlign: 'center', marginTop: 2 },
   tagline: { color: '#fb923c', fontSize: 13, fontWeight: '700', marginTop: 14, textAlign: 'center' },
-  cityName: { color: c.textMuted, fontSize: 13, fontWeight: '300', marginTop: 6, textAlign: 'center' },
+  cityNameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 6 },
+  cityName: { color: c.textMuted, fontSize: 13, fontWeight: '300', textAlign: 'center' },
+  favChip: { borderColor: '#fbbf2455' },
   updatedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 4, gap: 4 },
   updatedText: { color: c.textMuted, fontSize: 11, fontWeight: '400' },
   refreshBtn: { padding: 2 },
@@ -1475,7 +1456,11 @@ function makeStyles(c, dark) {
   consensusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   consensusLabel: { color: c.accent, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   consensusMainRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  consensusBadgeRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginBottom: 10 },
+  // FIX 2026-07-02: quando compare anche il badge "📡 Radar live" (pioggia rilevata
+  // ora dal radar) insieme a pioggia/umidità/pressione, la riga arriva a 4 badge e
+  // senza flexWrap usciva dal bordo della card (visibile soprattutto su Expo Go /
+  // schermi stretti). Aggiunto flexWrap + rowGap così va a capo invece di traboccare.
+  consensusBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', gap: 8, rowGap: 4, marginBottom: 10 },
   consensusTemp: { color: dark ? '#ffffff' : c.accent, fontSize: 42, fontWeight: '800', lineHeight: 46, textShadowColor: dark ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   consensusTempLabel: { color: c.textSub, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
   consensusDesc: { color: c.accent, fontSize: 13, textTransform: 'capitalize', fontWeight: '500' },
@@ -1501,6 +1486,9 @@ function makeStyles(c, dark) {
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bannerText: { flex: 1, color: c.textSub, fontSize: 11, lineHeight: 16 },
   bannerBold: { color: '#22c55e', fontWeight: '600' },
+  favSheetItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.border },
+  favSheetName: { color: c.text, fontSize: 15, fontWeight: '600' },
+  favSheetSub: { color: c.textMuted, fontSize: 12, marginTop: 2 },
   howToOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   howToCard: { backgroundColor: c.bg, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 36, borderTopWidth: 1, borderColor: c.border },
   howToHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },

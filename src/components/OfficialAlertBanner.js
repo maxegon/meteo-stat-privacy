@@ -37,9 +37,22 @@ export default function OfficialAlertBanner({ alerts = [] }) {
   const [dismissedIds, setDismissedIds] = useState(new Set());
   const [selected, setSelected] = useState(null);
 
+  // FIX 2026-07-02: stesso bug di WeatherAlertBanner — si azzerava tutto il
+  // dismiss ad ogni cambio di *numero* di alert, non solo quando un alert
+  // dismesso spariva davvero. Ora si toglie dal set solo l'id di un'allerta
+  // non più presente, lasciando intatto il dismiss delle altre.
   useEffect(() => {
-    setDismissedIds(new Set());
-  }, [alerts.length]);
+    const currentIds = new Set(alerts.map(a => a.id));
+    setDismissedIds(prev => {
+      let changed = false;
+      const next = new Set();
+      prev.forEach(id => {
+        if (currentIds.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [alerts]);
 
   if (!alerts.length) return null;
 

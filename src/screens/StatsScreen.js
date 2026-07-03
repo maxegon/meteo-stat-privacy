@@ -28,6 +28,7 @@ export default function StatsScreen({ navigation }) {
   const [stats, setStats] = useState(null);
   const [monthly, setMonthly] = useState(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [showTrendInfo, setShowTrendInfo] = useState(false); // spiegazione barre rosse/blu del TrendChart
   const { colors: c, dark } = useTheme();
   const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
 
@@ -72,7 +73,25 @@ export default function StatsScreen({ navigation }) {
     <AnimatedGradientBg>
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>📊 Statistiche Storiche</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>📊 Statistiche Storiche</Text>
+          <TouchableOpacity
+            onPress={() => setShowTrendInfo(v => !v)}
+            accessibilityRole="button"
+            accessibilityLabel="Cosa indicano le barre del grafico"
+            style={styles.titleInfoBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialCommunityIcons name="information-outline" size={20} color={c.accent} />
+          </TouchableOpacity>
+        </View>
+        {showTrendInfo && (
+          <View style={styles.tooltipBox}>
+            <Text style={styles.tooltipText}>
+              Nel grafico sopra i bottoni anno, ogni barra è la temperatura media di quell'anno nell'intervallo scelto (5/10/20/50 anni o "Tutto"). Il colore indica lo scostamento dalla media dell'intero intervallo mostrato: 🔴 rosso = anno sopra la media del periodo, 🔵 blu = anno sotto la media del periodo. Tocca una barra per selezionare quell'anno nel dettaglio sotto.
+            </Text>
+          </View>
+        )}
         <Text style={styles.sub}>Dati climatici annuali e mensili</Text>
 
         {/* Mini-grafico tendenza — sopra i bottoni anno, tap su una barra = seleziona anno */}
@@ -253,8 +272,12 @@ function makeStyles(c, dark) {
   return {
   safe: { flex: 1, backgroundColor: 'transparent' },
   scroll: { flex: 1, padding: 16 },
-  title: { color: dark ? c.text : c.accent, fontSize: 22, fontWeight: '700', marginBottom: 4 },
-  sub: { color: c.textMuted, fontSize: 14, marginBottom: 16 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 },
+  title: { color: dark ? c.text : c.accent, fontSize: 22, fontWeight: '700', textAlign: 'center' },
+  titleInfoBtn: { padding: 2 },
+  tooltipBox: { padding: 12, backgroundColor: c.bgCard, borderRadius: 10, borderWidth: 1, borderColor: c.border, marginBottom: 12 },
+  tooltipText: { color: c.textSub, fontSize: 12, lineHeight: 18 },
+  sub: { color: c.textMuted, fontSize: 14, marginBottom: 16, textAlign: 'center' },
   yearRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   yearBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: c.bgCard, alignItems: 'center', borderWidth: 1, borderColor: c.border },
   yearBtnActive: { backgroundColor: c.accent + '22', borderColor: c.accent },

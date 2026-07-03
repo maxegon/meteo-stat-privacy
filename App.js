@@ -19,7 +19,7 @@ import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, ActivityIndicator, LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -52,6 +52,14 @@ const TAB_ICONS = {
 
 function AppNavigator() {
   const { colors: c, dark } = useTheme();
+  // INVARIANTE UI — tab bar deve restare sempre completamente visibile sopra
+  // la barra di sistema (Android: edgeToEdgeEnabled la sovrappone ai tasti di
+  // navigazione se non riserviamo lo spazio; iOS: home indicator). La
+  // libreria (react-native-tab-view) non gestisce da sola i safe-area inset,
+  // quindi li applichiamo qui esplicitamente per un comportamento identico
+  // sui due piattaforme — vedi bug report tester Android 2026-07-02.
+  const insets = useSafeAreaInsets();
+  const TAB_BAR_CONTENT_HEIGHT = 54;
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
@@ -67,6 +75,8 @@ function AppNavigator() {
             borderTopWidth: 1,
             elevation: 0,
             shadowOpacity: 0,
+            height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
+            paddingBottom: insets.bottom,
           },
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: dark ? 'rgba(255,255,255,0.45)' : 'rgba(2,132,199,0.50)',

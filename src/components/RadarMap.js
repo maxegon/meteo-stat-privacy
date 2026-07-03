@@ -92,7 +92,7 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude }, ref) {
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map', { zoomControl: true, attributionControl: false, maxZoom: 9 })
+    const map = L.map('map', { zoomControl: true, attributionControl: false, maxZoom: 19 })
       .setView([${lat}, ${lon}], 6);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -110,7 +110,12 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude }, ref) {
       if (radarLayer) map.removeLayer(radarLayer);
       const frame = frames[index];
       const tileUrl = 'https://tilecache.rainviewer.com' + frame.path + '/512/{z}/{x}/{y}/4/1_1.png';
-      radarLayer = L.tileLayer(tileUrl, { opacity: 0.7, zIndex: 10 }).addTo(map);
+      // maxNativeZoom: 7 — limite reale del tile server RainViewer (doc ufficiale:
+      // "Maximum zoom level is 7"). Oltre lo zoom 7 Leaflet riusa e ingrandisce
+      // (upscaling) l'ultimo tile scaricato invece di richiedere tile z>7
+      // inesistenti (che darebbero 404/riquadri vuoti). La mappa base OSM invece
+      // resta nitida fino a zoom 19.
+      radarLayer = L.tileLayer(tileUrl, { opacity: 0.7, zIndex: 10, maxNativeZoom: 7, maxZoom: 19 }).addTo(map);
       const d = new Date(frame.time * 1000);
       const timeStr = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
       const isPast = index < frames.length - 2;

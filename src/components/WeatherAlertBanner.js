@@ -13,13 +13,27 @@ import { useTheme } from '../context/ThemeContext';
  */
 export default function WeatherAlertBanner({ alerts = [], onOpenSettings }) {
   const { colors: c } = useTheme();
-  // Set di chiavi dismissate (tipo_giorno), reset quando cambiano gli alert
+  // Set di chiavi dismissate (tipo_giorno) per la sessione corrente.
   const [dismissedKeys, setDismissedKeys] = useState(new Set());
 
-  // Reset dismiss quando cambiano gli alert (nuovi dati meteo)
+  // FIX 2026-07-02: prima si azzerava TUTTO il dismiss ogni volta che cambiava
+  // il *numero* di alert (anche solo perché uno era scaduto o ne era comparso
+  // uno nuovo) — quindi chiudere un alert non "teneva" davvero: bastava che
+  // un altro alert apparisse/sparisse per farlo ricomparire. Ora si toglie dal
+  // set solo la chiave di un alert che non esiste più (scaduto/non più valido),
+  // lasciando intatto il dismiss di quelli ancora attivi.
   useEffect(() => {
-    setDismissedKeys(new Set());
-  }, [alerts.length]);
+    const currentKeys = new Set(alerts.map(a => `${a.id}_${a.day}`));
+    setDismissedKeys(prev => {
+      let changed = false;
+      const next = new Set();
+      prev.forEach(k => {
+        if (currentKeys.has(k)) next.add(k);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [alerts]);
 
   if (!alerts.length) return null;
 
