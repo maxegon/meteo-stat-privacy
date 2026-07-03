@@ -2,7 +2,7 @@
   "expo": {
     "name": "Solo1Meteo",
     "slug": "MeteoAggregator2",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -15,18 +15,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.maxegon.meteostatapp",
-      "buildNumber": "19",
+      "buildNumber": "20",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "La posizione viene usata per mostrare le previsioni meteo della tua città attuale.",
         "NSPrivacyNutritionLabelTypes": [
-          {
-            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePreciseLocation",
-            "NSPrivacyCollectedDataTypeLinked": false,
-            "NSPrivacyCollectedDataTypeTracking": false,
-            "NSPrivacyCollectedDataTypePurposes": [
-              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
-            ]
-          },
           {
             "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePreciseLocation",
             "NSPrivacyCollectedDataTypeLinked": false,
