@@ -26,13 +26,14 @@ import { isCoastal } from '../utils/isCoastal';
 import AlertsButton from '../components/AlertsButton';
 import AlertsSheet from '../components/AlertsSheet';
 import AlertSettingsModal from '../components/AlertSettingsModal';
+import ProviderStatusBanner from '../components/ProviderStatusBanner';
 import { detectAlerts, extractOfficialAlerts, loadThresholds, loadAlertsEnabled, checkDayThresholds, checkHourThresholds } from '../services/weatherAlerts';
 import { loadFavorites, toggleFavorite, isFavorite } from '../services/favorites';
 import { getClimateNormals } from '../services/climateNormals';
 import { getNowcast } from '../services/nowcastService';
 import {
   buildAggregateHourly, buildAggregateDays, buildAggregateData,
-  getDateStr, getHour,
+  getDateStr, getHour, getActiveProviderCount,
 } from '../services/weatherAggregator';
 
 // Geocoding inverso via OpenStreetMap (Nominatim) — restituisce i nomi popolari
@@ -154,6 +155,9 @@ export default function HomeScreen({ navigation }) {
   // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
   // weather, nessun bisogno di effect/storage.
   const officialAlerts = useMemo(() => extractOfficialAlerts(weather), [weather]);
+  // FIX 2026-07-03 — conteggio fonti attive per ProviderStatusBanner (vedi
+  // HANDOFF.md §5). Stessa lista di 8 provider "core" usata dagli aggregatori.
+  const activeProviderCount = useMemo(() => getActiveProviderCount(weather), [weather]);
   const hasAutoLoaded = useRef(false);
   const scrollRef = useRef(null);
   const cityInfoRef = useRef(null);
@@ -757,6 +761,11 @@ export default function HomeScreen({ navigation }) {
               vedi MEMORIA_METEO_PROGETTO.md). Ora solo un bottone compatto che
               apre il dettaglio in AlertsSheet (overlay animato, fuori da qui
               per non farlo scrollare via con il resto della pagina). */}
+          {/* FIX 2026-07-03 — avviso "servizio ridotto" quando le fonti dati
+              scendono sotto soglia (vedi HANDOFF.md §5). Sopra AlertsButton:
+              lo stato del servizio ha priorità visiva sugli alert meteo. */}
+          <ProviderStatusBanner activeCount={activeProviderCount} totalCount={8} />
+
           <AlertsButton
             count={officialAlerts.length + weatherAlerts.length}
             onPress={() => setShowAlertsSheet(true)}

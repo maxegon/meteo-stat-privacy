@@ -17,6 +17,20 @@ export const aggAvg = arr => {
   return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
 };
 
+/**
+ * FIX 2026-07-03 — conta i provider "core" attivi nella risposta backend
+ * (stessa lista di 8 chiavi usata da buildAggregateHourly/Days e dal backend
+ * in HEALTH_PROVIDER_KEYS — marine escluso, non fa parte del conteggio
+ * salute). Usato da ProviderStatusBanner per l'avviso "servizio ridotto".
+ */
+export const getActiveProviderCount = (w) => {
+  if (!w) return null;
+  return [
+    w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
+    w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
+  ].filter(Boolean).length;
+};
+
 /** Valore più frequente (moda) su array di stringhe */
 export const aggMajority = arr => {
   const v = arr.filter(Boolean);
