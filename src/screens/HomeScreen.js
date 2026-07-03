@@ -48,7 +48,8 @@ async function reverseGeocodeOSM(latitude, longitude) {
     const data = await res.json();
     const a = data.address || {};
     const isAdmin = (s) => s && /municipi|circoscrizione/i.test(s);
-    const rawQ = a.neighbourhood || a.suburb || a.quarter || a.city_district || a.borough;
+    const rawQ = [a.neighbourhood, a.quarter, a.suburb, a.city_district, a.borough]
+      .find(s => s && !isAdmin(s)) || null;
     const quartiere = isAdmin(rawQ) ? null : rawQ;
     const comune = a.city || a.town || a.village || a.municipality || a.county;
     const name = (quartiere && comune && quartiere !== comune)
@@ -399,27 +400,19 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const loadWeather = async (lat, lon) => {
+  const loadWeather = async (lat, lon, retryCount = 0) => {
     setLoading(true);
     setSuggestions([]);
     try {
       const data = await fetchAll(lat, lon);
-      // Aggiorna il context: weatherData, lastUpdated e ricalcola gli aggregati.
-      // La città viene aggiornata dai caller (autoLoadGPS, selectCity, ecc.)
-      // tramite setSelectedCity prima di chiamare loadWeather.
       setWeatherData(data);
-      // Gestione risposta parziale: se il backend ha risposto con partial:true
-      // (timeout hard 6s), segnala il flag e pianifica un re-fetch dopo 8s.
+      // MAX 1 retry su risposta parziale — evita burst → rate limit cascade.
+      // Dopo il primo retry mostra il banner "fonti limitate" senza ri-caricare.
       if (data?.partial === true) {
         setIsPartial(true);
-        const tid = setTimeout(() => {
-          loadWeather(lat, lon);
-        }, 8000);
-        // Il timeout viene annullato automaticamente se il componente è smontato
-        // prima dei 8s (cleanup gestito nel return del useEffect chiamante).
-        // Qui non possiamo fare cleanup diretto, ma il rischio è basso (re-fetch
-        // extra di 1 chiamata) e accettabile per la versione semplificata.
-        void tid; // evita warning lint "variable declared but not used"
+        if (retryCount < 1) {
+          setTimeout(() => loadWeather(lat, lon, retryCount + 1), 8000);
+        }
       } else {
         setIsPartial(false);
       }
