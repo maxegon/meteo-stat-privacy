@@ -32,19 +32,18 @@ export default function StatsScreen({ navigation }) {
   const { colors: c, dark } = useTheme();
   const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
 
-  // Carica automaticamente appena c'è una città selezionata
+  // Carica automaticamente al cambio città o anno.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (cityInfo && !stats && !loading) {
-      loadYear(cityInfo, year);
-    }
-  }, [cityInfo]);
+    if (cityInfo) loadYear(cityInfo, year);
+  }, [cityInfo, year]);
 
   const loadYear = async (city, y) => {
     if (!city) { Alert.alert('', 'Prima seleziona una città dalla scheda Meteo.'); return; }
     setLoading(true);
+    setStats(null);
+    setMonthly(null);
     try {
-      // Un solo anno per richiesta: fetchHistoricalRange con startYear===endYear
-      // restituisce esattamente i dati di quell'anno (stesso endpoint Archive API).
       const data = await fetchHistoricalRange(city.lat, city.lon, y, y);
       const result = statsForYear(data.daily, y);
       setStats(result?.stats ?? null);
@@ -58,7 +57,7 @@ export default function StatsScreen({ navigation }) {
 
   const selectYear = (y) => {
     setYear(y);
-    if (cityInfo) loadYear(cityInfo, y);
+    // useEffect [year] gestisce il fetch — nessuna chiamata diretta
   };
 
   const isPreset = PRESET_YEARS.includes(year);
