@@ -131,20 +131,32 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude }, ref) {
       }, 600);
     }
 
-    fetch('https://api.rainviewer.com/public/weather-maps.json')
-      .then(r => r.json())
-      .then(data => {
-        const past = (data.radar.past || []).slice(-10);
-        const nowcast = (data.radar.nowcast || []).slice(0, 2);
-        frames = [...past, ...nowcast];
-        currentIndex = past.length - 1;
-        showFrame(currentIndex);
-        startAnimation();
-        document.getElementById('timeBox').textContent = '📡 Radar attivo';
-      })
-      .catch(() => {
-        document.getElementById('timeBox').textContent = '⚠️ Radar non disponibile';
-      });
+    // RainViewer pubblica un nuovo mosaico radar ogni ~10 min. Questa schermata
+    // resta montata quando si cambia tab (React Navigation non la smonta), quindi
+    // senza un refetch periodico i frame restano quelli del primo caricamento
+    // finché non si riavvia l'app. REFETCH_MS sotto i 10 min per non perdere un
+    // frame nuovo appena pubblicato.
+    const REFETCH_MS = 5 * 60 * 1000;
+
+    function loadFrames(isRefresh) {
+      fetch('https://api.rainviewer.com/public/weather-maps.json')
+        .then(r => r.json())
+        .then(data => {
+          const past = (data.radar.past || []).slice(-10);
+          const nowcast = (data.radar.nowcast || []).slice(0, 2);
+          frames = [...past, ...nowcast];
+          currentIndex = past.length - 1;
+          showFrame(currentIndex);
+          if (!isRefresh && playing) startAnimation();
+          document.getElementById('timeBox').textContent = '📡 Radar attivo';
+        })
+        .catch(() => {
+          if (!isRefresh) document.getElementById('timeBox').textContent = '⚠️ Radar non disponibile';
+        });
+    }
+
+    loadFrames(false);
+    setInterval(() => loadFrames(true), REFETCH_MS);
 
     document.getElementById('playBtn').onclick = function() {
       playing = !playing;

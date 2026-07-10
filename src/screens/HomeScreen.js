@@ -43,7 +43,18 @@ import {
 async function reverseGeocodeOSM(latitude, longitude) {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=it&zoom=16&addressdetails=1&email=${encodeURIComponent(CONTACT_EMAIL)}`;
-    const res = await fetch(url, { headers: { 'User-Agent': `Solo1Meteo/1.1 (${CONTACT_EMAIL})` } });
+    // Timeout esplicito breve: Nominatim è un servizio condiviso con policy
+    // ~1 req/s, senza garanzie di reattività. Senza questo limite, un fetch
+    // lento o mai risolto blocca il fallback al geocoder nativo (che per Roma
+    // mostra correttamente "Municipio IX" invece del quartiere) molto più a
+    // lungo del necessario.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(url, {
+      headers: { 'User-Agent': `Solo1Meteo/1.1 (${CONTACT_EMAIL})` },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     const data = await res.json();
     const a = data.address || {};
