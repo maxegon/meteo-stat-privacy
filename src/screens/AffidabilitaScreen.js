@@ -61,6 +61,8 @@ const PROVIDER_RATING = [
     nome: 'MET Norway (Yr.no)',
     colore: '#f59e0b',
     logo: '🇳🇴',
+    // Fonte ufficiale ente governativo — richiesta policy Google Play "Misleading Claims"
+    fonteUfficiale: { label: 'Sito ufficiale MET Norway — www.met.no', url: 'https://www.met.no' },
     modello: 'MEPS + ECMWF (MetCoOp)',
     giorni: '9-10 giorni orari',
     attivo: true,
@@ -110,6 +112,7 @@ const PROVIDER_RATING = [
     nome: 'Brightsky / DWD',
     colore: '#34d399',
     logo: '🇩🇪',
+    fonteUfficiale: { label: 'Sito ufficiale DWD — www.dwd.de', url: 'https://www.dwd.de' },
     modello: 'ICON (Deutscher Wetterdienst)',
     giorni: '10 giorni orari',
     attivo: false,
@@ -148,6 +151,7 @@ const PROVIDER_RATING = [
     nome: '7Timer!',
     colore: '#60a5fa',
     logo: '7️⃣',
+    fonteUfficiale: { label: 'Sito ufficiale NOAA — www.noaa.gov', url: 'https://www.noaa.gov' },
     modello: 'GFS (NOAA)',
     giorni: '8 giorni (192 ore)',
     attivo: false,
@@ -253,6 +257,8 @@ export default function AffidabilitaScreen() {
               <MaterialCommunityIcons name="open-in-new" size={16} color="#38bdf8" />
             </View>
             <Text style={styles.enteDesc}>{e.desc}</Text>
+            {/* URL visibile in chiaro — richiesta policy Google Play "Missing Source Link for Government Information" */}
+            <Text style={styles.enteUrl}>🔗 {e.url.replace(/^https?:\/\//, '').replace(/\/.*$/, '')}</Text>
           </TouchableOpacity>
         ))}
         <View style={styles.enteDisclaimer}>
@@ -329,6 +335,11 @@ export default function AffidabilitaScreen() {
               {p.limiti.map((limite, i) => (
                 <Text key={i} style={styles.provLimite}>⚠️ {limite}</Text>
               ))}
+              {p.fonteUfficiale && (
+                <Text style={styles.provFonte} onPress={() => Linking.openURL(p.fonteUfficiale.url)}>
+                  🏛️ {p.fonteUfficiale.label} ↗
+                </Text>
+              )}
             </View>
           </View>
         ))}
@@ -349,7 +360,7 @@ export default function AffidabilitaScreen() {
         <View style={styles.tipCard}>
           <Text style={styles.tipTitle}>💡 Come interpretare il confronto</Text>
           <Text style={styles.tipText}>
-            Quando i provider attivi sono d'accordo (scostamento basso nel tab Confronto), la previsione è più affidabile. Quando divergono molto, c'è incertezza reale — nessun modello è "giusto" in anticipo.{'\n\n'}
+            Quando i provider attivi sono d'accordo (scostamento basso nel tab Confronto), l'incertezza è minore. Quando divergono molto, c'è incertezza reale — nessun modello è "giusto" in anticipo.{'\n\n'}
             Per l'Italia, il modello ECMWF, su cui si basa Open-Meteo, è considerato dalla comunità meteorologica internazionale tra i più accurati per il medio termine (fonte: ECMWF Forecast Verification). MET Norway, grazie all'alta risoluzione del modello MEPS sulle aree montuose, tende a offrire risultati più dettagliati per le zone alpine. Per i primi 1-2 giorni, i servizi con team di meteorologi locali — come il Servizio Meteo dell'Aeronautica Militare — tendono ad essere più precisi nelle previsioni locali.
           </Text>
         </View>
@@ -386,6 +397,7 @@ function makeStyles(c, dark) {
   enteNome: { color: c.text, fontSize: 13, fontWeight: '700', lineHeight: 18 },
   enteAffid: { color: c.textMuted, fontSize: 11, fontWeight: '300', marginTop: 2 },
   enteDesc: { color: c.textMuted, fontSize: 12, fontWeight: '300', lineHeight: 18 },
+  enteUrl: { color: c.accent, fontSize: 12, marginTop: 6, textDecorationLine: 'underline' },
   enteDisclaimer: { backgroundColor: '#f59e0b10', borderRadius: 10, borderWidth: 1, borderColor: '#f59e0b30', padding: 10, marginBottom: 20, marginTop: 2 },
   enteDisclaimerText: { color: c.textMuted, fontSize: 11, fontWeight: '300', lineHeight: 17 },
   provDisclaimer: { backgroundColor: c.bgCard, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 10, marginBottom: 10 },
@@ -401,6 +413,7 @@ function makeStyles(c, dark) {
   provPunti: { gap: 4 },
   provPunto: { color: c.textMuted, fontSize: 12, fontWeight: '300' },
   provLimite: { color: '#b45309', fontSize: 12, fontWeight: '300' },
+  provFonte: { color: c.accent, fontSize: 12, marginTop: 4, textDecorationLine: 'underline' },
   tipCard: { backgroundColor: c.accent + '15', borderRadius: 12, borderWidth: 1, borderColor: c.accent + '30', padding: 14, marginBottom: 20, marginTop: 8 },
   tipTitle: { color: c.accent, fontSize: 13, fontWeight: '700', marginBottom: 8 },
   tipText: { color: c.textSub, fontSize: 12, fontWeight: '300', lineHeight: 19 },

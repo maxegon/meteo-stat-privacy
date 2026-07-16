@@ -640,7 +640,7 @@ export default function HomeScreen({ navigation }) {
               { icon: 'cloud-download-outline', color: '#38bdf8', title: 'Dati da 8 provider attivi', desc: 'L\'app chiama in parallelo fino a 8 servizi meteo indipendenti: Open-Meteo, OpenWeatherMap, WeatherAPI, MET Norway e altri.' },
               { icon: 'scale-balance', color: '#818cf8', title: 'Media e scostamento', desc: 'Viene calcolata la media tra le fonti meteo. Lo scostamento % indica quanto ogni modello si discosta: verde = accordo, giallo = lieve differenza, rosso = divergenza.' },
               { icon: 'gesture-tap', color: '#4ade80', title: 'Naviga le previsioni', desc: 'Tocca la card Media per aprire le previsioni orarie. Usa "+Giorni" per la lista multi-giorno fino a 16 giorni. Tocca una WeatherCard per il dettaglio del singolo provider.' },
-              { icon: 'shield-check-outline', color: '#fbbf24', title: 'Quando fidarsi', desc: 'Quando le 8 fonti concordano la previsione è più affidabile. Quando divergono molto, c\'è incertezza reale — nessun modello è "giusto" in anticipo.' },
+              { icon: 'shield-check-outline', color: '#fbbf24', title: 'Quando fidarsi', desc: 'Quando le 8 fonti concordano lo scostamento è basso e l\'incertezza è minore. Quando divergono molto, c\'è incertezza reale — nessun modello è "giusto" in anticipo.' },
               { icon: 'theme-light-dark', color: '#a78bfa', title: 'Sfondo dinamico (tema scuro)', desc: 'Nel tema scuro lo sfondo cambia leggermente tonalità in base all\'ora del giorno (notte, alba, mattina, mezzogiorno, pomeriggio, sera) per richiamare la luce reale — resta sempre blu navy, mai nero.' },
             ].map((item, i) => (
               <View key={i} style={styles.howToRow}>
@@ -683,8 +683,8 @@ export default function HomeScreen({ navigation }) {
               {weather
                 ? (weather.isFallback
                     ? `Modalità offline temporanea — ${weather.consensus?.providersCount ?? 0} fonti disponibili`
-                    : `Previsioni da ${weather.consensus?.providersCount ?? 8} provider meteo ufficiali`)
-                : 'Previsioni da più fonti meteo ufficiali'}
+                    : `Media da ${weather.consensus?.providersCount ?? 8} fonti meteo di terze parti`)
+                : 'Previsioni da più fonti meteo di terze parti'}
             </Text>
             <View style={styles.cityNameRow}>
               <Text style={styles.cityName}>

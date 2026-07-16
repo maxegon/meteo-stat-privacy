@@ -11,7 +11,9 @@ import AffidabilitaScreen from './AffidabilitaScreen';
 import { useTheme } from '../context/ThemeContext';
 import { readErrorLogs, clearErrorLogs } from '../utils/errorLogger';
 
-const APP_VERSION = '1.0.0';
+import appJson from '../../app.json';
+
+const APP_VERSION = appJson.expo.version;
 const DEV_TAPS_REQUIRED = 5;
 
 export default function InfoScreen() {
@@ -78,8 +80,19 @@ export default function InfoScreen() {
           <View style={styles.disclaimerContent}>
             <Text style={styles.disclaimerTitle}>App indipendente — nessuna affiliazione ufficiale</Text>
             <Text style={styles.disclaimerBody}>
-              Solo1Meteo non è affiliata, sponsorizzata né gestita da MET Norway, DWD, NOAA o altri enti meteorologici governativi. I dati sono scaricati dalle API pubbliche ufficiali di ciascun provider e mostrati così come ricevuti.
+              Solo1Meteo non rappresenta alcun ente governativo: non è affiliata, sponsorizzata né gestita da MET Norway, DWD, NOAA o altri enti meteorologici governativi. I dati sono scaricati dalle API pubbliche di ciascun provider e mostrati così come ricevuti.
             </Text>
+            {/* Link alle fonti ufficiali degli enti governativi — richiesti dalla policy Google Play "Misleading Claims" */}
+            <Text style={styles.disclaimerSourcesTitle}>Fonti ufficiali degli enti governativi:</Text>
+            {[
+              { label: 'MET Norway (Norvegia) — www.met.no', url: 'https://www.met.no' },
+              { label: 'DWD Deutscher Wetterdienst (Germania) — www.dwd.de', url: 'https://www.dwd.de' },
+              { label: 'NOAA (Stati Uniti) — www.noaa.gov', url: 'https://www.noaa.gov' },
+            ].map(s => (
+              <Text key={s.url} style={styles.disclaimerLink} onPress={() => Linking.openURL(s.url)}>
+                🔗 {s.label}
+              </Text>
+            ))}
           </View>
         </View>
 
@@ -87,8 +100,8 @@ export default function InfoScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Solo1Meteo</Text>
           <Text style={styles.body}>
-            Solo1Meteo raccoglie le previsioni di 8 servizi meteo ufficiali, le media tra loro e ti mostra un'unica previsione più robusta. Puoi anche confrontare le singole fonti per vedere dove concordano e dove divergono.{'\n\n'}
-            I dati arrivano direttamente dai server ufficiali di ogni provider, senza passare da siti intermedi.
+            Solo1Meteo scarica le previsioni da 8 servizi meteo di terze parti e ti mostra la media matematica dei valori delle fonti disponibili, con il contatore delle fonti sempre visibile. Puoi anche confrontare le singole fonti per vedere dove concordano e dove divergono.{'\n\n'}
+            I dati arrivano direttamente dalle API pubbliche di ogni provider e sono mostrati così come ricevuti, senza modifiche.
           </Text>
         </View>
 
@@ -125,6 +138,11 @@ export default function InfoScreen() {
                     ? (p.free ? '🔑 Registrazione gratuita richiesta' : '💳 Servizio a pagamento')
                     : '✅ Accesso libero, nessuna registrazione'}
                 </Text>
+                {p.officialSource && (
+                  <Text style={styles.provOfficial} onPress={() => Linking.openURL(p.officialSource.url)}>
+                    🏛️ Fonte ufficiale ente: {p.officialSource.ente} ↗
+                  </Text>
+                )}
               </View>
               <Text style={styles.extLink}>↗</Text>
             </TouchableOpacity>
@@ -208,7 +226,7 @@ export default function InfoScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Note legali</Text>
           <Text style={styles.body}>
-            Tutti i dati meteo provengono direttamente dai servizi ufficiali dei rispettivi fornitori. L'app non copia o estrae dati da altri siti o applicazioni.{'\n\n'}
+            Tutti i dati meteo provengono direttamente dalle API pubbliche dei rispettivi fornitori. L'app non copia o estrae dati da altri siti o applicazioni.{'\n\n'}
             Le previsioni meteo sono indicative. L'app non si assume responsabilità per decisioni prese sulla base delle informazioni mostrate.{'\n\n'}
             Solo1Meteo è un'app indipendente, sviluppata da un singolo sviluppatore. Non è affiliata, sponsorizzata o gestita da alcun ente governativo o servizio meteorologico nazionale (inclusi, a titolo esemplificativo, MET Norway/Yr.no, DWD o NOAA). Tutti i marchi e i dati appartengono ai rispettivi proprietari e sono utilizzati tramite le loro API/licenze pubbliche, con attribuzione visibile nell'app.
           </Text>
@@ -281,6 +299,8 @@ function makeStyles(c) {
   disclaimerContent: { flex: 1 },
   disclaimerTitle: { color: '#fbbf24', fontSize: 13, fontWeight: '700', marginBottom: 4 },
   disclaimerBody: { color: c.textSub, fontSize: 12, lineHeight: 18 },
+  disclaimerSourcesTitle: { color: c.textSub, fontSize: 12, fontWeight: '600', marginTop: 8, marginBottom: 2 },
+  disclaimerLink: { color: c.accent, fontSize: 12, lineHeight: 20, textDecorationLine: 'underline' },
   section: { marginBottom: 24 },
   sectionTitle: { color: c.textSub, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
   body: { color: c.textSub, fontSize: 14, fontWeight: '300', lineHeight: 22 },
@@ -295,6 +315,7 @@ function makeStyles(c) {
   provName: { fontSize: 15, fontWeight: '700' },
   provAttrib: { color: c.textMuted, fontSize: 11, marginTop: 2 },
   provFree: { color: c.textMuted, fontSize: 11, fontWeight: '300', marginTop: 2 },
+  provOfficial: { color: c.accent, fontSize: 11, marginTop: 4, textDecorationLine: 'underline' },
   extLink: { color: c.accent, fontSize: 16 },
   methodRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14 },
   methodText: { flex: 1 },
