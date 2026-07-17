@@ -36,6 +36,11 @@ import {
   getDateStr, getHour, getActiveProviderCount,
 } from '../services/weatherAggregator';
 
+// Municipi/circoscrizioni sono unità amministrative, non nomi di quartiere
+// popolari (es. "Municipio Roma XV" invece di "Tor di Quinto") — usato per
+// filtrarli sia dal risultato OSM sia dal fallback nativo Apple/Google.
+const isAdminUnit = (s) => s && /municipi|circoscrizione/i.test(s);
+
 // Geocoding inverso via OpenStreetMap (Nominatim) — restituisce i nomi popolari
 // di quartiere/rione (es. "Trastevere") che i geocoder nativi Apple/Google non
 // espongono (per Roma Apple dà "Municipio IX"). Identificato con email come da
@@ -58,10 +63,9 @@ async function reverseGeocodeOSM(latitude, longitude) {
     if (!res.ok) return null;
     const data = await res.json();
     const a = data.address || {};
-    const isAdmin = (s) => s && /municipi|circoscrizione/i.test(s);
     const rawQ = [a.neighbourhood, a.quarter, a.suburb, a.city_district, a.borough]
-      .find(s => s && !isAdmin(s)) || null;
-    const quartiere = isAdmin(rawQ) ? null : rawQ;
+      .find(s => s && !isAdminUnit(s)) || null;
+    const quartiere = isAdminUnit(rawQ) ? null : rawQ;
     const comune = a.city || a.town || a.village || a.municipality || a.county;
     const name = (quartiere && comune && quartiere !== comune)
       ? `${quartiere}, ${comune}`
@@ -89,7 +93,7 @@ async function reverseGeocodeCity(latitude, longitude) {
     if (arr && arr.length) {
       const a = arr[0];
       const comune = a.city || a.subregion || a.region || a.name;
-      const quartiere = a.district;
+      const quartiere = isAdminUnit(a.district) ? null : a.district;
       const name = (quartiere && comune && quartiere !== comune)
         ? `${quartiere}, ${comune}`
         : (comune || quartiere);
