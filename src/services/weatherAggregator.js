@@ -201,6 +201,24 @@ export const buildAggregateDays = (w) => {
     (hourlyByDate[d] = hourlyByDate[d] || []).push(h);
   });
 
+  // FIX 2026-07-21 — richiesta utente: la probabilità di pioggia della card
+  // GIORNALIERA si intende "su tutta la giornata", con lo STESSO metodo delle
+  // card fascia (max sull'arco): MAX delle probabilità orarie aggregate del
+  // giorno. Così il giorno è sempre >= di ogni sua fascia (coerenza) e ogni
+  // ora resta la media dei provider con dato per quell'ora (INVARIANTE
+  // media+filtro). Fallback alla media dei valori giornalieri dei provider
+  // (precipVals sotto) quando un giorno non ha copertura oraria (giorni lontani).
+  // Stessa granularità di 2 ore delle card (come tempMax/tempMin sopra): così
+  // il MAX giornaliero coincide sempre con una card oraria/fascia visibile e non
+  // con un'ora dispari nascosta.
+  const precipProbByDate = {};
+  aggHourly.forEach(h => {
+    if (h?.precipProb == null || isNaN(h.precipProb)) return;
+    if (getHour(h.time) % 2 !== 0) return;
+    const d = getDateStr(h.time);
+    (precipProbByDate[d] = precipProbByDate[d] || []).push(h.precipProb);
+  });
+
   // Icona e descrizione prevalente dalle ore di luce su tutti i provider con hourly
   const allHourly = [
     w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
@@ -263,7 +281,9 @@ export const buildAggregateDays = (w) => {
       ...day,
       tempMax: tempMaxVal,
       tempMin: tempMinVal,
-      precipProbability: Math.round(aggAvg(precipVals) ?? day.precipProbability),
+      precipProbability: (precipProbByDate[day.date]?.length
+        ? Math.round(Math.max(...precipProbByDate[day.date]))
+        : Math.round(aggAvg(precipVals) ?? day.precipProbability)),
       precipitation: precipMmVals.length ? aggAvg(precipMmVals) : (day.precipitation ?? null),
       uvIndex: uvVals.length ? Math.round(aggAvg(uvVals) * 10) / 10 : (day.uvIndex ?? null),
       icon: pair.icon,

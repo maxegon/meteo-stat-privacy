@@ -31,6 +31,7 @@ import { detectAlerts, extractOfficialAlerts, loadThresholds, loadAlertsEnabled,
 import { loadFavorites, toggleFavorite, isFavorite } from '../services/favorites';
 import { getClimateNormals } from '../services/climateNormals';
 import { getNowcast } from '../services/nowcastService';
+import { reverseGeocodeBackend } from '../services/geocodeService';
 import {
   buildAggregateHourly, buildAggregateDays, buildAggregateData,
   getDateStr, getHour, getActiveProviderCount,
@@ -110,6 +111,27 @@ async function reverseGeocodeCity(latitude, longitude) {
     }
   } catch (_) {}
   return null;
+}
+
+// FIX 2026-07-21 — lentezza GPS su Android (segnalata su device reale, vedi
+// HANDOFF §6). Prima si chiamava direttamente `getCurrentPositionAsync`, che su
+// Android (FusedLocationProvider) forza sempre l'attesa di un fix GPS fresco:
+// da qualche secondo fino a >10s al chiuso. `getLastKnownPositionAsync`
+// restituisce ISTANTANEAMENTE l'ultimo fix in cache del sistema operativo, più
+// che sufficiente per il meteo (serve accuratezza a livello di città/quartiere,
+// non metrica). Ripiego su un fix fresco solo se non c'è cache valida.
+// maxAge 10 min + requiredAccuracy 1500 m: se la cache è più vecchia o troppo
+// imprecisa, `getLastKnownPositionAsync` ritorna null e si prende il fix fresco.
+async function getFastPosition() {
+  try {
+    const last = await Location.getLastKnownPositionAsync({
+      maxAge: 10 * 60 * 1000,
+      requiredAccuracy: 1500,
+    });
+    if (last?.coords) return last.coords;
+  } catch (_) {}
+  const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+  return loc.coords;
 }
 
 // Scala di Douglas (WMO) basata su velocità del vento — restituisce { label, note }
@@ -355,9 +377,13 @@ export default function HomeScreen({ navigation }) {
     if (status !== 'granted') { setGpsBlocked(true); return; }
     setLoading(true);
     try {
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = loc.coords;
-      const geo = await reverseGeocodeOSM(latitude, longitude)
+      const { latitude, longitude } = await getFastPosition();
+      // FIX 2026-07-21 — backend (Nominatim con cache server-side) come fonte
+      // preferita per il quartiere; fallback a Nominatim diretto e poi al
+      // geocoder nativo, così la geolocalizzazione funziona anche se il backend
+      // è irraggiungibile. Vedi geocodeService.js.
+      const geo = await reverseGeocodeBackend(latitude, longitude)
+        || await reverseGeocodeOSM(latitude, longitude)
         || await reverseGeocodeCity(latitude, longitude);
       const city = geo || { name: 'La tua posizione', lat: latitude, lon: longitude };
       setCityInfo(city);
@@ -400,9 +426,11 @@ export default function HomeScreen({ navigation }) {
     }
     setLoading(true);
     try {
-      const loc = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = loc.coords;
-      const geo = await reverseGeocodeOSM(latitude, longitude)
+      const { latitude, longitude } = await getFastPosition();
+      // FIX 2026-07-21 — vedi commento identico in autoLoadGPS: backend →
+      // Nominatim diretto → geocoder nativo.
+      const geo = await reverseGeocodeBackend(latitude, longitude)
+        || await reverseGeocodeOSM(latitude, longitude)
         || await reverseGeocodeCity(latitude, longitude);
       const city = geo || { name: 'La tua posizione', lat: latitude, lon: longitude };
       setCityInfo(city);
@@ -793,8 +821,33 @@ export default function HomeScreen({ navigation }) {
                 const today = aggregateDays[0];
                 const humidity = weather.consensus?.humidity != null ? Math.round(weather.consensus.humidity) : null;
                 const pressure = weather.consensus?.pressure != null ? Math.round(weather.consensus.pressure) : null;
-                const rain = today?.precipProbability ?? null;
-                const rainMm = today?.precipitation ?? null;
+                // FIX 2026-07-21 — richiesta utente: il badge 🌧 della card
+                // consenso deve indicare la probabilità di pioggia DI QUESTO
+                // MOMENTO (slot orario corrente della serie aggregata — ogni
+                // ora è già la media dei provider con dato per quell'ora,
+                // INVARIANTE media+filtro, vedi buildAggregateHourly), non
+                // quella dell'intera giornata. Coerenza di design: consenso e
+                // card orarie = probabilità puntuale di quel momento/orario;
+                // card fascia (Mattina/Pomeriggio/Notte) e card giorno =
+                // probabilità sull'intero arco temporale. Fallback: primo slot
+                // futuro, poi dato giornaliero.
+                const rainNow = new Date();
+                const rainSlots = (aggregateHourly || [])
+                  .filter(h => h?.precipProb != null && !isNaN(h.precipProb));
+                const currentSlot = rainSlots.find(h => {
+                  const dt = rainNow - new Date(h.time);
+                  return dt >= 0 && dt < 3600 * 1000; // ora corrente: t <= adesso < t+1h
+                }) || rainSlots.find(h => new Date(h.time) > rainNow);
+                // COERENZA: % e mm devono venire dalla STESSA finestra temporale.
+                // Se mostriamo la probabilità dell'ora corrente, anche i mm sono
+                // quelli dell'ora corrente (currentSlot.precipMm); nel fallback
+                // giornaliero, entrambi diventano il dato del giorno.
+                const rain = currentSlot
+                  ? currentSlot.precipProb
+                  : (today?.precipProbability ?? null);
+                const rainMm = currentSlot
+                  ? (currentSlot.precipMm ?? null)
+                  : (today?.precipitation ?? null);
                 // Nowcasting radar (RainViewer): se rileva pioggia ORA in zona, sovrascrive
                 // solo icona+descrizione mostrate (mai i valori numerici/la media provider —
                 // vedi invariante CLAUDE.md). Badge "Radar live" per trasparenza sulla fonte.
@@ -847,7 +900,7 @@ export default function HomeScreen({ navigation }) {
                       {(isRainingNow || radarOverridesDry) && <Text style={styles.consensusBadge}>📡 Radar live</Text>}
                       {rain != null && (
                         <Text style={styles.consensusBadge}>
-                          🌧 {Math.round(rain)}%{rainMm != null ? ` · ${rainMm.toFixed(1)}mm` : ''}
+                          🌧 {Math.round(rain)}%{rainMm != null && rainMm >= 0.05 ? ` · ${rainMm.toFixed(1)}mm` : ''}
                         </Text>
                       )}
                       {humidity != null && <Text style={styles.consensusBadge}>💧 {humidity}%</Text>}
@@ -1070,6 +1123,16 @@ export default function HomeScreen({ navigation }) {
                                   <MaterialCommunityIcons name={BLOCK_ICON[f]} size={18} color={BLOCK_COLOR[f]} />
                                   <Text style={[styles.inlineFasciaName, { color: BLOCK_COLOR[f] }]} numberOfLines={2} adjustsFontSizeToFit>{f}</Text>
                                   {sun && <Text style={styles.inlineFasciaSunTime}>{sun.emoji} {sun.time}</Text>}
+                                  {/* FIX 2026-07-21 — richiesta utente: la card fascia mostra la
+                                      probabilità di pioggia su TUTTO l'arco della fascia = MAX delle
+                                      probabilità orarie aggregate delle sue ore (ogni ora è già la media
+                                      dei provider con dato — INVARIANTE media+filtro). Le card orarie
+                                      sotto restano puntuali. */}
+                                  {(() => {
+                                    const probs = slots.map(s => s.precipProb).filter(v => v != null && !isNaN(v));
+                                    if (!probs.length) return null;
+                                    return <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{Math.round(Math.max(...probs))}%</Text>;
+                                  })()}
                                 </View>
                                 {slots.map((h, j) => {
                                   const hourExceeded = alertsEnabled ? checkHourThresholds(h, alertThresholds) : [];
@@ -1242,7 +1305,10 @@ export default function HomeScreen({ navigation }) {
                               <Text style={[styles.cmpPct, { color: col }]}>{diff ?? '—'}</Text>
                               {/* Solo % (no mm): in 8 colonne strette il suffisso "· X.Xmm" andava a capo
                                   rompendo l'allineamento dell'altezza riga — vedi CLAUDE.md verifiche */}
-                              <Text style={styles.dayCompareRain} numberOfLines={1}>💧{Math.round(d.precipProbability ?? 0)}%</Text>
+                              {/* FIX 2026-07-21 — era 💧 (usato ovunque per l'umidità): l'utente
+                                  leggeva questo valore come umidità e viceversa. 🌧 = pioggia,
+                                  coerente con card orarie, +Giorni e ForecastModal. */}
+                              <Text style={styles.dayCompareRain} numberOfLines={1}>🌧{Math.round(d.precipProbability ?? 0)}%</Text>
                             </>) : <Text style={styles.dayCompareNa}>—</Text>}
                           </View>
                         );
