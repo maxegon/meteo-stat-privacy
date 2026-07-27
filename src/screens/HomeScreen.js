@@ -34,6 +34,7 @@ import { getNowcast } from '../services/nowcastService';
 import { reverseGeocodeBackend } from '../services/geocodeService';
 import {
   buildAggregateHourly, buildAggregateDays, buildAggregateData,
+  buildTomorrowNarrative,
   getDateStr, getHour, getActiveProviderCount,
 } from '../services/weatherAggregator';
 
@@ -182,6 +183,7 @@ export default function HomeScreen({ navigation }) {
   const [showBanner, setShowBanner] = useState(true);
   const [gpsBlocked, setGpsBlocked] = useState(false);
   const [showHowTo, setShowHowTo] = useState(false);
+  const [showTomorrowStory, setShowTomorrowStory] = useState(false); // popup "Il tempo di domani"
   const [tooltip, setTooltip] = useState(null); // 'provider' | 'compare' | null
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [showAlertSettings, setShowAlertSettings] = useState(false);
@@ -689,6 +691,27 @@ export default function HomeScreen({ navigation }) {
         </View>
       </Modal>
 
+      {/* Popup "Il tempo di domani" — sintesi discorsiva breve, template a
+          regole su dati GIÀ aggregati (buildTomorrowNarrative), non una
+          previsione elaborata: vedi commento nella funzione per le regole
+          anti-claim §7.2 e l'invariante media+contatore §7.1 rispettati. */}
+      <Modal visible={showTomorrowStory} animationType="slide" transparent onRequestClose={() => setShowTomorrowStory(false)}>
+        <View style={styles.howToOverlay}>
+          <View style={styles.howToCard}>
+            <View style={styles.howToHeader}>
+              <Text style={styles.howToTitle}>🗒️ Il tempo di domani</Text>
+              <TouchableOpacity onPress={() => setShowTomorrowStory(false)} accessibilityLabel="Chiudi" accessibilityRole="button">
+                <MaterialCommunityIcons name="close" size={22} color={c.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.tomorrowStoryText}>
+              {(weather && buildTomorrowNarrative(aggregateDays, cityInfo?.name || query))
+                || 'Dati non ancora disponibili per domani in questa posizione.'}
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* Stato: meteo caricato — searchBar scorre con il contenuto */}
       {!loading && weather && (
         <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -1182,6 +1205,11 @@ export default function HomeScreen({ navigation }) {
 
           {/* Pulsanti azione */}
           <View style={styles.actionBtnsSection}>
+            <TouchableOpacity style={styles.actionBtnHighlight} onPress={() => setShowTomorrowStory(true)} accessibilityRole="button" accessibilityLabel="Il tempo di domani, sintesi in poche parole">
+              <MaterialCommunityIcons name="text-box-outline" size={20} color={c.accent} />
+              <Text style={styles.actionBtnHighlightText}>Il tempo di domani</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={() => setShowCompare(true)} accessibilityRole="button">
               <MaterialCommunityIcons name="thermometer" size={20} color={c.accent} />
               <Text style={styles.actionBtnText}>Dati meteo per fonte</Text>
@@ -1714,6 +1742,15 @@ function makeStyles(c, dark) {
     borderWidth: 1, borderColor: c.border,
   },
   actionBtnText: { flex: 1, color: c.text, fontSize: 15, fontWeight: '600' },
+  // Bottone "Il tempo di domani" — volutamente più evidente degli altri due
+  // (accent tint + bordo colorato) perché deve essere il primo a farsi notare.
+  actionBtnHighlight: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: c.accent + '1f', borderRadius: 14, padding: 14,
+    borderWidth: 1.5, borderColor: c.accent,
+  },
+  actionBtnHighlightText: { flex: 1, color: c.text, fontSize: 15, fontWeight: '700' },
+  tomorrowStoryText: { color: c.text, fontSize: 15, lineHeight: 22 },
   // Slot pubblicitario in fondo alla home: occupa lo spazio rimanente.
   homeAdSlot: {
     flexGrow: 1, minHeight: 90,

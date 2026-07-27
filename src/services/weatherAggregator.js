@@ -294,6 +294,51 @@ export const buildAggregateDays = (w) => {
 };
 
 /**
+ * "Il tempo di domani" (bottone home) — sintesi discorsiva breve generata con
+ * TEMPLATE A REGOLE dai valori GIÀ calcolati da buildAggregateDays (indice 1 =
+ * "Domani"). Nessuna nuova aggregazione, nessuna chiamata a un modello
+ * linguistico: stessa media+contatore dell'INVARIANTE §7.1 (CLAUDE.md), solo
+ * trascritta in prosa invece che in numeri separati.
+ * Linguaggio fisso e controllato per restare conforme alla REGOLA ANTI-CLAIM
+ * §7.2: mai un tono assertivo tipo "domani pioverà", sempre "probabilità
+ * secondo la media di N fonti" — non deve mai sembrare una previsione
+ * elaborata da meteorologi né un bollettino ufficiale.
+ * Ritorna `null` se non ci sono ancora dati per il giorno "Domani".
+ */
+export const buildTomorrowNarrative = (aggregateDays, locationLabel) => {
+  const day = aggregateDays?.[1]; // 0 = Oggi, 1 = Domani, 2 = Dopodomani
+  if (!day) return null;
+
+  const place = locationLabel ? ` a ${locationLabel}` : '';
+  const tempMax = day.tempMax != null && !isNaN(day.tempMax) ? Math.round(day.tempMax) : null;
+  const tempMin = day.tempMin != null && !isNaN(day.tempMin) ? Math.round(day.tempMin) : null;
+  const rainProb = day.precipProbability != null && !isNaN(day.precipProbability) ? Math.round(day.precipProbability) : null;
+  const rainMm = day.precipitation;
+  const sources = day.providerCount ?? null;
+
+  const skyPart = day.description ? `${day.description}. ` : '';
+
+  let tempPart = '';
+  if (tempMax != null && tempMin != null) {
+    tempPart = `Temperature tra ${tempMin}° e ${tempMax}°. `;
+  }
+
+  let rainPart = '';
+  if (rainProb != null) {
+    const mmSuffix = (rainMm != null && rainMm >= 0.05) ? `, circa ${rainMm.toFixed(1)}mm` : '';
+    if (rainProb >= 60) rainPart = `Probabilità di pioggia alta (${rainProb}%)${mmSuffix}. `;
+    else if (rainProb >= 30) rainPart = `Probabilità di pioggia moderata (${rainProb}%)${mmSuffix}. `;
+    else rainPart = `Probabilità di pioggia bassa (${rainProb}%). `;
+  }
+
+  const sourcesPart = sources != null
+    ? `Valori calcolati come media di ${sources} ${sources > 1 ? 'fonti' : 'fonte'} meteo di terze parti — non una previsione elaborata da meteorologi.`
+    : '';
+
+  return `Domani${place}: ${skyPart}${tempPart}${rainPart}${sourcesPart}`.replace(/\s+/g, ' ').trim();
+};
+
+/**
  * Compone i dati aggregati completi (current + hourly + daily).
  * `current` viene dal consensus calcolato dal backend.
  */

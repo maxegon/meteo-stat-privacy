@@ -1,0 +1,573 @@
+{
+  "communities": {
+    "0": [
+      "src_components_alertsbutton",
+      "src_components_alertsbutton_alertsbutton",
+      "src_components_alertsbutton_styles",
+      "src_components_providerbadge",
+      "src_components_providerbadge_providerbadge",
+      "src_components_providerbadge_styles",
+      "src_components_providerstatusbanner",
+      "src_components_providerstatusbanner_providerstatusbanner",
+      "src_components_providerstatusbanner_styles",
+      "src_components_weathercard",
+      "src_components_weathercard_styles",
+      "src_components_weathercard_weathercard",
+      "src_components_weathericon",
+      "src_components_weathericon_weathericon",
+      "src_context_weathercontext",
+      "src_context_weathercontext_weathercontext",
+      "src_context_weathercontext_weatherprovider",
+      "src_screens_homescreen",
+      "src_screens_homescreen_days_it",
+      "src_screens_homescreen_formatdate",
+      "src_screens_homescreen_homescreen",
+      "src_screens_homescreen_makestyles",
+      "src_screens_homescreen_months_it",
+      "src_screens_homescreen_reversegeocodecity",
+      "src_screens_homescreen_reversegeocodeosm",
+      "src_screens_homescreen_seastatefromwind",
+      "src_services_config",
+      "src_services_nowcastservice",
+      "src_services_nowcastservice_getnowcast",
+      "src_services_weatheraggregator",
+      "src_services_weatheraggregator_aggavg",
+      "src_services_weatheraggregator_aggmajority",
+      "src_services_weatheraggregator_aggmajoritypair",
+      "src_services_weatheraggregator_buildaggregatedata",
+      "src_services_weatheraggregator_buildaggregatedays",
+      "src_services_weatheraggregator_buildaggregatehourly",
+      "src_services_weatheraggregator_getactiveprovidercount",
+      "src_services_weatheraggregator_getdatestr",
+      "src_services_weatheraggregator_gethour",
+      "src_services_weatheraggregator_hourkey",
+      "src_services_weatheraggregator_pct",
+      "src_services_weatheraggregator_toutcepoch",
+      "src_services_weatheralerts_detectalerts",
+      "src_utils_weatherdescriptions",
+      "src_utils_weatherdescriptions_desc_map",
+      "src_utils_weatherdescriptions_translatedescription",
+      "src_utils_weathericoncolor",
+      "src_utils_weathericoncolor_geticoncolor"
+    ],
+    "1": [
+      "app_app",
+      "app_appnavigator",
+      "app_js_app",
+      "app_tab",
+      "app_tab_icons",
+      "package_dependencies_sentry_react_native",
+      "sentry_react_native",
+      "src_components_errorboundary",
+      "src_components_errorboundary_errorboundary",
+      "src_components_errorboundary_errorboundary_componentdidcatch",
+      "src_components_errorboundary_errorboundary_constructor",
+      "src_components_errorboundary_errorboundary_getderivedstatefromerror",
+      "src_components_errorboundary_errorboundary_handlereset",
+      "src_components_errorboundary_errorboundary_render",
+      "src_components_errorboundary_styles",
+      "src_screens_infoscreen",
+      "src_screens_infoscreen_infoscreen",
+      "src_screens_infoscreen_makestyles",
+      "src_screens_onboardingscreen",
+      "src_screens_onboardingscreen_onboardingscreen",
+      "src_screens_onboardingscreen_styles",
+      "src_screens_privacypolicyscreen",
+      "src_screens_privacypolicyscreen_privacypolicyscreen",
+      "src_screens_privacypolicyscreen_section",
+      "src_screens_privacypolicyscreen_styles",
+      "src_services_aggregator",
+      "src_services_aggregator_fetchall",
+      "src_services_aggregator_fetchalldirect",
+      "src_services_externalapps",
+      "src_services_externalapps_external_apps",
+      "src_utils_errorlogger",
+      "src_utils_errorlogger_clearerrorlogs",
+      "src_utils_errorlogger_logerror",
+      "src_utils_errorlogger_readerrorlogs",
+      "src_utils_withretry",
+      "src_utils_withretry_sleep",
+      "src_utils_withretry_withretry"
+    ],
+    "2": [
+      "src_components_alertssheet",
+      "src_components_alertssheet_alertssheet",
+      "src_components_alertssheet_styles",
+      "src_components_animatedgradientbg",
+      "src_components_animatedgradientbg_animatedgradientbg",
+      "src_components_animatedgradientbg_getskycolors",
+      "src_components_animatedgradientbg_styles",
+      "src_components_officialalertbanner",
+      "src_components_officialalertbanner_formatrange",
+      "src_components_officialalertbanner_level_icon",
+      "src_components_officialalertbanner_officialalertbanner",
+      "src_components_officialalertbanner_styles",
+      "src_components_radarmap",
+      "src_components_radarmap_radarmap",
+      "src_components_radarmap_styles",
+      "src_components_weatheralertbanner",
+      "src_components_weatheralertbanner_styles",
+      "src_components_weatheralertbanner_weatheralertbanner",
+      "src_context_themecontext",
+      "src_context_themecontext_dark_colors",
+      "src_context_themecontext_light_colors",
+      "src_context_themecontext_themecontext",
+      "src_context_themecontext_themeprovider",
+      "src_context_themecontext_usetheme",
+      "src_context_weathercontext_useweather",
+      "src_screens_affidabilitascreen",
+      "src_screens_affidabilitascreen_accuratezza_giorni",
+      "src_screens_affidabilitascreen_accuratezza_parametri",
+      "src_screens_affidabilitascreen_affidabilitascreen",
+      "src_screens_affidabilitascreen_approfondimenti",
+      "src_screens_affidabilitascreen_enti",
+      "src_screens_affidabilitascreen_makestyles",
+      "src_screens_affidabilitascreen_provider_rating",
+      "src_screens_affidabilitascreen_stelle",
+      "src_screens_mapscreen",
+      "src_screens_mapscreen_mapscreen",
+      "src_screens_mapscreen_styles"
+    ],
+    "3": [
+      "app_adaptiveicon_backgroundcolor",
+      "app_adaptiveicon_foregroundimage",
+      "app_android_adaptiveicon",
+      "app_android_edgetoedgeenabled",
+      "app_android_package",
+      "app_eas_projectid",
+      "app_expo",
+      "app_expo_android",
+      "app_expo_extra",
+      "app_expo_icon",
+      "app_expo_ios",
+      "app_expo_name",
+      "app_expo_newarchenabled",
+      "app_expo_orientation",
+      "app_expo_plugins",
+      "app_expo_slug",
+      "app_expo_splash",
+      "app_expo_userinterfacestyle",
+      "app_expo_version",
+      "app_expo_web",
+      "app_extra_eas",
+      "app_infoplist_itsappusesnonexemptencryption",
+      "app_infoplist_nslocationwheninuseusagedescription",
+      "app_infoplist_nsprivacynutritionlabeltypes",
+      "app_ios_buildnumber",
+      "app_ios_bundleidentifier",
+      "app_ios_infoplist",
+      "app_ios_supportstablet",
+      "app_json_app",
+      "app_splash_backgroundcolor",
+      "app_splash_image",
+      "app_splash_resizemode",
+      "app_web_favicon",
+      "ref_expo_font"
+    ],
+    "4": [
+      "src_components_forecastmodal",
+      "src_components_forecastmodal_beaufortcolor",
+      "src_components_forecastmodal_beaufortlabel",
+      "src_components_forecastmodal_days_it",
+      "src_components_forecastmodal_fascia",
+      "src_components_forecastmodal_fascia_color_dark",
+      "src_components_forecastmodal_fascia_color_light",
+      "src_components_forecastmodal_fascia_icon",
+      "src_components_forecastmodal_fascia_order",
+      "src_components_forecastmodal_forecastmodal",
+      "src_components_forecastmodal_formatdayfull",
+      "src_components_forecastmodal_formatdayshort",
+      "src_components_forecastmodal_formathour",
+      "src_components_forecastmodal_getdatestr",
+      "src_components_forecastmodal_gethour",
+      "src_components_forecastmodal_minirainchart",
+      "src_components_forecastmodal_minitrendchart",
+      "src_components_forecastmodal_months_it",
+      "src_components_forecastmodal_seastatefromwind",
+      "src_components_forecastmodal_styles",
+      "src_services_weatheralerts_checkdaythresholds",
+      "src_services_weatheralerts_checkhourthresholds",
+      "src_utils_iscoastal",
+      "src_utils_iscoastal_coastal_zones",
+      "src_utils_iscoastal_iscoastal",
+      "src_utils_winddir",
+      "src_utils_winddir_arrows",
+      "src_utils_winddir_dirs",
+      "src_utils_winddir_winddirarrow",
+      "src_utils_winddir_winddirlabel"
+    ],
+    "5": [
+      "src_components_alertsettingsmodal",
+      "src_components_alertsettingsmodal_alertsettingsmodal",
+      "src_components_alertsettingsmodal_makestyles",
+      "src_components_alertsettingsmodal_stepper_config",
+      "src_components_alertsettingsmodal_valuestepper",
+      "src_services_weatheralerts",
+      "src_services_weatheralerts_alert_types",
+      "src_services_weatheralerts_anomaly_delta",
+      "src_services_weatheralerts_anomaly_types",
+      "src_services_weatheralerts_default_official_severity",
+      "src_services_weatheralerts_default_thresholds",
+      "src_services_weatheralerts_extractissuer",
+      "src_services_weatheralerts_extractofficialalerts",
+      "src_services_weatheralerts_getdefaultthresholds",
+      "src_services_weatheralerts_loadalertsenabled",
+      "src_services_weatheralerts_loadthresholds",
+      "src_services_weatheralerts_mapofficialseverity",
+      "src_services_weatheralerts_metric",
+      "src_services_weatheralerts_official_severity_map",
+      "src_services_weatheralerts_savealertsenabled",
+      "src_services_weatheralerts_savethresholds"
+    ],
+    "6": [
+      "src_services_metnorwayservice",
+      "src_services_metnorwayservice_fetchforecast",
+      "src_services_metnorwayservice_symboltodescription",
+      "src_services_metnorwayservice_symboltoicon",
+      "src_services_openmeteoservice",
+      "src_services_openmeteoservice_fetchforecast",
+      "src_services_openmeteoservice_fetchhistoricalrange",
+      "src_services_openmeteoservice_fetchmarine",
+      "src_services_openmeteoservice_searchcity",
+      "src_services_openmeteoservice_wmodescription",
+      "src_services_openmeteoservice_wmoicon",
+      "src_services_openweatherservice",
+      "src_services_openweatherservice_fetchforecast",
+      "src_services_openweatherservice_fillhourlygaps",
+      "src_services_openweatherservice_formatlikeowm",
+      "src_services_openweatherservice_owmicon",
+      "src_services_providers",
+      "src_services_providers_providers",
+      "src_services_weatherapiservice",
+      "src_services_weatherapiservice_fetchforecast",
+      "src_services_weatherapiservice_wapiicon"
+    ],
+    "7": [
+      "src_components_trendchart",
+      "src_components_trendchart_cachekeyfor",
+      "src_components_trendchart_makestyles",
+      "src_components_trendchart_ranges",
+      "src_components_trendchart_readcache",
+      "src_components_trendchart_startyearfor",
+      "src_components_trendchart_trendchart",
+      "src_components_trendchart_writecache",
+      "src_screens_statsscreen",
+      "src_screens_statsscreen_all_years",
+      "src_screens_statsscreen_makestyles",
+      "src_screens_statsscreen_months_it",
+      "src_screens_statsscreen_preset_years",
+      "src_screens_statsscreen_statsscreen",
+      "src_screens_statsscreen_thisyear",
+      "src_utils_yearlystats",
+      "src_utils_yearlystats_avg",
+      "src_utils_yearlystats_round1",
+      "src_utils_yearlystats_statsforyear",
+      "src_utils_yearlystats_thisyear"
+    ],
+    "8": [
+      "babel_preset_expo",
+      "package",
+      "package_devdependencies",
+      "package_devdependencies_babel_preset_expo",
+      "package_main",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_android",
+      "package_scripts_ios",
+      "package_scripts_start",
+      "package_scripts_web",
+      "package_version"
+    ],
+    "9": [
+      "axios",
+      "expo_location",
+      "package_dependencies",
+      "package_dependencies_axios",
+      "package_dependencies_expo_location",
+      "package_dependencies_react_native",
+      "package_dependencies_react_native_svg",
+      "react_native",
+      "react_native_svg"
+    ],
+    "10": [
+      "package_dependencies_react_native_maps",
+      "package_dependencies_react_native_pager_view",
+      "package_dependencies_react_native_webview",
+      "package_expo",
+      "package_expo_install",
+      "package_install_exclude",
+      "react_native_maps",
+      "react_native_pager_view",
+      "react_native_webview"
+    ],
+    "11": [
+      "src_services_climatenormals",
+      "src_services_climatenormals_avg",
+      "src_services_climatenormals_cachekey",
+      "src_services_climatenormals_dayofyear",
+      "src_services_climatenormals_fetchrange",
+      "src_services_climatenormals_fetchrangewithretry",
+      "src_services_climatenormals_getclimatenormals",
+      "src_services_climatenormals_stalekey"
+    ],
+    "12": [
+      "src_services_favorites",
+      "src_services_favorites_addfavorite",
+      "src_services_favorites_citykey",
+      "src_services_favorites_isfavorite",
+      "src_services_favorites_loadfavorites",
+      "src_services_favorites_removefavorite",
+      "src_services_favorites_togglefavorite"
+    ],
+    "13": [
+      "expo",
+      "package_dependencies_expo"
+    ],
+    "14": [
+      "expo_font",
+      "package_dependencies_expo_font"
+    ],
+    "15": [
+      "expo_linear_gradient",
+      "package_dependencies_expo_linear_gradient"
+    ],
+    "16": [
+      "expo_status_bar",
+      "package_dependencies_expo_status_bar"
+    ],
+    "17": [
+      "expo_vector_icons",
+      "package_dependencies_expo_vector_icons"
+    ],
+    "18": [
+      "package_dependencies_react",
+      "react"
+    ],
+    "19": [
+      "package_dependencies_react_native_async_storage_async_storage",
+      "react_native_async_storage_async_storage"
+    ],
+    "20": [
+      "package_dependencies_react_native_gesture_handler",
+      "react_native_gesture_handler"
+    ],
+    "21": [
+      "package_dependencies_react_native_reanimated",
+      "react_native_reanimated"
+    ],
+    "22": [
+      "package_dependencies_react_native_safe_area_context",
+      "react_native_safe_area_context"
+    ],
+    "23": [
+      "package_dependencies_react_native_screens",
+      "react_native_screens"
+    ],
+    "24": [
+      "package_dependencies_react_native_worklets",
+      "react_native_worklets"
+    ],
+    "25": [
+      "package_dependencies_react_navigation_bottom_tabs",
+      "react_navigation_bottom_tabs"
+    ],
+    "26": [
+      "package_dependencies_react_navigation_material_top_tabs",
+      "react_navigation_material_top_tabs"
+    ],
+    "27": [
+      "package_dependencies_react_navigation_native",
+      "react_navigation_native"
+    ],
+    "28": [
+      "package_dependencies_react_navigation_stack",
+      "react_navigation_stack"
+    ],
+    "29": [
+      "babel_config"
+    ],
+    "30": [
+      "index"
+    ]
+  },
+  "cohesion": {
+    "0": 0.09219858156028368,
+    "1": 0.0945945945945946,
+    "2": 0.08708708708708708,
+    "3": 0.058823529411764705,
+    "4": 0.1103448275862069,
+    "5": 0.1619047619047619,
+    "6": 0.1619047619047619,
+    "7": 0.20526315789473684,
+    "8": 0.15384615384615385,
+    "9": 0.2222222222222222,
+    "10": 0.2222222222222222,
+    "11": 0.4642857142857143,
+    "12": 0.6666666666666666,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0
+  },
+  "gods": [
+    {
+      "id": "src_screens_homescreen_homescreen",
+      "label": "HomeScreen()",
+      "degree": 30
+    },
+    {
+      "id": "src_context_themecontext_usetheme",
+      "label": "useTheme()",
+      "degree": 27
+    },
+    {
+      "id": "src_components_forecastmodal_forecastmodal",
+      "label": "ForecastModal()",
+      "degree": 17
+    },
+    {
+      "id": "app_expo",
+      "label": "expo",
+      "degree": 14
+    },
+    {
+      "id": "src_services_weatheraggregator_buildaggregatedays",
+      "label": "buildAggregateDays()",
+      "degree": 11
+    },
+    {
+      "id": "src_components_alertsettingsmodal_alertsettingsmodal",
+      "label": "AlertSettingsModal()",
+      "degree": 10
+    },
+    {
+      "id": "src_components_animatedgradientbg_animatedgradientbg",
+      "label": "AnimatedGradientBg()",
+      "degree": 10
+    },
+    {
+      "id": "src_components_trendchart_trendchart",
+      "label": "TrendChart()",
+      "degree": 10
+    },
+    {
+      "id": "src_services_weatheraggregator_buildaggregatehourly",
+      "label": "buildAggregateHourly()",
+      "degree": 10
+    },
+    {
+      "id": "src_screens_statsscreen_statsscreen",
+      "label": "StatsScreen()",
+      "degree": 9
+    }
+  ],
+  "surprises": [
+    {
+      "source": "AppNavigator()",
+      "target": "useTheme()",
+      "source_files": [
+        "App.js",
+        "src/context/ThemeContext.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities; peripheral node `AppNavigator()` unexpectedly reaches hub `useTheme()`"
+    },
+    {
+      "source": "App()",
+      "target": "logError()",
+      "source_files": [
+        "App.js",
+        "src/utils/errorLogger.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; peripheral node `App()` unexpectedly reaches hub `logError()`"
+    },
+    {
+      "source": "AlertSettingsModal()",
+      "target": "useTheme()",
+      "source_files": [
+        "src/components/AlertSettingsModal.js",
+        "src/context/ThemeContext.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "ForecastModal()",
+      "target": "useTheme()",
+      "source_files": [
+        "src/components/ForecastModal.js",
+        "src/context/ThemeContext.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "ForecastModal()",
+      "target": "translateDescription()",
+      "source_files": [
+        "src/components/ForecastModal.js",
+        "src/utils/weatherDescriptions.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `dependencies` connect `Core RN Dependencies` to `App Navigation & Error Boundary`, `Package Scripts Config`, `Native Modules Install`, `Expo Package`, `Expo Font Package`, `Linear Gradient Package`, `Status Bar Package`, `Vector Icons Package`, `React Package`, `Async Storage Package`, `Gesture Handler Package`, `Reanimated Package`, `Safe Area Package`, `React Native Screens`, `Worklets Package`, `Bottom Tabs Navigation`, `Top Tabs Navigation`, `React Navigation Core`, `Stack Navigation Package`?",
+      "why": "High betweenness centrality (0.265) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `@sentry/react-native` connect `App Navigation & Error Boundary` to `Native Modules Install`?",
+      "why": "High betweenness centrality (0.262) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `@sentry/react-native` connect `App Navigation & Error Boundary` to `Core RN Dependencies`?",
+      "why": "High betweenness centrality (0.231) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `Tab`, `TAB_ICONS`, `name` to the rest of the system?",
+      "why": "99 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Home Screen Widgets` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.09219858156028368 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `App Navigation & Error Boundary` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.0945945945945946 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Theming & Alerts UI` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.08708708708708708 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
