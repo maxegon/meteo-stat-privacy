@@ -52,10 +52,16 @@
     },
     "plugins": [
       "expo-font",
-      ["@sentry/react-native/expo", {
-        "organization": "max-egon",
-        "project": "react-native"
-      }]
-    ]
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "max-egon",
+          "project": "react-native"
+        }
+      ]
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/2cf51c05-7556-454b-ae6d-fc6090154682"
+    }
   }
 }
