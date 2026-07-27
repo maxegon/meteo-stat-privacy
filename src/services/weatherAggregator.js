@@ -336,33 +336,40 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
     else rainPart = `Probabilità di pioggia bassa (${rainProb}%). `;
   }
 
-  // Dettaglio fascia: stessi bucket orari e stesso metodo (MAX del precipProb
-  // aggregato delle ore della fascia) già usati per le card fascia in
-  // HomeScreen.js (vedi fasciaOf/FASCIA_ORDER) — nessun nuovo calcolo, solo
-  // lo stesso dato riletto per la fascia con il rischio più alto. Mostrato
-  // solo se c'è uno scarto reale (>=20 punti) dal resto della giornata,
-  // altrimenti la pioggia è uniforme e non aggiunge informazione dirlo.
-  let fasciaPart = '';
+  // Dettaglio Mattina/Pomeriggio/Sera — stessi bucket orari già usati per le
+  // card fascia in HomeScreen.js (vedi fasciaOf/FASCIA_ORDER), nessun nuovo
+  // calcolo backend: per ogni fascia si rilegge lo stesso `aggregateHourly`
+  // già mostrato nelle card orarie. Ogni campo resta una vera media/voto
+  // multi-provider (temp: aggAvg per ora, poi media delle ore della fascia;
+  // pioggia: MAX delle ore, stesso metodo delle card fascia esistenti;
+  // descrizione: aggMajorityPair sulle ore della fascia — stesso meccanismo
+  // di voto icona+testo già usato altrove, mai da una singola ora/provider).
+  let fasciaLines = '';
   if (Array.isArray(aggregateHourly) && aggregateHourly.length) {
     const fasciaOf = (hr) => (hr < 6 ? 'Notte' : hr < 12 ? 'Mattina' : hr < 18 ? 'Pomeriggio' : 'Sera');
-    const byFascia = {};
+    const byFascia = { Mattina: [], Pomeriggio: [], Sera: [] };
     aggregateHourly.forEach(h => {
-      if (h?.time == null || h.precipProb == null || isNaN(h.precipProb)) return;
-      if (getDateStr(h.time) !== day.date) return;
+      if (h?.time == null || getDateStr(h.time) !== day.date) return;
       const f = fasciaOf(getHour(h.time));
-      (byFascia[f] = byFascia[f] || []).push(h.precipProb);
+      if (byFascia[f]) byFascia[f].push(h);
     });
-    const fasciaMax = Object.entries(byFascia)
-      .map(([f, vals]) => ({ f, max: Math.max(...vals) }))
-      .filter(x => ['Mattina', 'Pomeriggio', 'Sera'].includes(x.f));
-    if (fasciaMax.length >= 2) {
-      fasciaMax.sort((a, b) => b.max - a.max);
-      const [top, second] = fasciaMax;
-      if (top.max - second.max >= 20 && top.max >= 30) {
-        const label = { Mattina: 'al mattino', Pomeriggio: 'nel pomeriggio', Sera: 'in serata' }[top.f];
-        fasciaPart = `Rischio pioggia più alto ${label} (${Math.round(top.max)}%). `;
-      }
-    }
+    const rows = ['Mattina', 'Pomeriggio', 'Sera']
+      .map(f => {
+        const hours = byFascia[f];
+        if (!hours.length) return null;
+        const temps = hours.map(h => h.temp).filter(v => v != null && !isNaN(v));
+        const rains = hours.map(h => h.precipProb).filter(v => v != null && !isNaN(v));
+        const pair = aggMajorityPair(hours.map(h => ({ icon: h.icon, description: h.description })));
+        const tempAvg = temps.length ? Math.round(aggAvg(temps)) : null;
+        const rainMax = rains.length ? Math.round(Math.max(...rains)) : null;
+        const descText = (pair?.description || day.description || '').toLowerCase();
+        const parts = [descText].filter(Boolean);
+        if (tempAvg != null) parts.push(`~${tempAvg}°`);
+        if (rainMax != null) parts.push(`pioggia ${rainMax}%`);
+        return parts.length ? `${f}: ${parts.join(', ')}.` : null;
+      })
+      .filter(Boolean);
+    if (rows.length) fasciaLines = `\n${rows.join('\n')}\n`;
   }
 
   // UV: day.uvIndex è una vera media multi-provider (uvVals in buildAggregateDays),
@@ -380,7 +387,12 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
     ? `Valori calcolati come media di ${sources} ${sources > 1 ? 'fonti' : 'fonte'} meteo di terze parti — non una previsione elaborata da meteorologi.`
     : '';
 
-  return `Domani${place}: ${skyPart}${tempPart}${rainPart}${fasciaPart}${uvPart}${sourcesPart}`.replace(/\s+/g, ' ').trim();
+  // Attenzione: si collassano solo gli spazi multipli (/ +/g), MAI i newline
+  // (/\s+/g li avrebbe distrutti) — servono per separare intro, fascia e
+  // chiusura su righe distinte nel popup.
+  const introPart = `${skyPart}${tempPart}${rainPart}`.replace(/ +/g, ' ').trim();
+  const closingPart = `${uvPart}${sourcesPart}`.replace(/ +/g, ' ').trim();
+  return [`Domani${place}: ${introPart}`, fasciaLines.trim(), closingPart].filter(Boolean).join('\n\n');
 };
 
 /**
