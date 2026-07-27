@@ -705,7 +705,7 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
             </View>
             <Text style={styles.tomorrowStoryText}>
-              {(weather && buildTomorrowNarrative(aggregateDays, cityInfo?.name || query))
+              {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
                 || 'Dati non ancora disponibili per domani in questa posizione.'}
             </Text>
           </View>

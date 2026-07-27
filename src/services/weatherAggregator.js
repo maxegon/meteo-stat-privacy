@@ -295,17 +295,22 @@ export const buildAggregateDays = (w) => {
 
 /**
  * "Il tempo di domani" (bottone home) — sintesi discorsiva breve generata con
- * TEMPLATE A REGOLE dai valori GIÀ calcolati da buildAggregateDays (indice 1 =
- * "Domani"). Nessuna nuova aggregazione, nessuna chiamata a un modello
- * linguistico: stessa media+contatore dell'INVARIANTE §7.1 (CLAUDE.md), solo
- * trascritta in prosa invece che in numeri separati.
+ * TEMPLATE A REGOLE dai valori GIÀ calcolati da buildAggregateDays/buildAggregateHourly
+ * (indice 1 = "Domani"). Nessuna nuova aggregazione backend, nessuna chiamata a
+ * un modello linguistico: stessa media+contatore dell'INVARIANTE §7.1
+ * (CLAUDE.md), solo trascritta in prosa invece che in numeri separati.
  * Linguaggio fisso e controllato per restare conforme alla REGOLA ANTI-CLAIM
  * §7.2: mai un tono assertivo tipo "domani pioverà", sempre "probabilità
  * secondo la media di N fonti" — non deve mai sembrare una previsione
  * elaborata da meteorologi né un bollettino ufficiale.
+ * NOTA: qui vengono citati solo campi che sono GENUINAMENTE media multi-provider
+ * (temp/pioggia da buildAggregateDays, fascia da buildAggregateHourly, UV da
+ * uvVals aggAvg). Volutamente NON include vento/alba-tramonto: quei campi in
+ * buildAggregateDays provengono da un solo provider (Open-Meteo, vedi spread
+ * `...day`), quindi citarli qui violerebbe l'invariante media+contatore.
  * Ritorna `null` se non ci sono ancora dati per il giorno "Domani".
  */
-export const buildTomorrowNarrative = (aggregateDays, locationLabel) => {
+export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationLabel) => {
   const day = aggregateDays?.[1]; // 0 = Oggi, 1 = Domani, 2 = Dopodomani
   if (!day) return null;
 
@@ -331,11 +336,51 @@ export const buildTomorrowNarrative = (aggregateDays, locationLabel) => {
     else rainPart = `Probabilità di pioggia bassa (${rainProb}%). `;
   }
 
+  // Dettaglio fascia: stessi bucket orari e stesso metodo (MAX del precipProb
+  // aggregato delle ore della fascia) già usati per le card fascia in
+  // HomeScreen.js (vedi fasciaOf/FASCIA_ORDER) — nessun nuovo calcolo, solo
+  // lo stesso dato riletto per la fascia con il rischio più alto. Mostrato
+  // solo se c'è uno scarto reale (>=20 punti) dal resto della giornata,
+  // altrimenti la pioggia è uniforme e non aggiunge informazione dirlo.
+  let fasciaPart = '';
+  if (Array.isArray(aggregateHourly) && aggregateHourly.length) {
+    const fasciaOf = (hr) => (hr < 6 ? 'Notte' : hr < 12 ? 'Mattina' : hr < 18 ? 'Pomeriggio' : 'Sera');
+    const byFascia = {};
+    aggregateHourly.forEach(h => {
+      if (h?.time == null || h.precipProb == null || isNaN(h.precipProb)) return;
+      if (getDateStr(h.time) !== day.date) return;
+      const f = fasciaOf(getHour(h.time));
+      (byFascia[f] = byFascia[f] || []).push(h.precipProb);
+    });
+    const fasciaMax = Object.entries(byFascia)
+      .map(([f, vals]) => ({ f, max: Math.max(...vals) }))
+      .filter(x => ['Mattina', 'Pomeriggio', 'Sera'].includes(x.f));
+    if (fasciaMax.length >= 2) {
+      fasciaMax.sort((a, b) => b.max - a.max);
+      const [top, second] = fasciaMax;
+      if (top.max - second.max >= 20 && top.max >= 30) {
+        const label = { Mattina: 'al mattino', Pomeriggio: 'nel pomeriggio', Sera: 'in serata' }[top.f];
+        fasciaPart = `Rischio pioggia più alto ${label} (${Math.round(top.max)}%). `;
+      }
+    }
+  }
+
+  // UV: day.uvIndex è una vera media multi-provider (uvVals in buildAggregateDays),
+  // non un dato a fonte singola — quindi citabile senza violare l'invariante.
+  // Scala WHO/EPA standard, pubblica: 0-2 basso, 3-5 moderato, 6-7 alto,
+  // 8-10 molto alto, 11+ estremo. Mostrato solo da moderato in su (il basso
+  // non è un'informazione utile da segnalare).
+  let uvPart = '';
+  if (day.uvIndex != null && !isNaN(day.uvIndex) && day.uvIndex >= 3) {
+    const uvLabel = day.uvIndex >= 11 ? 'estremo' : day.uvIndex >= 8 ? 'molto alto' : day.uvIndex >= 6 ? 'alto' : 'moderato';
+    uvPart = `Indice UV ${uvLabel} (${day.uvIndex}). `;
+  }
+
   const sourcesPart = sources != null
     ? `Valori calcolati come media di ${sources} ${sources > 1 ? 'fonti' : 'fonte'} meteo di terze parti — non una previsione elaborata da meteorologi.`
     : '';
 
-  return `Domani${place}: ${skyPart}${tempPart}${rainPart}${sourcesPart}`.replace(/\s+/g, ' ').trim();
+  return `Domani${place}: ${skyPart}${tempPart}${rainPart}${fasciaPart}${uvPart}${sourcesPart}`.replace(/\s+/g, ' ').trim();
 };
 
 /**
