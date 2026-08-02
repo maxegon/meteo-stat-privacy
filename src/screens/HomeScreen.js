@@ -198,25 +198,6 @@ export default function HomeScreen({ navigation }) {
   // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
   // weather, nessun bisogno di effect/storage.
   const officialAlerts = useMemo(() => extractOfficialAlerts(weather), [weather]);
-  // Testo del popup "Il tempo di domani" — memoizzato così può essere
-  // riletto sia per il rendering sia per il calcolo del font adattivo,
-  // senza ricalcolarlo due volte.
-  const tomorrowStoryText = useMemo(() => (
-    (weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
-      || 'Dati non ancora disponibili per domani in questa posizione.'
-  ), [weather, aggregateDays, aggregateHourly, cityInfo?.name, query]);
-  // Dimensione font adattiva: stima in base all'area disponibile (misurata
-  // via onLayout) e alla lunghezza del testo, così un testo breve riempie
-  // meglio lo spazio rimasto e uno lungo si rimpicciolisce per starci senza
-  // essere tagliato (lo ScrollView resta comunque come rete di sicurezza).
-  const tomorrowFontSize = useMemo(() => {
-    const { width, height } = tomorrowTextBox;
-    const len = tomorrowStoryText?.length || 0;
-    if (!width || !height || !len) return 17;
-    const area = width * height;
-    const estimate = Math.sqrt(area / (0.72 * len));
-    return Math.max(15, Math.min(26, Math.round(estimate)));
-  }, [tomorrowTextBox, tomorrowStoryText]);
   // FIX 2026-07-03 — conteggio fonti attive per ProviderStatusBanner (vedi
   // HANDOFF.md §5). Stessa lista di 8 provider "core" usata dagli aggregatori.
   const activeProviderCount = useMemo(() => getActiveProviderCount(weather), [weather]);
@@ -237,6 +218,27 @@ export default function HomeScreen({ navigation }) {
     isPartial,
     setIsPartial,
   } = useWeather();
+  // Testo del popup "Il tempo di domani" — memoizzato così può essere
+  // riletto sia per il rendering sia per il calcolo del font adattivo,
+  // senza ricalcolarlo due volte. Dichiarato QUI (dopo la destrutturazione
+  // di useWeather() sopra) e non più su, altrimenti weather/aggregateDays/
+  // aggregateHourly non sono ancora assegnati in questo punto del render.
+  const tomorrowStoryText = useMemo(() => (
+    (weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
+      || 'Dati non ancora disponibili per domani in questa posizione.'
+  ), [weather, aggregateDays, aggregateHourly, cityInfo?.name, query]);
+  // Dimensione font adattiva: stima in base all'area disponibile (misurata
+  // via onLayout) e alla lunghezza del testo, così un testo breve riempie
+  // meglio lo spazio rimasto e uno lungo si rimpicciolisce per starci senza
+  // essere tagliato (lo ScrollView resta comunque come rete di sicurezza).
+  const tomorrowFontSize = useMemo(() => {
+    const { width, height } = tomorrowTextBox;
+    const len = tomorrowStoryText?.length || 0;
+    if (!width || !height || !len) return 17;
+    const area = width * height;
+    const estimate = Math.sqrt(area / (0.72 * len));
+    return Math.max(15, Math.min(26, Math.round(estimate)));
+  }, [tomorrowTextBox, tomorrowStoryText]);
   const { dark, toggleTheme, colors: c } = useTheme();
   const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
   // Colori turchese e viola adattivi (più scuri nel tema chiaro)
