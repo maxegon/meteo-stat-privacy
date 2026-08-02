@@ -14,6 +14,7 @@ import WeatherCard from '../components/WeatherCard';
 import ProviderBadge from '../components/ProviderBadge';
 import WeatherIcon from '../components/WeatherIcon';
 import ForecastModal from '../components/ForecastModal';
+import RadarMap from '../components/RadarMap';
 import AnimatedGradientBg from '../components/AnimatedGradientBg';
 import { PROVIDERS } from '../services/providers';
 
@@ -697,17 +698,24 @@ export default function HomeScreen({ navigation }) {
           anti-claim §7.2 e l'invariante media+contatore §7.1 rispettati. */}
       <Modal visible={showTomorrowStory} animationType="slide" transparent onRequestClose={() => setShowTomorrowStory(false)}>
         <View style={styles.howToOverlay}>
-          <View style={styles.howToCard}>
+          <View style={[styles.howToCard, styles.tomorrowStoryCard]}>
             <View style={styles.howToHeader}>
               <Text style={styles.howToTitle}>🗒️ Il tempo di domani</Text>
               <TouchableOpacity onPress={() => setShowTomorrowStory(false)} accessibilityLabel="Chiudi" accessibilityRole="button">
                 <MaterialCommunityIcons name="close" size={22} color={c.textMuted} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.tomorrowStoryText}>
-              {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
-                || 'Dati non ancora disponibili per domani in questa posizione.'}
-            </Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.tomorrowStoryText}>
+                {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
+                  || 'Dati non ancora disponibili per domani in questa posizione.'}
+              </Text>
+              {cityInfo?.lat != null && cityInfo?.lon != null && (
+                <View style={styles.tomorrowStoryRadar}>
+                  <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1751,6 +1759,8 @@ function makeStyles(c, dark) {
   },
   actionBtnHighlightText: { flex: 1, color: c.text, fontSize: 15, fontWeight: '700' },
   tomorrowStoryText: { color: c.text, fontSize: 15, lineHeight: 22 },
+  tomorrowStoryCard: { maxHeight: '85%' },
+  tomorrowStoryRadar: { height: 220, borderRadius: 16, overflow: 'hidden', marginTop: 16 },
   // Slot pubblicitario in fondo alla home: occupa lo spazio rimanente.
   homeAdSlot: {
     flexGrow: 1, minHeight: 90,

@@ -384,7 +384,7 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
   }
 
   const sourcesPart = sources != null
-    ? `Valori calcolati come media di ${sources} ${sources > 1 ? 'fonti' : 'fonte'} meteo di terze parti — non una previsione elaborata da meteorologi.`
+    ? `Valori calcolati come media di ${sources} ${sources > 1 ? 'fonti' : 'fonte'} meteo di terze parti.`
     : '';
 
   // Attenzione: si collassano solo gli spazi multipli (/ +/g), MAI i newline
