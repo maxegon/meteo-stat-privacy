@@ -696,28 +696,37 @@ export default function HomeScreen({ navigation }) {
           regole su dati GIÀ aggregati (buildTomorrowNarrative), non una
           previsione elaborata: vedi commento nella funzione per le regole
           anti-claim §7.2 e l'invariante media+contatore §7.1 rispettati. */}
-      <Modal visible={showTomorrowStory} animationType="slide" transparent onRequestClose={() => setShowTomorrowStory(false)}>
-        <View style={styles.howToOverlay}>
-          <View style={[styles.howToCard, styles.tomorrowStoryCard]}>
-            <View style={styles.howToHeader}>
+      <Modal visible={showTomorrowStory} animationType="slide" onRequestClose={() => setShowTomorrowStory(false)}>
+        <AnimatedGradientBg>
+          <SafeAreaView style={styles.tomorrowStorySafe} edges={['top', 'left', 'right', 'bottom']}>
+            <View style={styles.tomorrowStoryHeader}>
               <Text style={styles.howToTitle}>🗒️ Il tempo di domani</Text>
               <TouchableOpacity onPress={() => setShowTomorrowStory(false)} accessibilityLabel="Chiudi" accessibilityRole="button">
                 <MaterialCommunityIcons name="close" size={22} color={c.textMuted} />
               </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            {aggregateDays?.[1] && (
+              <View style={styles.tomorrowStoryIconRow}>
+                <WeatherIcon name={aggregateDays[1].icon} size={44} dark={dark} />
+                <Text style={styles.tomorrowStoryIconText}>
+                  {cityInfo?.name || query}
+                  {aggregateDays[1].tempMax != null ? ` · ${Math.round(aggregateDays[1].tempMin)}°–${Math.round(aggregateDays[1].tempMax)}°` : ''}
+                </Text>
+              </View>
+            )}
+            {cityInfo?.lat != null && cityInfo?.lon != null && (
+              <View style={styles.tomorrowStoryRadarFull}>
+                <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
+              </View>
+            )}
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.tomorrowStoryScrollContent} showsVerticalScrollIndicator={false}>
               <Text style={styles.tomorrowStoryText}>
                 {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
                   || 'Dati non ancora disponibili per domani in questa posizione.'}
               </Text>
-              {cityInfo?.lat != null && cityInfo?.lon != null && (
-                <View style={styles.tomorrowStoryRadar}>
-                  <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
-                </View>
-              )}
             </ScrollView>
-          </View>
-        </View>
+          </SafeAreaView>
+        </AnimatedGradientBg>
       </Modal>
 
       {/* Stato: meteo caricato — searchBar scorre con il contenuto */}
@@ -1759,8 +1768,22 @@ function makeStyles(c, dark) {
   },
   actionBtnHighlightText: { flex: 1, color: c.text, fontSize: 15, fontWeight: '700' },
   tomorrowStoryText: { color: c.text, fontSize: 15, lineHeight: 22 },
-  tomorrowStoryCard: { maxHeight: '85%' },
-  tomorrowStoryRadar: { height: 220, borderRadius: 16, overflow: 'hidden', marginTop: 16 },
+  tomorrowStorySafe: { flex: 1, backgroundColor: 'transparent' },
+  tomorrowStoryHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: c.border,
+  },
+  tomorrowStoryIconRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 16, paddingTop: 10,
+  },
+  tomorrowStoryIconText: { color: c.text, fontSize: 15, fontWeight: '600' },
+  tomorrowStoryRadarFull: {
+    height: 280, marginHorizontal: 12, marginTop: 10, marginBottom: 4,
+    borderRadius: 16, overflow: 'hidden',
+  },
+  tomorrowStoryScrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 },
   // Slot pubblicitario in fondo alla home: occupa lo spazio rimanente.
   homeAdSlot: {
     flexGrow: 1, minHeight: 90,
