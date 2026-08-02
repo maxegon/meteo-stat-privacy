@@ -194,13 +194,6 @@ export default function HomeScreen({ navigation }) {
   const [alertThresholds, setAlertThresholds] = useState(null);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [climateNormals, setClimateNormals] = useState(null);
-  // Allerte UFFICIALI (da WeatherAPI, riprodotte senza calcolo) — distinte
-  // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
-  // weather, nessun bisogno di effect/storage.
-  const officialAlerts = useMemo(() => extractOfficialAlerts(weather), [weather]);
-  // FIX 2026-07-03 — conteggio fonti attive per ProviderStatusBanner (vedi
-  // HANDOFF.md §5). Stessa lista di 8 provider "core" usata dagli aggregatori.
-  const activeProviderCount = useMemo(() => getActiveProviderCount(weather), [weather]);
   const hasAutoLoaded = useRef(false);
   const scrollRef = useRef(null);
   const cityInfoRef = useRef(null);
@@ -218,6 +211,17 @@ export default function HomeScreen({ navigation }) {
     isPartial,
     setIsPartial,
   } = useWeather();
+  // Allerte UFFICIALI (da WeatherAPI, riprodotte senza calcolo) — distinte
+  // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
+  // weather, nessun bisogno di effect/storage. FIX: dichiarato QUI (dopo la
+  // destrutturazione di useWeather() sopra) e non più su — prima veniva
+  // calcolato con weather non ancora assegnato, quindi sempre con []
+  // (nessun alert ufficiale mostrato, anche quando ce n'erano).
+  const officialAlerts = useMemo(() => extractOfficialAlerts(weather), [weather]);
+  // FIX 2026-07-03 — conteggio fonti attive per ProviderStatusBanner (vedi
+  // HANDOFF.md §5). Stessa lista di 8 provider "core" usata dagli aggregatori.
+  // FIX: stesso motivo di officialAlerts sopra — dichiarato dopo useWeather().
+  const activeProviderCount = useMemo(() => getActiveProviderCount(weather), [weather]);
   // Testo del popup "Il tempo di domani" — memoizzato così può essere
   // riletto sia per il rendering sia per il calcolo del font adattivo,
   // senza ricalcolarlo due volte. Dichiarato QUI (dopo la destrutturazione
