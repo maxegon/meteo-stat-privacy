@@ -717,6 +717,11 @@ export default function HomeScreen({ navigation }) {
             {cityInfo?.lat != null && cityInfo?.lon != null && (
               <View style={styles.tomorrowStoryRadarFull}>
                 <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
+                {aggregateDays?.[1]?.icon && (
+                  <View style={styles.tomorrowStoryRadarPin} pointerEvents="none">
+                    <WeatherIcon name={aggregateDays[1].icon} size={30} dark />
+                  </View>
+                )}
               </View>
             )}
             <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.tomorrowStoryScrollContent} showsVerticalScrollIndicator={false}>
@@ -1782,6 +1787,16 @@ function makeStyles(c, dark) {
   tomorrowStoryRadarFull: {
     height: 280, marginHorizontal: 12, marginTop: 10, marginBottom: 4,
     borderRadius: 16, overflow: 'hidden',
+  },
+  // Icona meteo fissa al centro del radar — la mappa è sempre centrata su
+  // [lat, lon] della città selezionata al caricamento, quindi il centro
+  // esatto del riquadro corrisponde alla posizione dell'utente.
+  tomorrowStoryRadarPin: {
+    position: 'absolute', top: '50%', left: '50%',
+    marginLeft: -22, marginTop: -22,
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(15,23,42,0.55)',
+    alignItems: 'center', justifyContent: 'center',
   },
   tomorrowStoryScrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 },
   // Slot pubblicitario in fondo alla home: occupa lo spazio rimanente.
