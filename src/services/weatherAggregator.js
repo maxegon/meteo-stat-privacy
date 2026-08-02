@@ -304,14 +304,17 @@ export const buildAggregateDays = (w) => {
  * secondo la media di N fonti" — non deve mai sembrare una previsione
  * elaborata da meteorologi né un bollettino ufficiale.
  * NOTA: qui vengono citati solo campi che sono GENUINAMENTE media multi-provider
- * (temp/pioggia da buildAggregateDays, fascia da buildAggregateHourly, UV da
- * uvVals aggAvg). Volutamente NON include vento/alba-tramonto: quei campi in
- * buildAggregateDays provengono da un solo provider (Open-Meteo, vedi spread
- * `...day`), quindi citarli qui violerebbe l'invariante media+contatore.
+ * (temp/pioggia da buildAggregateDays, fascia+umidità da buildAggregateHourly,
+ * UV da uvVals aggAvg, confronto oggi/dopodomani da tempMax/precipProbability
+ * degli stessi giorni aggregati). Volutamente NON include vento/alba-tramonto:
+ * quei campi in buildAggregateDays provengono da un solo provider (Open-Meteo,
+ * vedi spread `...day`), quindi citarli qui violerebbe l'invariante media+contatore.
  * Ritorna `null` se non ci sono ancora dati per il giorno "Domani".
  */
 export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationLabel) => {
-  const day = aggregateDays?.[1]; // 0 = Oggi, 1 = Domani, 2 = Dopodomani
+  const today = aggregateDays?.[0]; // 0 = Oggi
+  const day = aggregateDays?.[1];   // 1 = Domani
+  const dayAfter = aggregateDays?.[2]; // 2 = Dopodomani
   if (!day) return null;
 
   const place = locationLabel ? ` a ${locationLabel}` : '';
@@ -340,8 +343,8 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
   // card fascia in HomeScreen.js (vedi fasciaOf/FASCIA_ORDER), nessun nuovo
   // calcolo backend: per ogni fascia si rilegge lo stesso `aggregateHourly`
   // già mostrato nelle card orarie. Ogni campo resta una vera media/voto
-  // multi-provider (temp: aggAvg per ora, poi media delle ore della fascia;
-  // pioggia: MAX delle ore, stesso metodo delle card fascia esistenti;
+  // multi-provider (temp/umidità: aggAvg per ora, poi media delle ore della
+  // fascia; pioggia: MAX delle ore, stesso metodo delle card fascia esistenti;
   // descrizione: aggMajorityPair sulle ore della fascia — stesso meccanismo
   // di voto icona+testo già usato altrove, mai da una singola ora/provider).
   let fasciaLines = '';
@@ -359,18 +362,41 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
         if (!hours.length) return null;
         const temps = hours.map(h => h.temp).filter(v => v != null && !isNaN(v));
         const rains = hours.map(h => h.precipProb).filter(v => v != null && !isNaN(v));
+        const humids = hours.map(h => h.humidity).filter(v => v != null && !isNaN(v));
         const pair = aggMajorityPair(hours.map(h => ({ icon: h.icon, description: h.description })));
         const tempAvg = temps.length ? Math.round(aggAvg(temps)) : null;
         const rainMax = rains.length ? Math.round(Math.max(...rains)) : null;
+        const humidAvg = humids.length ? Math.round(aggAvg(humids)) : null;
         const descText = (pair?.description || day.description || '').toLowerCase();
         const parts = [descText].filter(Boolean);
         if (tempAvg != null) parts.push(`~${tempAvg}°`);
         if (rainMax != null) parts.push(`pioggia ${rainMax}%`);
+        if (humidAvg != null) parts.push(`umidità ${humidAvg}%`);
         return parts.length ? `${f}: ${parts.join(', ')}.` : null;
       })
       .filter(Boolean);
     if (rows.length) fasciaLines = `\n${rows.join('\n')}\n`;
   }
+
+  // Confronto con oggi e tendenza per dopodomani — stessi campi tempMax/
+  // precipProbability già aggregati da buildAggregateDays per quei giorni,
+  // nessun nuovo calcolo. Utile per dare contesto oltre al singolo giorno.
+  let trendPart = '';
+  if (today?.tempMax != null && tempMax != null) {
+    const diff = Math.round(tempMax - today.tempMax);
+    trendPart += Math.abs(diff) >= 2
+      ? `Rispetto a oggi (max ${Math.round(today.tempMax)}°), domani sarà ${diff > 0 ? `più caldo di circa ${diff}°` : `più fresco di circa ${Math.abs(diff)}°`}. `
+      : `Temperature simili a oggi (max ${Math.round(today.tempMax)}°). `;
+  }
+  if (dayAfter?.tempMax != null && !isNaN(dayAfter.tempMax)) {
+    const dayAfterMax = Math.round(dayAfter.tempMax);
+    const rainDiff = (dayAfter.precipProbability ?? 0) - (rainProb ?? 0);
+    const outlook = rainDiff >= 20 ? 'tempo in peggioramento (più pioggia)'
+      : rainDiff <= -20 ? 'tempo in miglioramento'
+      : 'condizioni stabili';
+    trendPart += `Dopodomani: ${outlook}, massima ${dayAfterMax}°.`;
+  }
+  trendPart = trendPart.trim();
 
   // UV: day.uvIndex è una vera media multi-provider (uvVals in buildAggregateDays),
   // non un dato a fonte singola — quindi citabile senza violare l'invariante.
@@ -392,7 +418,7 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
   // chiusura su righe distinte nel popup.
   const introPart = `${skyPart}${tempPart}${rainPart}`.replace(/ +/g, ' ').trim();
   const closingPart = `${uvPart}${sourcesPart}`.replace(/ +/g, ' ').trim();
-  return [`Domani${place}: ${introPart}`, fasciaLines.trim(), closingPart].filter(Boolean).join('\n\n');
+  return [`Domani${place}: ${introPart}`, fasciaLines.trim(), trendPart, closingPart].filter(Boolean).join('\n\n');
 };
 
 /**

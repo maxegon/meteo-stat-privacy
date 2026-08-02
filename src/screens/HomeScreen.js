@@ -695,44 +695,50 @@ export default function HomeScreen({ navigation }) {
       {/* Popup "Il tempo di domani" — sintesi discorsiva breve, template a
           regole su dati GIÀ aggregati (buildTomorrowNarrative), non una
           previsione elaborata: vedi commento nella funzione per le regole
-          anti-claim §7.2 e l'invariante media+contatore §7.1 rispettati. */}
-      <Modal visible={showTomorrowStory} animationType="slide" onRequestClose={() => setShowTomorrowStory(false)}>
-        <AnimatedGradientBg>
-          <SafeAreaView style={styles.tomorrowStorySafe} edges={['top', 'left', 'right', 'bottom']}>
-            <View style={styles.tomorrowStoryHeader}>
-              <Text style={styles.howToTitle}>🗒️ Il tempo di domani</Text>
-              <TouchableOpacity onPress={() => setShowTomorrowStory(false)} accessibilityLabel="Chiudi" accessibilityRole="button">
-                <MaterialCommunityIcons name="close" size={22} color={c.textMuted} />
-              </TouchableOpacity>
-            </View>
-            {aggregateDays?.[1] && (
-              <View style={styles.tomorrowStoryIconRow}>
-                <WeatherIcon name={aggregateDays[1].icon} size={44} dark={dark} />
-                <Text style={styles.tomorrowStoryIconText}>
-                  {cityInfo?.name || query}
-                  {aggregateDays[1].tempMax != null ? ` · ${Math.round(aggregateDays[1].tempMin)}°–${Math.round(aggregateDays[1].tempMax)}°` : ''}
+          anti-claim §7.2 e l'invariante media+contatore §7.1 rispettati.
+          Overlay in-tree (non <Modal> nativa) come showCompare: dentro una
+          <Modal> nativa iOS la SafeAreaView non riceve i safe-area insets
+          corretti (header sovrapposto alla status bar), qui invece eredita
+          gli stessi insets già corretti nel resto della Home. */}
+      {showTomorrowStory && (
+        <View style={styles.compareOverlay}>
+          <AnimatedGradientBg>
+            <SafeAreaView style={styles.tomorrowStorySafe} edges={['top', 'left', 'right', 'bottom']}>
+              <View style={styles.tomorrowStoryHeader}>
+                <Text style={styles.howToTitle}>🗒️ Il tempo di domani</Text>
+                <TouchableOpacity onPress={() => setShowTomorrowStory(false)} accessibilityLabel="Chiudi" accessibilityRole="button">
+                  <MaterialCommunityIcons name="close" size={22} color={c.textMuted} />
+                </TouchableOpacity>
+              </View>
+              {aggregateDays?.[1] && (
+                <View style={styles.tomorrowStoryIconRow}>
+                  <WeatherIcon name={aggregateDays[1].icon} size={44} dark={dark} />
+                  <Text style={styles.tomorrowStoryIconText}>
+                    {cityInfo?.name || query}
+                    {aggregateDays[1].tempMax != null ? ` · ${Math.round(aggregateDays[1].tempMin)}°–${Math.round(aggregateDays[1].tempMax)}°` : ''}
+                  </Text>
+                </View>
+              )}
+              {cityInfo?.lat != null && cityInfo?.lon != null && (
+                <View style={styles.tomorrowStoryRadarFull}>
+                  <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
+                  {aggregateDays?.[1]?.icon && (
+                    <View style={styles.tomorrowStoryRadarPin} pointerEvents="none">
+                      <WeatherIcon name={aggregateDays[1].icon} size={30} dark />
+                    </View>
+                  )}
+                </View>
+              )}
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.tomorrowStoryScrollContent} showsVerticalScrollIndicator={false}>
+                <Text style={styles.tomorrowStoryText}>
+                  {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
+                    || 'Dati non ancora disponibili per domani in questa posizione.'}
                 </Text>
-              </View>
-            )}
-            {cityInfo?.lat != null && cityInfo?.lon != null && (
-              <View style={styles.tomorrowStoryRadarFull}>
-                <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
-                {aggregateDays?.[1]?.icon && (
-                  <View style={styles.tomorrowStoryRadarPin} pointerEvents="none">
-                    <WeatherIcon name={aggregateDays[1].icon} size={30} dark />
-                  </View>
-                )}
-              </View>
-            )}
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.tomorrowStoryScrollContent} showsVerticalScrollIndicator={false}>
-              <Text style={styles.tomorrowStoryText}>
-                {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
-                  || 'Dati non ancora disponibili per domani in questa posizione.'}
-              </Text>
-            </ScrollView>
-          </SafeAreaView>
-        </AnimatedGradientBg>
-      </Modal>
+              </ScrollView>
+            </SafeAreaView>
+          </AnimatedGradientBg>
+        </View>
+      )}
 
       {/* Stato: meteo caricato — searchBar scorre con il contenuto */}
       {!loading && weather && (
