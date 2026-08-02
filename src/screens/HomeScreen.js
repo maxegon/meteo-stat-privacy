@@ -15,6 +15,7 @@ import ProviderBadge from '../components/ProviderBadge';
 import WeatherIcon from '../components/WeatherIcon';
 import ForecastModal from '../components/ForecastModal';
 import RadarMap from '../components/RadarMap';
+import { weatherIconToEmoji } from '../utils/weatherEmoji';
 import AnimatedGradientBg from '../components/AnimatedGradientBg';
 import { PROVIDERS } from '../services/providers';
 
@@ -185,6 +186,7 @@ export default function HomeScreen({ navigation }) {
   const [gpsBlocked, setGpsBlocked] = useState(false);
   const [showHowTo, setShowHowTo] = useState(false);
   const [showTomorrowStory, setShowTomorrowStory] = useState(false); // popup "Il tempo di domani"
+  const [tomorrowTextBox, setTomorrowTextBox] = useState({ width: 0, height: 0 }); // per il font adattivo del testo
   const [tooltip, setTooltip] = useState(null); // 'provider' | 'compare' | null
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [showAlertSettings, setShowAlertSettings] = useState(false);
@@ -196,6 +198,25 @@ export default function HomeScreen({ navigation }) {
   // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
   // weather, nessun bisogno di effect/storage.
   const officialAlerts = useMemo(() => extractOfficialAlerts(weather), [weather]);
+  // Testo del popup "Il tempo di domani" — memoizzato così può essere
+  // riletto sia per il rendering sia per il calcolo del font adattivo,
+  // senza ricalcolarlo due volte.
+  const tomorrowStoryText = useMemo(() => (
+    (weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
+      || 'Dati non ancora disponibili per domani in questa posizione.'
+  ), [weather, aggregateDays, aggregateHourly, cityInfo?.name, query]);
+  // Dimensione font adattiva: stima in base all'area disponibile (misurata
+  // via onLayout) e alla lunghezza del testo, così un testo breve riempie
+  // meglio lo spazio rimasto e uno lungo si rimpicciolisce per starci senza
+  // essere tagliato (lo ScrollView resta comunque come rete di sicurezza).
+  const tomorrowFontSize = useMemo(() => {
+    const { width, height } = tomorrowTextBox;
+    const len = tomorrowStoryText?.length || 0;
+    if (!width || !height || !len) return 17;
+    const area = width * height;
+    const estimate = Math.sqrt(area / (0.72 * len));
+    return Math.max(15, Math.min(26, Math.round(estimate)));
+  }, [tomorrowTextBox, tomorrowStoryText]);
   // FIX 2026-07-03 — conteggio fonti attive per ProviderStatusBanner (vedi
   // HANDOFF.md §5). Stessa lista di 8 provider "core" usata dagli aggregatori.
   const activeProviderCount = useMemo(() => getActiveProviderCount(weather), [weather]);
@@ -721,20 +742,23 @@ export default function HomeScreen({ navigation }) {
               )}
               {cityInfo?.lat != null && cityInfo?.lon != null && (
                 <View style={styles.tomorrowStoryRadarFull}>
-                  <RadarMap latitude={cityInfo.lat} longitude={cityInfo.lon} />
-                  {aggregateDays?.[1]?.icon && (
-                    <View style={styles.tomorrowStoryRadarPin} pointerEvents="none">
-                      <WeatherIcon name={aggregateDays[1].icon} size={30} dark />
-                    </View>
-                  )}
+                  <RadarMap
+                    latitude={cityInfo.lat}
+                    longitude={cityInfo.lon}
+                    weatherEmoji={aggregateDays?.[1]?.icon ? weatherIconToEmoji(aggregateDays[1].icon) : null}
+                  />
                 </View>
               )}
-              <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.tomorrowStoryScrollContent} showsVerticalScrollIndicator={false}>
-                <Text style={styles.tomorrowStoryText}>
-                  {(weather && buildTomorrowNarrative(aggregateDays, aggregateHourly, cityInfo?.name || query))
-                    || 'Dati non ancora disponibili per domani in questa posizione.'}
-                </Text>
-              </ScrollView>
+              <View
+                style={styles.tomorrowStoryTextWrap}
+                onLayout={e => setTomorrowTextBox({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
+              >
+                <ScrollView contentContainerStyle={styles.tomorrowStoryScrollContent} showsVerticalScrollIndicator={false}>
+                  <Text style={[styles.tomorrowStoryText, { fontSize: tomorrowFontSize, lineHeight: Math.round(tomorrowFontSize * 1.35) }]}>
+                    {tomorrowStoryText}
+                  </Text>
+                </ScrollView>
+              </View>
             </SafeAreaView>
           </AnimatedGradientBg>
         </View>
@@ -1778,7 +1802,7 @@ function makeStyles(c, dark) {
     borderWidth: 1.5, borderColor: c.accent,
   },
   actionBtnHighlightText: { flex: 1, color: c.text, fontSize: 15, fontWeight: '700' },
-  tomorrowStoryText: { color: c.text, fontSize: 15, lineHeight: 22 },
+  tomorrowStoryText: { color: c.text },
   tomorrowStorySafe: { flex: 1, backgroundColor: 'transparent' },
   tomorrowStoryHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -1794,17 +1818,10 @@ function makeStyles(c, dark) {
     height: 280, marginHorizontal: 12, marginTop: 10, marginBottom: 4,
     borderRadius: 16, overflow: 'hidden',
   },
-  // Icona meteo fissa al centro del radar — la mappa è sempre centrata su
-  // [lat, lon] della città selezionata al caricamento, quindi il centro
-  // esatto del riquadro corrisponde alla posizione dell'utente.
-  tomorrowStoryRadarPin: {
-    position: 'absolute', top: '50%', left: '50%',
-    marginLeft: -22, marginTop: -22,
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(15,23,42,0.55)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  tomorrowStoryScrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 },
+  // Wrapper con flex:1 per misurare via onLayout lo spazio rimasto sotto
+  // header/icona/radar e calcolare il font adattivo del testo.
+  tomorrowStoryTextWrap: { flex: 1 },
+  tomorrowStoryScrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, flexGrow: 1, justifyContent: 'center' },
   // Slot pubblicitario in fondo alla home: occupa lo spazio rimanente.
   homeAdSlot: {
     flexGrow: 1, minHeight: 90,

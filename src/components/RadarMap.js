@@ -2,7 +2,7 @@ import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-const RadarMap = forwardRef(function RadarMap({ latitude, longitude }, ref) {
+const RadarMap = forwardRef(function RadarMap({ latitude, longitude, weatherEmoji }, ref) {
   const webViewRef = useRef(null);
   const lat = latitude || 41.9;
   const lon = longitude || 12.5;
@@ -75,6 +75,17 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude }, ref) {
       cursor: pointer;
     }
     button.active { background: #38bdf8; color: #0f172a; }
+    .weather-pin {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      background: rgba(15,23,42,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
   </style>
 </head>
 <body>
@@ -98,6 +109,20 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude }, ref) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19
     }).addTo(map);
+
+    // Marker meteo — vero marker Leaflet ancorato a [lat, lon], quindi segue
+    // pan/zoom (a differenza di un overlay React Native fisso al centro
+    // schermo, che restava fermo quando l'utente muoveva la mappa).
+    const weatherEmoji = ${JSON.stringify(weatherEmoji || '')};
+    if (weatherEmoji) {
+      const weatherIcon = L.divIcon({
+        className: 'weather-pin-wrapper',
+        html: '<div class="weather-pin">' + weatherEmoji + '</div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+      });
+      L.marker([${lat}, ${lon}], { icon: weatherIcon, interactive: false, zIndexOffset: 1000 }).addTo(map);
+    }
 
     let frames = [];
     let currentIndex = 0;
