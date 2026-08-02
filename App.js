@@ -30,6 +30,7 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import { WeatherProvider } from './src/context/WeatherContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import UpdateBanner from './src/components/UpdateBanner';
 import { logError } from './src/utils/errorLogger';
 
 // Nasconde il box giallo LogBox ("Open debugger to view warnings.") che compare
@@ -174,6 +175,7 @@ function App() {
           <ThemeProvider>
             <WeatherProvider>
               <AppNavigator />
+              <UpdateBanner />
             </WeatherProvider>
           </ThemeProvider>
         </ErrorBoundary>
