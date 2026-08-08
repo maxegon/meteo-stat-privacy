@@ -61,10 +61,10 @@ function AppNavigator() {
   // sui due piattaforme — vedi bug report tester Android 2026-07-02.
   const insets = useSafeAreaInsets();
   const TAB_BAR_CONTENT_HEIGHT = 54;
-  // FIX 2026-08-08: su alcuni device Android insets.bottom torna 0/insufficiente
-  // (edge-to-edge non riserva spazio in tempo utile), tagliando le etichette
-  // contro la barra di sistema — minimo di sicurezza, mai sotto ai tasti nativi.
-  const tabBarBottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 48) : insets.bottom;
+  // Android: insets.bottom si è dimostrato inaffidabile su alcuni device
+  // (etichette tagliate anche forzando un minimo di 24/48px) — valore fisso,
+  // non dipendente dall'hook, per garantire lo stesso spazio libero di iOS.
+  const tabBarBottomInset = Platform.OS === 'android' ? 40 : insets.bottom;
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
@@ -80,8 +80,8 @@ function AppNavigator() {
             borderTopWidth: 1,
             elevation: 0,
             shadowOpacity: 0,
-            height: TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
-            paddingBottom: tabBarBottomInset,
+            height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
+            paddingBottom: insets.bottom,
           },
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: dark ? 'rgba(255,255,255,0.45)' : 'rgba(2,132,199,0.50)',

@@ -356,6 +356,7 @@ export default function HomeScreen({ navigation }) {
       setActiveTab('current');
       setActiveDay(0);
       setShowCompare(false);
+      setShowTomorrowStory(false);
       setModal(null);
       setTooltip(null);
       scrollRef.current?.scrollTo({ y: 0, animated: true });
