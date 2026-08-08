@@ -17,9 +17,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, ActivityIndicator, LogBox, Platform } from 'react-native';
+import { View, ActivityIndicator, LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -59,14 +59,17 @@ function AppNavigator() {
   // libreria (react-native-tab-view) non gestisce da sola i safe-area inset,
   // quindi li applichiamo qui esplicitamente per un comportamento identico
   // sui due piattaforme — vedi bug report tester Android 2026-07-02.
-  const insets = useSafeAreaInsets();
   const TAB_BAR_CONTENT_HEIGHT = 54;
-  // Android: insets.bottom si è dimostrato inaffidabile su alcuni device
-  // (etichette tagliate anche forzando un minimo di 24/48px) — valore fisso,
-  // non dipendente dall'hook, per garantire lo stesso spazio libero di iOS.
-  const tabBarBottomInset = Platform.OS === 'android' ? 40 : insets.bottom;
+  // FIX 2026-08-08: su alcuni Android tabBarStyle.height/paddingBottom
+  // (basati su insets.bottom) non spostavano di un pixel le etichette —
+  // la libreria (react-native-tab-view, riadattata a tab bar in basso via
+  // tabBarPosition="bottom") non ne tiene conto per il posizionamento
+  // interno. SafeAreaView qui fuori è un meccanismo diverso: confina
+  // l'intero Tab.Navigator (bordo compreso) dentro l'area sicura reale,
+  // indipendentemente da come la libreria gestisce i suoi style interni.
   return (
-    <NavigationContainer>
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+      <NavigationContainer>
       <StatusBar style="auto" />
       <Tab.Navigator
         tabBarPosition="bottom"
@@ -80,8 +83,7 @@ function AppNavigator() {
             borderTopWidth: 1,
             elevation: 0,
             shadowOpacity: 0,
-            height: TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
-            paddingBottom: tabBarBottomInset,
+            height: TAB_BAR_CONTENT_HEIGHT,
           },
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: dark ? 'rgba(255,255,255,0.45)' : 'rgba(2,132,199,0.50)',
@@ -115,7 +117,8 @@ function AppNavigator() {
           {(props) => <ErrorBoundary label="Info"><InfoScreen {...props} /></ErrorBoundary>}
         </Tab.Screen>
       </Tab.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </SafeAreaView>
   );
 }
 
