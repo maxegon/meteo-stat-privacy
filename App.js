@@ -64,7 +64,7 @@ function AppNavigator() {
   // FIX 2026-08-08: su alcuni device Android insets.bottom torna 0/insufficiente
   // (edge-to-edge non riserva spazio in tempo utile), tagliando le etichette
   // contro la barra di sistema — minimo di sicurezza, mai sotto ai tasti nativi.
-  const tabBarBottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 24) : insets.bottom;
+  const tabBarBottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 48) : insets.bottom;
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
