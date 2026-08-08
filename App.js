@@ -17,7 +17,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, ActivityIndicator, LogBox } from 'react-native';
+import { View, ActivityIndicator, LogBox, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -61,6 +61,10 @@ function AppNavigator() {
   // sui due piattaforme — vedi bug report tester Android 2026-07-02.
   const insets = useSafeAreaInsets();
   const TAB_BAR_CONTENT_HEIGHT = 54;
+  // FIX 2026-08-08: su alcuni device Android insets.bottom torna 0/insufficiente
+  // (edge-to-edge non riserva spazio in tempo utile), tagliando le etichette
+  // contro la barra di sistema — minimo di sicurezza, mai sotto ai tasti nativi.
+  const tabBarBottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 24) : insets.bottom;
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
@@ -76,8 +80,8 @@ function AppNavigator() {
             borderTopWidth: 1,
             elevation: 0,
             shadowOpacity: 0,
-            height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
-            paddingBottom: insets.bottom,
+            height: TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
+            paddingBottom: tabBarBottomInset,
           },
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: dark ? 'rgba(255,255,255,0.45)' : 'rgba(2,132,199,0.50)',
