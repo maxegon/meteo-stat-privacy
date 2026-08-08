@@ -47,7 +47,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "App.js",
-      "source_location": "L118",
+      "source_location": "L122",
       "_origin": "ast",
       "id": "app_app",
       "community": 2,
@@ -760,7 +760,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "package_dependencies_expo_linear_gradient",
-      "community": 13,
+      "community": 9,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -770,7 +770,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "expo_linear_gradient",
-      "community": 13,
+      "community": 9,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -860,7 +860,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "package_dependencies_react_native",
-      "community": 9,
+      "community": 13,
       "norm_label": "react-native"
     },
     {
@@ -870,7 +870,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "react_native",
-      "community": 9,
+      "community": 13,
       "norm_label": "react-native"
     },
     {
@@ -2217,7 +2217,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1541",
+      "source_location": "L1542",
       "_origin": "ast",
       "id": "src_screens_homescreen_makestyles",
       "community": 0,
@@ -3509,7 +3509,7 @@
       "relation": "indirect_call",
       "confidence": "INFERRED",
       "source_file": "App.js",
-      "source_location": "L188",
+      "source_location": "L192",
       "weight": 1.0,
       "context": "argument",
       "source": "app_js_app",
@@ -3804,7 +3804,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "App.js",
-      "source_location": "L125",
+      "source_location": "L129",
       "weight": 1.0,
       "source": "app_app",
       "target": "src_utils_errorlogger_logerror",
@@ -7572,7 +7572,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1541",
+      "source_location": "L1542",
       "weight": 1.0,
       "source": "src_screens_homescreen",
       "target": "src_screens_homescreen_makestyles",
@@ -8096,7 +8096,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L416",
+      "source_location": "L417",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_reversegeocodeosm",
@@ -8107,7 +8107,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L417",
+      "source_location": "L418",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_reversegeocodecity",
@@ -8118,7 +8118,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L410",
+      "source_location": "L411",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_getfastposition",
@@ -8129,7 +8129,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1035",
+      "source_location": "L1036",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_seastatefromwind",
@@ -8140,7 +8140,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1435",
+      "source_location": "L1436",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_formatdate",
@@ -8163,7 +8163,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L480",
+      "source_location": "L481",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_aggregator_fetchall"
@@ -8185,7 +8185,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L563",
+      "source_location": "L564",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_favorites_isfavorite"
@@ -8207,7 +8207,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L399",
+      "source_location": "L400",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_favorites_togglefavorite"
@@ -8218,7 +8218,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L415",
+      "source_location": "L416",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_geocodeservice_reversegeocodebackend"
@@ -8229,7 +8229,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L494",
+      "source_location": "L495",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_nowcastservice_getnowcast"
@@ -8240,7 +8240,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L898",
+      "source_location": "L899",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_buildaggregatedata"
@@ -8273,7 +8273,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1117",
+      "source_location": "L1118",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_getdatestr"
@@ -8284,7 +8284,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1115",
+      "source_location": "L1116",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_gethour"
@@ -8295,7 +8295,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1351",
+      "source_location": "L1352",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_pct"
@@ -8306,7 +8306,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1060",
+      "source_location": "L1061",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheralerts_checkdaythresholds"
@@ -8317,7 +8317,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1219",
+      "source_location": "L1220",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheralerts_checkhourthresholds"
@@ -8372,7 +8372,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1035",
+      "source_location": "L1036",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_iscoastal_iscoastal"
@@ -8383,7 +8383,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L954",
+      "source_location": "L955",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_weatherdescriptions_translatedescription"
@@ -8394,7 +8394,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L754",
+      "source_location": "L755",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_weatheremoji_weathericontoemoji"
@@ -8405,7 +8405,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1387",
+      "source_location": "L1388",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_weathericoncolor_geticoncolor"
@@ -8416,7 +8416,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1021",
+      "source_location": "L1022",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_winddir_winddirarrow"
@@ -10490,5 +10490,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3e4521ce408548ee319dc16c5d324ef962937f94"
+  "built_at_commit": "5bd7c772a025354bbe94a26ba4cd57272501307d"
 }

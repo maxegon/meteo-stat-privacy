@@ -14,12 +14,12 @@ Sentry.init({
 });
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, ActivityIndicator, LogBox } from 'react-native';
+import { View, ActivityIndicator, LogBox, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets, initialWindowMetrics } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -41,7 +41,7 @@ if (__DEV__) {
   LogBox.ignoreAllLogs();
 }
 
-const Tab = createMaterialTopTabNavigator();
+const Tab = createBottomTabNavigator();
 const ONBOARDING_KEY = 'onboarding_accepted_v1';
 
 const TAB_ICONS = {
@@ -53,46 +53,45 @@ const TAB_ICONS = {
 
 function AppNavigator() {
   const { colors: c, dark } = useTheme();
+  const insets = useSafeAreaInsets();
   // INVARIANTE UI — tab bar deve restare sempre completamente visibile sopra
   // la barra di sistema (Android: edgeToEdgeEnabled la sovrappone ai tasti di
-  // navigazione se non riserviamo lo spazio; iOS: home indicator). La
-  // libreria (react-native-tab-view) non gestisce da sola i safe-area inset,
-  // quindi li applichiamo qui esplicitamente per un comportamento identico
-  // sui due piattaforme — vedi bug report tester Android 2026-07-02.
+  // navigazione se non riserviamo lo spazio; iOS: home indicator).
+  // FIX 2026-08-08 (1/2): sostituito material-top-tabs con bottom-tabs — non
+  // ha risolto perché il problema reale è a monte.
+  // FIX 2026-08-08 (2/2): bug noto/aperto di react-native-safe-area-context
+  // su Android 15 edge-to-edge (3-tasti): useSafeAreaInsets() a volte
+  // restituisce insets.bottom = 0 invece del valore reale — vedi
+  // github.com/AppAndFlow/react-native-safe-area-context/issues/667 e
+  // github.com/react-navigation/react-navigation/issues/12769. initialWindowMetrics
+  // è catturato nativamente all'avvio, prima del bug, e in molti report
+  // risulta corretto anche quando l'hook dinamico si azzera — lo usiamo
+  // come fallback (max con l'hook, mai peggio del solo hook).
+  const androidFallbackBottomInset = Platform.OS === 'android'
+    ? (initialWindowMetrics?.insets.bottom ?? 0)
+    : 0;
+  const bottomInset = Math.max(insets.bottom, androidFallbackBottomInset);
   const TAB_BAR_CONTENT_HEIGHT = 54;
-  // FIX 2026-08-08: su alcuni Android tabBarStyle.height/paddingBottom
-  // (basati su insets.bottom) non spostavano di un pixel le etichette —
-  // la libreria (react-native-tab-view, riadattata a tab bar in basso via
-  // tabBarPosition="bottom") non ne tiene conto per il posizionamento
-  // interno. SafeAreaView qui fuori è un meccanismo diverso: confina
-  // l'intero Tab.Navigator (bordo compreso) dentro l'area sicura reale,
-  // indipendentemente da come la libreria gestisce i suoi style interni.
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-      <NavigationContainer>
+    <NavigationContainer>
       <StatusBar style="auto" />
       <Tab.Navigator
-        tabBarPosition="bottom"
         initialRouteName="Home"
         screenOptions={({ route }) => ({
           headerShown: false,
-          swipeEnabled: true,
           tabBarStyle: {
             backgroundColor: dark ? 'rgba(15,23,42,0.97)' : 'rgba(255,255,255,0.97)',
             borderTopColor: c.border,
             borderTopWidth: 1,
             elevation: 0,
             shadowOpacity: 0,
-            height: TAB_BAR_CONTENT_HEIGHT,
+            height: TAB_BAR_CONTENT_HEIGHT + bottomInset,
+            paddingBottom: bottomInset,
+            paddingTop: 6,
           },
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: dark ? 'rgba(255,255,255,0.45)' : 'rgba(2,132,199,0.50)',
           tabBarLabelStyle: { fontSize: 10, marginTop: 2, fontWeight: '600' },
-          tabBarIndicatorStyle: {
-            backgroundColor: c.accent,
-            top: 0,
-            height: 2,
-          },
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name={TAB_ICONS[route.name]}
@@ -100,7 +99,6 @@ function AppNavigator() {
               color={color}
             />
           ),
-          tabBarShowIcon: true,
           tabBarPressColor: c.border,
         })}
       >
@@ -117,8 +115,7 @@ function AppNavigator() {
           {(props) => <ErrorBoundary label="Info"><InfoScreen {...props} /></ErrorBoundary>}
         </Tab.Screen>
       </Tab.Navigator>
-      </NavigationContainer>
-    </SafeAreaView>
+    </NavigationContainer>
   );
 }
 
