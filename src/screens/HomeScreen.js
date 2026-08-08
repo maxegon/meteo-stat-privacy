@@ -747,7 +747,7 @@ export default function HomeScreen({ navigation }) {
                 </View>
               )}
               {cityInfo?.lat != null && cityInfo?.lon != null && (
-                <View style={styles.tomorrowStoryRadarFull}>
+                <View style={styles.tomorrowStoryRadarFull} collapsable={false}>
                   <RadarMap
                     latitude={cityInfo.lat}
                     longitude={cityInfo.lon}
