@@ -28,16 +28,20 @@ export default function MapScreen() {
     <AnimatedGradientBg>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
-          <MaterialCommunityIcons name="radar" size={20} color="#7ed4f5" />
-          <Text style={styles.title}>Radar Precipitazioni</Text>
+          <View style={styles.headerTop}>
+            <View style={styles.headerTitleRow}>
+              <MaterialCommunityIcons name="radar" size={20} color="#7ed4f5" />
+              <Text style={styles.title} numberOfLines={1}>Radar Precipitazioni</Text>
+            </View>
+            <TouchableOpacity onPress={goToMyLocation} style={styles.gpsBtn} accessibilityLabel="Vai alla mia posizione">
+              <MaterialCommunityIcons name={locating ? 'loading' : 'crosshairs-gps'} size={20} color="#38bdf8" />
+            </TouchableOpacity>
+          </View>
           {selectedCity ? (
-            <Text style={styles.cityName}>📍 {selectedCity.name}</Text>
+            <Text style={styles.cityName} numberOfLines={1}>📍 {selectedCity.name}</Text>
           ) : (
-            <Text style={styles.noCityHint}>Cerca una città nella tab Home</Text>
+            <Text style={styles.noCityHint} numberOfLines={1}>Cerca una città nella tab Home</Text>
           )}
-          <TouchableOpacity onPress={goToMyLocation} style={styles.gpsBtn} accessibilityLabel="Vai alla mia posizione">
-            <MaterialCommunityIcons name={locating ? 'loading' : 'crosshairs-gps'} size={20} color="#38bdf8" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.mapWrapper}>
@@ -60,32 +64,40 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.12)',
-    flexWrap: 'wrap',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
   },
   title: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
-    flex: 1,
+    flexShrink: 1,
   },
   cityName: {
     color: 'rgba(255,255,255,0.65)',
     fontSize: 13,
+    marginTop: 4,
   },
   noCityHint: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 12,
     fontStyle: 'italic',
+    marginTop: 4,
   },
   gpsBtn: {
-    marginLeft: 'auto',
     padding: 6,
     borderRadius: 8,
     backgroundColor: 'rgba(56,189,248,0.15)',
