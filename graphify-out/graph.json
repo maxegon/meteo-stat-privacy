@@ -720,7 +720,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "package_dependencies_expo",
-      "community": 1,
+      "community": 9,
       "norm_label": "expo"
     },
     {
@@ -730,7 +730,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "expo",
-      "community": 1,
+      "community": 9,
       "norm_label": "expo"
     },
     {
@@ -760,7 +760,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "package_dependencies_expo_linear_gradient",
-      "community": 9,
+      "community": 1,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -770,7 +770,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "expo_linear_gradient",
-      "community": 9,
+      "community": 1,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -2277,7 +2277,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L57",
+      "source_location": "L61",
       "_origin": "ast",
       "id": "src_screens_mapscreen_styles",
       "community": 2,
@@ -8587,7 +8587,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L57",
+      "source_location": "L61",
       "weight": 1.0,
       "source": "src_screens_mapscreen",
       "target": "src_screens_mapscreen_styles",
@@ -10490,5 +10490,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "5bd7c772a025354bbe94a26ba4cd57272501307d"
+  "built_at_commit": "8d13e8c179b04c98384330b719bea98b416598b6"
 }

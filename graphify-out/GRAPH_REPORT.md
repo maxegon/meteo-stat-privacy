@@ -1,7 +1,7 @@
-# Graph Report - MeteoAggregator  (2026-08-08)
+# Graph Report - MeteoAggregator  (2026-08-19)
 
 ## Corpus Check
-- 54 files · ~45,539 words
+- 54 files · ~45,562 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5bd7c772`
+- Built from commit: `8d13e8c1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -111,7 +111,7 @@ Nodes (14): babel-preset-expo, devDependencies, babel-preset-expo, expo, install
 
 ### Community 9 - "Core RN Dependencies"
 Cohesion: 0.29
-Nodes (7): axios, expo-linear-gradient, dependencies, axios, expo-linear-gradient, react-native-safe-area-context, react-native-safe-area-context
+Nodes (7): axios, expo, dependencies, axios, expo, react-native-safe-area-context, react-native-safe-area-context
 
 ### Community 11 - "Climate Normals Data"
 Cohesion: 0.46

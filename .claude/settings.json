@@ -1,5 +1,21 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f graphify-out/graph.json ] && graphify update . >/dev/null 2>&1 || true",
+            "async": true,
+            "timeout": 300,
+            "statusMessage": "Aggiorno il grafo graphify"
+          }
+        ]
+      }
+    ]
   }
 }
