@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solo1Meteo — Una previsione, tante fonti</title>
+  <meta name="description" content="Solo1Meteo confronta 8 fonti meteo ufficiali e ti mostra una previsione media, con il numero di fonti su cui si basa ogni dato. Niente più previsioni che si contraddicono." />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #2a4876 0%, #1e426a 45%, #142e54 100%);
+      background-attachment: fixed;
+      color: #cbd5e1;
+      line-height: 1.7;
+    }
+    a { color: #38bdf8; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---- Hero ---- */
+    .hero {
+      padding: 64px 0 48px;
+      text-align: left;
+    }
+
+    /* Logo: sole + nuvola dietro la "S", come nell'app */
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 8px;
+    }
+    /* Stessa composizione dell'header in-app (HomeScreen.js): sole+nuvola
+       MaterialCommunityIcons sovrapposti dietro la "S" di "Solo1Meteo" (una
+       sola stringa, non spezzata), scalati ~1.36x per l'hero. */
+    /* Wrapper solo-testo: la centratura della hero si basa su questo, non
+       sull'icona (che sporge a sinistra come badge decorativo). */
+    .title-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .logo-mark {
+      position: absolute;
+      left: -23px;
+      top: -49px;
+      width: 78px;
+      height: 78px;
+      z-index: 0;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .logo-mark .sun {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      width: 60px;
+      height: 60px;
+    }
+    .logo-mark .cloud {
+      position: absolute;
+      bottom: 7px;
+      right: 4px;
+      width: 53px;
+      height: 53px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+    .app-title {
+      position: relative;
+      z-index: 1;
+      font-size: 62px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+    }
+    .app-subtitle {
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-top: 8px;
+      margin-bottom: 28px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .hero p.sub {
+      color: #e2e8f0;
+      font-size: 15px;
+      max-width: 560px;
+      margin: 0 0 32px;
+    }
+    .hero p.sub strong { color: #ffffff; }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: #38bdf8;
+      color: #0f172a;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.25);
+      cursor: default;
+    }
+    .btn-secondary:hover { transform: none; }
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      background: rgba(255,255,255,0.15);
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-left: 6px;
+    }
+
+    /* ---- Sections ---- */
+    section { padding: 52px 0; }
+    section.alt {
+      background: rgba(255,255,255,0.05);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    h2 {
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      text-align: center;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .lead {
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto 36px;
+      font-size: 15px;
+      color: #cbd5e1;
+    }
+    .lead strong { color: #ffffff; }
+
+    /* ---- Provider grid ---- */
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      width: 100%;
+      margin: 0 0 32px;
+    }
+    .provider {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #f1f5f9;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .provider .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .counter-box {
+      width: 100%;
+      margin: 0 0 32px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 20px 22px;
+      text-align: center;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+    .counter-box .pill {
+      display: inline-block;
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    /* ---- Come funziona: cards ---- */
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      width: 100%;
+    }
+    .how-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .how-card .icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .how-card h3 {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .how-card p {
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+
+    /* ---- Screenshots ---- */
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+    .screen-shot {
+      width: 100%;
+      display: block;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    /* ---- Privacy ---- */
+    .privacy-box {
+      width: 100%;
+      margin: 0;
+      text-align: center;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .privacy-box p { font-size: 14px; margin-bottom: 12px; color: #cbd5e1; }
+    .privacy-box a {
+      font-weight: 700;
+      text-decoration: none;
+      color: #38bdf8;
+    }
+    .privacy-box a:hover { text-decoration: underline; }
+
+    /* ---- Footer ---- */
+    footer {
+      padding: 40px 0 60px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    footer a { color: #38bdf8; text-decoration: none; font-weight: 600; }
+    footer .footer-links {
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    footer .footer-links a { margin: 0 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="wrap">
+      <div class="logo-row">
+        <span class="title-wrap">
+          <span class="logo-mark">
+            <!-- sole (mdi white-balance-sunny, stesso path dell'icona in-app) -->
+            <svg class="sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#fbbf24" d="M3.55,19.09L4.96,20.5L6.76,18.71L5.34,17.29M12,6C8.69,6 6,8.69 6,12C6,15.31 8.69,18 12,18C15.31,18 18,15.31 18,12C18,8.69 15.31,6 12,6M20,13H23V11H20M17.24,18.71L19.04,20.5L20.45,19.09L18.66,17.29M20.45,5L19.04,3.6L17.24,5.39L18.66,6.81M13,1H11V4H13M6.76,5.39L4.96,3.6L3.55,5L5.34,6.81M1,13H4V11H1M13,20H11V23H13Z"/>
+            </svg>
+            <!-- nuvola (mdi cloud, stesso path dell'icona in-app) -->
+            <svg class="cloud" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#ffffff" d="M19.35,10.03C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.03C2.34,8.36 0,10.9 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.03Z"/>
+            </svg>
+          </span>
+          <span class="app-title">Solo1Meteo</span>
+        </span>
+      </div>
+      <div class="app-subtitle">Una previsione, tante fonti</div>
+      <p class="sub">
+        Niente più app meteo che si contraddicono. <strong>Solo1Meteo</strong> mette insieme
+        fino a 8 fonti meteo ufficiali e ti mostra il valore medio, con accanto il numero
+        di fonti su cui si basa.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://apps.apple.com/it/app/solo1meteo-previsioni-meteo/id6776394169">
+          Scarica su App Store
+        </a>
+        <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.maxegon.meteostatapp">
+          Scarica su Google Play
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER NON-AFFILIAZIONE -->
+  <section style="padding-top: 0;">
+    <div class="wrap">
+      <div class="privacy-box" style="border-color: rgba(251,191,36,0.4);">
+        <p style="margin-bottom: 0;">
+          ⚠️ <strong>Solo1Meteo è un'app indipendente</strong> sviluppata da un singolo sviluppatore.
+          Non è affiliata con, non rappresenta e non è approvata da alcun servizio meteorologico
+          nazionale o governativo, inclusi <strong>MET Norway (Yr.no)</strong> e
+          <strong>DWD — Deutscher Wetterdienst (Bright Sky)</strong>, i cui dati open-data sono
+          tra le fonti comparate dall'app. L'app si limita a recuperare e mostrare dati pubblici
+          tramite API ufficiali, calcolandone la media matematica. Tutti i marchi citati
+          appartengono ai rispettivi proprietari.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- IL PROBLEMA -->
+  <section>
+    <div class="wrap">
+      <h2>Il problema</h2>
+      <p class="lead">
+        Apri tre app meteo e ottieni tre previsioni diverse per lo stesso giorno.
+        Quale credere? <strong>Solo1Meteo</strong> risolve il problema alla radice:
+        invece di affidarsi a un'unica fonte, calcola la <strong>media tra i provider
+        disponibili</strong> per quel giorno e quell'ora — e te lo dice sempre,
+        in modo trasparente.
+      </p>
+    </div>
+  </section>
+
+  <!-- COME FUNZIONA -->
+  <section class="alt">
+    <div class="wrap">
+      <h2>Come funziona</h2>
+      <p class="lead">
+        L'app interroga in parallelo 8 servizi meteo indipendenti e calcola, per ogni
+        valore (temperatura, pioggia, vento), la <strong>media tra le fonti che hanno
+        dati per quel giorno/ora</strong>:
+      </p>
+      <div class="providers">
+        <div class="provider"><span class="dot" style="background:#38bdf8"></span>Open-Meteo</div>
+        <div class="provider"><span class="dot" style="background:#fb923c"></span>OpenWeatherMap</div>
+        <div class="provider"><span class="dot" style="background:#a78bfa"></span>WeatherAPI.com</div>
+        <div class="provider"><span class="dot" style="background:#f59e0b"></span>MET Norway</div>
+        <div class="provider"><span class="dot" style="background:#34d399"></span>Brightsky (DWD)</div>
+        <div class="provider"><span class="dot" style="background:#f472b6"></span>Visual Crossing</div>
+        <div class="provider"><span class="dot" style="background:#60a5fa"></span>7Timer!</div>
+        <div class="provider"><span class="dot" style="background:#e879f9"></span>Tomorrow.io</div>
+      </div>
+      <div class="counter-box">
+        <span class="pill">Media su N fonti</span>
+        <p>
+          Accanto a ogni valore c'è un contatore che indica su quante fonti si basa
+          quella previsione. Se un provider non ha dati per quel giorno o quell'ora,
+          viene escluso automaticamente dal calcolo: niente medie "diluite" da dati mancanti.
+        </p>
+      </div>
+      <div class="how-grid">
+        <div class="how-card">
+          <span class="icon">📡</span>
+          <h3>Dati da 8 fonti ufficiali</h3>
+          <p>Le previsioni arrivano da modelli meteorologici diversi (ECMWF, DWD, NOAA e altri), interrogati in tempo reale.</p>
+        </div>
+        <div class="how-card">
+          <span class="icon">⚖️</span>
+          <h3>Media e scostamento</h3>
+          <p>Oltre alla media, vedi quanto le fonti si discostano tra loro: verde = accordo, giallo = lieve differenza, rosso = divergenza.</p>
+        </div>
+        <div class="how-card">
+          <span class="icon">👆</span>
+          <h3>Tocca per i dettagli</h3>
+          <p>Ogni card si apre in un dettaglio con previsioni orarie e giornaliere fino a 16 giorni, provider per provider.</p>
+        </div>
+        <div class="how-card">
+          <span class="icon">🛡️</span>
+          <h3>Leggere lo scostamento</h3>
+          <p>Quando le fonti concordano, lo scostamento è basso. Quando divergono, c'è incertezza reale nei dati di partenza: nessuna fonte è "giusta" in anticipo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOT -->
+  <section>
+    <div class="wrap">
+      <h2>L'app</h2>
+      <p class="lead">
+        Home, confronto tra provider, statistiche e radar — tutto in un'unica app, gratuita.
+      </p>
+      <div class="screens">
+        <img class="screen-shot" src="assets/screenshots/home.jpg" alt="Schermata Home di Solo1Meteo con media e contatore fonti" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/confronto.jpg" alt="Schermata Confronto tra gli 8 provider meteo" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/statistiche.jpg" alt="Schermata Statistiche climatiche mensili e annuali" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/previsioni.jpg" alt="Schermata Previsioni fino a 16 giorni" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/radar.jpg" alt="Schermata Radar Precipitazioni in tempo reale" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/info.jpg" alt="Schermata Informazioni: disclaimer di non-affiliazione e fonti ufficiali" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="alt">
+    <div class="wrap">
+      <h2>Privacy</h2>
+      <div class="privacy-box">
+        <p>
+          Solo1Meteo non raccoglie dati personali, non usa tracciamento né pubblicità.
+          La posizione viene usata solo per mostrare le previsioni, in tempo reale,
+          senza essere mai salvata.
+        </p>
+        <a href="../index.html">Leggi l'informativa privacy completa →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="https://apps.apple.com/it/app/solo1meteo-previsioni-meteo/id6776394169">App Store</a>
+        ·
+        <a href="../index.html">Privacy Policy</a>
+        ·
+        <a href="mailto:maxegonit@gmail.com">Contatti</a>
+      </div>
+      © 2026 Solo1Meteo · Maxi Egon · maxegonit@gmail.com
+    </div>
+  </footer>
+
+</body>
+</html>
