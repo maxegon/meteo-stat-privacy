@@ -10,7 +10,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_js_app",
-      "community": 2,
+      "community": 1,
       "norm_label": "app.js"
     },
     {
@@ -20,7 +20,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_tab",
-      "community": 2,
+      "community": 1,
       "norm_label": "tab"
     },
     {
@@ -30,7 +30,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "app_tab_icons",
-      "community": 2,
+      "community": 1,
       "norm_label": "tab_icons"
     },
     {
@@ -40,17 +40,17 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "app_appnavigator",
-      "community": 2,
+      "community": 1,
       "norm_label": "appnavigator()"
     },
     {
       "label": "App()",
       "file_type": "code",
       "source_file": "App.js",
-      "source_location": "L122",
+      "source_location": "L132",
       "_origin": "ast",
       "id": "app_app",
-      "community": 2,
+      "community": 1,
       "norm_label": "app()"
     },
     {
@@ -420,7 +420,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "app_expo_updates",
-      "community": 3,
+      "community": 1,
       "norm_label": "updates"
     },
     {
@@ -430,7 +430,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "app_updates_url",
-      "community": 3,
+      "community": 1,
       "norm_label": "url"
     },
     {
@@ -720,7 +720,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "package_dependencies_expo",
-      "community": 9,
+      "community": 37,
       "norm_label": "expo"
     },
     {
@@ -730,7 +730,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "expo",
-      "community": 9,
+      "community": 37,
       "norm_label": "expo"
     },
     {
@@ -760,7 +760,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "package_dependencies_expo_linear_gradient",
-      "community": 1,
+      "community": 9,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -770,7 +770,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "expo_linear_gradient",
-      "community": 1,
+      "community": 9,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -1080,7 +1080,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "package_install_exclude",
-      "community": 2,
+      "community": 8,
       "norm_label": "exclude"
     },
     {
@@ -1090,7 +1090,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "ref_sentry_react_native",
-      "community": 2,
+      "community": 1,
       "norm_label": "@sentry/react-native"
     },
     {
@@ -1100,7 +1100,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "ref_react_native_pager_view",
-      "community": 2,
+      "community": 8,
       "norm_label": "react-native-pager-view"
     },
     {
@@ -1110,7 +1110,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "ref_react_native_maps",
-      "community": 2,
+      "community": 8,
       "norm_label": "react-native-maps"
     },
     {
@@ -1120,7 +1120,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "ref_react_native_webview",
-      "community": 2,
+      "community": 8,
       "norm_label": "react-native-webview"
     },
     {
@@ -1162,6 +1162,126 @@
       "id": "babel_preset_expo",
       "community": 8,
       "norm_label": "babel-preset-expo"
+    },
+    {
+      "label": "generate_snapshot.js",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot",
+      "community": 36,
+      "norm_label": "generate_snapshot.js"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_fs",
+      "community": 36,
+      "norm_label": "fs"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_path",
+      "community": 36,
+      "norm_label": "path"
+    },
+    {
+      "label": "ROOT",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_root",
+      "community": 36,
+      "norm_label": "root"
+    },
+    {
+      "label": "OUTPUT",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_output",
+      "community": 36,
+      "norm_label": "output"
+    },
+    {
+      "label": "EXCLUDED_DIR_NAMES",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_excluded_dir_names",
+      "community": 36,
+      "norm_label": "excluded_dir_names"
+    },
+    {
+      "label": "INCLUDED_EXTENSIONS",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_included_extensions",
+      "community": 36,
+      "norm_label": "included_extensions"
+    },
+    {
+      "label": "isExplicitlyExcluded()",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_isexplicitlyexcluded",
+      "community": 36,
+      "norm_label": "isexplicitlyexcluded()"
+    },
+    {
+      "label": "shouldSkipDir()",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_shouldskipdir",
+      "community": 36,
+      "norm_label": "shouldskipdir()"
+    },
+    {
+      "label": "WHITELISTED_DOTDIRS",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_whitelisted_dotdirs",
+      "community": 36,
+      "norm_label": "whitelisted_dotdirs"
+    },
+    {
+      "label": "walk()",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_walk",
+      "community": 36,
+      "norm_label": "walk()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "scripts_generate_snapshot_main",
+      "community": 36,
+      "norm_label": "main()"
     },
     {
       "label": "AlertSettingsModal.js",
@@ -1320,7 +1440,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_errorboundary",
-      "community": 6,
+      "community": 1,
       "norm_label": "errorboundary.js"
     },
     {
@@ -1330,7 +1450,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary",
-      "community": 6,
+      "community": 1,
       "norm_label": "errorboundary"
     },
     {
@@ -1340,7 +1460,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_constructor",
-      "community": 6,
+      "community": 1,
       "norm_label": ".constructor()"
     },
     {
@@ -1350,7 +1470,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_getderivedstatefromerror",
-      "community": 6,
+      "community": 1,
       "norm_label": ".getderivedstatefromerror()"
     },
     {
@@ -1360,7 +1480,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_componentdidcatch",
-      "community": 6,
+      "community": 1,
       "norm_label": ".componentdidcatch()"
     },
     {
@@ -1370,7 +1490,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_handlereset",
-      "community": 6,
+      "community": 1,
       "norm_label": ".handlereset()"
     },
     {
@@ -1380,7 +1500,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_render",
-      "community": 6,
+      "community": 1,
       "norm_label": ".render()"
     },
     {
@@ -1390,7 +1510,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "src_components_errorboundary_styles",
-      "community": 6,
+      "community": 1,
       "norm_label": "styles"
     },
     {
@@ -1587,7 +1707,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L564",
+      "source_location": "L572",
       "_origin": "ast",
       "id": "src_components_forecastmodal_styles",
       "community": 4,
@@ -1650,7 +1770,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_providerbadge",
-      "community": 4,
+      "community": 0,
       "norm_label": "providerbadge.js"
     },
     {
@@ -1660,7 +1780,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_components_providerbadge_providerbadge",
-      "community": 4,
+      "community": 0,
       "norm_label": "providerbadge()"
     },
     {
@@ -1670,7 +1790,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_components_providerbadge_styles",
-      "community": 4,
+      "community": 0,
       "norm_label": "styles"
     },
     {
@@ -1820,7 +1940,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_updatebanner",
-      "community": 3,
+      "community": 1,
       "norm_label": "updatebanner.js"
     },
     {
@@ -1830,7 +1950,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_updatebanner_updatebanner",
-      "community": 3,
+      "community": 1,
       "norm_label": "updatebanner()"
     },
     {
@@ -1840,7 +1960,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_components_updatebanner_styles",
-      "community": 3,
+      "community": 1,
       "norm_label": "styles"
     },
     {
@@ -1880,7 +2000,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_weathercard",
-      "community": 4,
+      "community": 0,
       "norm_label": "weathercard.js"
     },
     {
@@ -1890,7 +2010,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_weathercard_weathercard",
-      "community": 4,
+      "community": 0,
       "norm_label": "weathercard()"
     },
     {
@@ -1900,7 +2020,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_components_weathercard_styles",
-      "community": 4,
+      "community": 0,
       "norm_label": "styles"
     },
     {
@@ -1910,7 +2030,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_weathericon",
-      "community": 4,
+      "community": 0,
       "norm_label": "weathericon.js"
     },
     {
@@ -1920,7 +2040,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_components_weathericon_weathericon",
-      "community": 4,
+      "community": 0,
       "norm_label": "weathericon()"
     },
     {
@@ -1990,7 +2110,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_weathercontext",
-      "community": 0,
+      "community": 35,
       "norm_label": "weathercontext.js"
     },
     {
@@ -2000,7 +2120,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_context_weathercontext_weathercontext",
-      "community": 0,
+      "community": 35,
       "norm_label": "weathercontext"
     },
     {
@@ -2010,7 +2130,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_context_weathercontext_weatherprovider",
-      "community": 0,
+      "community": 35,
       "norm_label": "weatherprovider()"
     },
     {
@@ -2217,7 +2337,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1542",
+      "source_location": "L1548",
       "_origin": "ast",
       "id": "src_screens_homescreen_makestyles",
       "community": 0,
@@ -2230,7 +2350,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_screens_infoscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "infoscreen.js"
     },
     {
@@ -2240,7 +2360,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_screens_infoscreen_infoscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "infoscreen()"
     },
     {
@@ -2250,7 +2370,7 @@
       "source_location": "L288",
       "_origin": "ast",
       "id": "src_screens_infoscreen_makestyles",
-      "community": 2,
+      "community": 1,
       "norm_label": "makestyles()"
     },
     {
@@ -2290,7 +2410,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_screens_onboardingscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "onboardingscreen.js"
     },
     {
@@ -2300,7 +2420,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_screens_onboardingscreen_onboardingscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "onboardingscreen()"
     },
     {
@@ -2310,7 +2430,7 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "src_screens_onboardingscreen_styles",
-      "community": 2,
+      "community": 1,
       "norm_label": "styles"
     },
     {
@@ -2320,7 +2440,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_screens_privacypolicyscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "privacypolicyscreen.js"
     },
     {
@@ -2330,7 +2450,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_screens_privacypolicyscreen_section",
-      "community": 2,
+      "community": 1,
       "norm_label": "section()"
     },
     {
@@ -2340,7 +2460,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_screens_privacypolicyscreen_privacypolicyscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "privacypolicyscreen()"
     },
     {
@@ -2350,7 +2470,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "src_screens_privacypolicyscreen_styles",
-      "community": 2,
+      "community": 1,
       "norm_label": "styles"
     },
     {
@@ -2430,7 +2550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_aggregator",
-      "community": 6,
+      "community": 1,
       "norm_label": "aggregator.js"
     },
     {
@@ -2440,7 +2560,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_aggregator_fetchall",
-      "community": 6,
+      "community": 1,
       "norm_label": "fetchall()"
     },
     {
@@ -2450,7 +2570,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_services_aggregator_fetchalldirect",
-      "community": 6,
+      "community": 1,
       "norm_label": "fetchalldirect()"
     },
     {
@@ -2550,7 +2670,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_externalapps",
-      "community": 2,
+      "community": 1,
       "norm_label": "externalapps.js"
     },
     {
@@ -2560,7 +2680,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_services_externalapps_external_apps",
-      "community": 2,
+      "community": 1,
       "norm_label": "external_apps"
     },
     {
@@ -2860,7 +2980,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_weatheraggregator",
-      "community": 0,
+      "community": 35,
       "norm_label": "weatheraggregator.js"
     },
     {
@@ -2870,7 +2990,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_aggavg",
-      "community": 0,
+      "community": 35,
       "norm_label": "aggavg()"
     },
     {
@@ -2880,7 +3000,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_getactiveprovidercount",
-      "community": 0,
+      "community": 35,
       "norm_label": "getactiveprovidercount()"
     },
     {
@@ -2890,7 +3010,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_aggmajority",
-      "community": 0,
+      "community": 35,
       "norm_label": "aggmajority()"
     },
     {
@@ -2900,7 +3020,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_aggmajoritypair",
-      "community": 0,
+      "community": 35,
       "norm_label": "aggmajoritypair()"
     },
     {
@@ -2910,7 +3030,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_toutcepoch",
-      "community": 0,
+      "community": 35,
       "norm_label": "toutcepoch()"
     },
     {
@@ -2920,7 +3040,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_hourkey",
-      "community": 0,
+      "community": 35,
       "norm_label": "hourkey()"
     },
     {
@@ -2940,7 +3060,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_getdatestr",
-      "community": 0,
+      "community": 35,
       "norm_label": "getdatestr()"
     },
     {
@@ -2950,7 +3070,7 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_gethour",
-      "community": 0,
+      "community": 35,
       "norm_label": "gethour()"
     },
     {
@@ -2960,7 +3080,7 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildaggregatehourly",
-      "community": 0,
+      "community": 35,
       "norm_label": "buildaggregatehourly()"
     },
     {
@@ -2970,7 +3090,7 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildaggregatedays",
-      "community": 0,
+      "community": 35,
       "norm_label": "buildaggregatedays()"
     },
     {
@@ -2980,7 +3100,7 @@
       "source_location": "L314",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildtomorrownarrative",
-      "community": 0,
+      "community": 35,
       "norm_label": "buildtomorrownarrative()"
     },
     {
@@ -2990,7 +3110,7 @@
       "source_location": "L428",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildaggregatedata",
-      "community": 0,
+      "community": 35,
       "norm_label": "buildaggregatedata()"
     },
     {
@@ -3110,7 +3230,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "src_services_weatheralerts_detectalerts",
-      "community": 0,
+      "community": 5,
       "norm_label": "detectalerts()"
     },
     {
@@ -3220,7 +3340,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_errorlogger",
-      "community": 2,
+      "community": 1,
       "norm_label": "errorlogger.js"
     },
     {
@@ -3230,7 +3350,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_utils_errorlogger_logerror",
-      "community": 6,
+      "community": 1,
       "norm_label": "logerror()"
     },
     {
@@ -3240,7 +3360,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_utils_errorlogger_readerrorlogs",
-      "community": 2,
+      "community": 1,
       "norm_label": "readerrorlogs()"
     },
     {
@@ -3250,7 +3370,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "src_utils_errorlogger_clearerrorlogs",
-      "community": 2,
+      "community": 1,
       "norm_label": "clearerrorlogs()"
     },
     {
@@ -3350,7 +3470,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_weathericoncolor",
-      "community": 4,
+      "community": 0,
       "norm_label": "weathericoncolor.js"
     },
     {
@@ -3360,7 +3480,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_utils_weathericoncolor_geticoncolor",
-      "community": 4,
+      "community": 0,
       "norm_label": "geticoncolor()"
     },
     {
@@ -3420,7 +3540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_withretry",
-      "community": 6,
+      "community": 1,
       "norm_label": "withretry.js"
     },
     {
@@ -3430,7 +3550,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_utils_withretry_withretry",
-      "community": 6,
+      "community": 1,
       "norm_label": "withretry()"
     },
     {
@@ -3440,7 +3560,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_utils_withretry_sleep",
-      "community": 6,
+      "community": 1,
       "norm_label": "sleep()"
     },
     {
@@ -3509,7 +3629,7 @@
       "relation": "indirect_call",
       "confidence": "INFERRED",
       "source_file": "App.js",
-      "source_location": "L192",
+      "source_location": "L202",
       "weight": 1.0,
       "context": "argument",
       "source": "app_js_app",
@@ -3804,7 +3924,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "App.js",
-      "source_location": "L129",
+      "source_location": "L139",
       "weight": 1.0,
       "source": "app_app",
       "target": "src_utils_errorlogger_logerror",
@@ -4947,6 +5067,182 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_excluded_dir_names",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_fs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_included_extensions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_isexplicitlyexcluded",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_output",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_shouldskipdir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_walk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot",
+      "target": "scripts_generate_snapshot_whitelisted_dotdirs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot_shouldskipdir",
+      "target": "scripts_generate_snapshot_excluded_dir_names"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot_walk",
+      "target": "scripts_generate_snapshot_included_extensions"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L78",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot_walk",
+      "target": "scripts_generate_snapshot_isexplicitlyexcluded",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot_walk",
+      "target": "scripts_generate_snapshot_shouldskipdir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot_walk",
+      "target": "scripts_generate_snapshot_whitelisted_dotdirs"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_snapshot.js",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "scripts_generate_snapshot_main",
+      "target": "scripts_generate_snapshot_walk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/components/AlertSettingsModal.js",
       "source_location": "L31",
       "weight": 1.0,
@@ -5880,7 +6176,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L564",
+      "source_location": "L572",
       "weight": 1.0,
       "source": "src_components_forecastmodal",
       "target": "src_components_forecastmodal_styles",
@@ -6056,7 +6352,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L503",
+      "source_location": "L514",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_components_forecastmodal_formathour",
@@ -6100,7 +6396,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L426",
+      "source_location": "L437",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_components_forecastmodal_formatdayfull",
@@ -6144,7 +6440,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L526",
+      "source_location": "L537",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_components_forecastmodal_seastatefromwind",
@@ -6155,7 +6451,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L451",
+      "source_location": "L462",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_components_forecastmodal_beaufortlabel",
@@ -6167,7 +6463,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L406",
+      "source_location": "L417",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_components_forecastmodal_fascia_order"
@@ -6200,7 +6496,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L499",
+      "source_location": "L510",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_services_weatheralerts_checkhourthresholds"
@@ -6211,7 +6507,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L526",
+      "source_location": "L537",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_utils_iscoastal_iscoastal"
@@ -6233,7 +6529,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L519",
+      "source_location": "L530",
       "weight": 1.0,
       "source": "src_components_forecastmodal_forecastmodal",
       "target": "src_utils_winddir_winddirarrow"
@@ -7572,7 +7868,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1542",
+      "source_location": "L1548",
       "weight": 1.0,
       "source": "src_screens_homescreen",
       "target": "src_screens_homescreen_makestyles",
@@ -8129,7 +8425,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1036",
+      "source_location": "L1042",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_seastatefromwind",
@@ -8140,7 +8436,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1436",
+      "source_location": "L1442",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_formatdate",
@@ -8273,7 +8569,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1118",
+      "source_location": "L1124",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_getdatestr"
@@ -8284,7 +8580,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1116",
+      "source_location": "L1122",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_gethour"
@@ -8295,7 +8591,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1352",
+      "source_location": "L1358",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_pct"
@@ -8306,7 +8602,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1061",
+      "source_location": "L1067",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheralerts_checkdaythresholds"
@@ -8317,7 +8613,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1220",
+      "source_location": "L1226",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheralerts_checkhourthresholds"
@@ -8372,7 +8668,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1036",
+      "source_location": "L1042",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_iscoastal_iscoastal"
@@ -8405,7 +8701,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1388",
+      "source_location": "L1394",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_weathericoncolor_geticoncolor"
@@ -8416,7 +8712,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1022",
+      "source_location": "L1028",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_winddir_winddirarrow"
@@ -10490,5 +10786,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8d13e8c179b04c98384330b719bea98b416598b6"
+  "built_at_commit": "bd4722f5b14782c045f7f5dafbd78b1f4f5207c7"
 }

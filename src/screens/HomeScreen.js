@@ -773,7 +773,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Stato: meteo caricato — searchBar scorre con il contenuto */}
       {!loading && weather && (
-        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {searchBar}
           {/* City header */}
           <View style={styles.cityHeader}>
@@ -960,14 +960,20 @@ export default function HomeScreen({ navigation }) {
                     : (weather.consensus.icon || 'weather-partly-cloudy');
                 return (<>
                   {/* Riga 1: Media N fonti | attuale · descrizione > */}
+                  {/* FIX 2026-08-22 — segnalato: quando il radar sovrascrive la
+                      descrizione (es. "☀️ Nessuna pioggia dal radar" / "🌧 Pioggia
+                      in corso", più lunghe della descrizione modello media), il
+                      gruppo di destra non aveva un vincolo di larghezza e su
+                      Android usciva dal bordo della card invece di troncare —
+                      flexShrink+minWidth:0 sul gruppo, flexShrink sul testo. */}
                   <View style={styles.consensusRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                       {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
                       <Text style={styles.consensusLabel}>Media {weather.consensus.providersCount} fonti</Text>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0, justifyContent: 'flex-end' }}>
                       <Text style={styles.consensusTempLabel}>attuale</Text>
-                      <Text style={styles.consensusDesc} numberOfLines={1}>{displayDesc}</Text>
+                      <Text style={[styles.consensusDesc, { flexShrink: 1 }]} numberOfLines={1}>{displayDesc}</Text>
                       <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
                     </View>
                   </View>
@@ -1234,10 +1240,10 @@ export default function HomeScreen({ navigation }) {
                                       {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity} numberOfLines={1}>💧{Math.round(h.humidity)}%</Text>}
                                       <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
                                     </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, alignSelf: 'stretch' }}>
                                       {h.windspeed != null && (<>
                                         <MaterialCommunityIcons name="weather-windy" size={10} color={TW} />
-                                        <Text style={styles.inlineHourWind}>
+                                        <Text style={styles.inlineHourWind} numberOfLines={1}>
                                           {Math.round(h.windspeed)}{h.winddir != null ? ` ${windDirArrow(h.winddir)}` : ''}
                                         </Text>
                                         <Text style={styles.inlineHourWind}>·</Text>
@@ -1787,11 +1793,17 @@ function makeStyles(c, dark) {
   inlineHourCardBox: { backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border, marginHorizontal: 3, marginVertical: 2 },
   inlineHourTime: { color: c.textMuted, fontSize: 11, fontWeight: '700' },
   inlineHourTemp: { color: dark ? '#ffffff' : c.accent, fontSize: 20, fontWeight: '700' },
-  inlineHourMeta: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  // FIX 2026-08-22 — segnalato: senza alignSelf:'stretch' queste righe (dirette
+  // figlie di inlineHourCard, che usa alignItems:'center') si dimensionano sul
+  // contenuto invece che sulla larghezza della card — su Android il testo può
+  // uscire dal bordo invece di troncare, anche con numberOfLines={1}.
+  // alignSelf:'stretch' + justifyContent:'center' vincola la larghezza alla
+  // card così l'ellissi funziona davvero.
+  inlineHourMeta: { flexDirection: 'row', gap: 5, alignItems: 'center', alignSelf: 'stretch', justifyContent: 'center' },
   inlineHourHumidity: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 10 },
   inlineHourRain: { color: dark ? '#a5f3fc' : '#0e7490', fontSize: 10, fontWeight: '700' },
   inlineHourWind: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 11 },
-  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center' },
+  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center', alignSelf: 'stretch' },
   // Pulsanti azione (Confronto + 7 giorni)
   // Spaziatura uniforme home = 8px: sopra (forecast) 8, sotto (ad slot) 8.
   actionBtnsSection: { marginHorizontal: 12, marginTop: 0, marginBottom: 8, gap: 8 },

@@ -370,6 +370,17 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
             </ScrollView>
           )}
 
+          {/* FIX 2026-08-22 — segnalato: prima, la timeline oraria (altezza fissa
+              164) e i grafici pioggia/temperatura (in una ScrollView separata
+              con flex:1) si contendevano lo spazio verticale rimanente come due
+              contenitori scroll indipendenti — su Android lo spazio residuo per
+              i grafici a volte si riduceva quasi a zero (visibili solo i
+              titoli). Ora nota fonti + timeline + grafici stanno in un'UNICA
+              ScrollView verticale con flex:1: qualunque sia lo spazio
+              disponibile, tutto il contenuto resta raggiungibile scorrendo
+              insieme, invece di essere schiacciato in un riquadro troppo
+              piccolo. */}
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }}>
           {/* ── Nota fonti ── */}
           <View style={styles.attribRow}>
             <MaterialCommunityIcons name="information-outline" size={10} color={T.muted} />
@@ -515,7 +526,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                             <View style={styles.hourWindRow}>
                               {h.windspeed != null && (<>
                                 <MaterialCommunityIcons name="weather-windy" size={10} color="#7dd3fc" />
-                                <Text style={[styles.hourWindSub, { color: T.wind }]}>
+                                <Text style={[styles.hourWindSub, { color: T.wind }]} numberOfLines={1}>
                                   {Math.round(h.windspeed)}{h.winddir != null ? ` ${windDirArrow(h.winddir)}` : ''}
                                 </Text>
                                 <Text style={[styles.hourWindSub, { color: T.wind }]}>·</Text>
@@ -524,7 +535,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                             </View>
                             {(() => {
                               const seaInfo = isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(h.windspeed);
-                              return seaInfo ? <Text style={[styles.hourSub, { color: T.cyan || '#67e8f9' }]} numberOfLines={1}>🌊{seaInfo}</Text> : null;
+                              return seaInfo ? <Text style={[styles.hourSub, styles.hourSea, { color: T.cyan || '#67e8f9' }]} numberOfLines={1}>🌊{seaInfo}</Text> : null;
                             })()}
                           </View>
                           );
@@ -538,13 +549,10 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
           </ScrollView>
 
           {/* ── Grafici andamento 24h (si rigenerano con i dati orari aggregati) ──
-              In ScrollView verticale (flex:1) così su schermi bassi il grafico
-              temperatura non viene mai tagliato: l'area grafici prende lo spazio
-              rimanente e scorre se non basta. width = larghezza modale
-              (screenWidth - 32 marginHorizontal) - padding interno card (8+8). */}
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 4 }} showsVerticalScrollIndicator={false}>
-            <MiniRainChart  hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
-            <MiniTrendChart hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
+              width = larghezza modale (screenWidth - 32 marginHorizontal) -
+              padding interno card (8+8). */}
+          <MiniRainChart  hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
+          <MiniTrendChart hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
           </ScrollView>
 
           {/* ── Tasto chiudi ── */}
@@ -652,10 +660,17 @@ const styles = StyleSheet.create({
   },
   hourTime:    { fontSize: 11, fontWeight: '700' },
   hourTemp:    { fontSize: 20, fontWeight: '700' },
-  hourMetaRow: { flexDirection: 'row', gap: 5, alignItems: 'center' },
+  // FIX 2026-08-22 — segnalato: righe dirette figlie di hourCard (che usa
+  // alignItems:'center') si dimensionavano sul contenuto invece che sulla
+  // larghezza della card — su Android il testo (es. stato del mare "🌊Poco
+  // increspato") usciva dal bordo invece di troncare, anche con
+  // numberOfLines={1}. alignSelf:'stretch'+justifyContent:'center' vincola
+  // la larghezza alla card così l'ellissi funziona davvero.
+  hourMetaRow: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
   hourSub:     { fontSize: 10, fontWeight: '700' },
-  hourWindRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  hourWindRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, alignSelf: 'stretch' },
   hourWindSub: { fontSize: 10 },
+  hourSea:     { textAlign: 'center', alignSelf: 'stretch' },
 
   // Barra chiudi
   bottomBar: { borderTopWidth: 1 },

@@ -1,12 +1,12 @@
 {
   ".claude/settings.json": {
-    "mtime": 1782158388.1080725,
-    "ast_hash": "dc580fca35a0e98ed20777ede5e545a1",
-    "semantic_hash": "dc580fca35a0e98ed20777ede5e545a1"
+    "mtime": 1787150966.4674337,
+    "ast_hash": "e2d00bbeb3c3b987d69186476553b51f",
+    "semantic_hash": ""
   },
   "App.js": {
-    "mtime": 1786224107.4908895,
-    "ast_hash": "378e5b1e4ec28c3e666df3decf2e7494",
+    "mtime": 1787405940.6495564,
+    "ast_hash": "86cb9d4d7d0a2fe62660585a8cecbc8b",
     "semantic_hash": ""
   },
   "app.json": {
@@ -60,9 +60,9 @@
     "semantic_hash": "3cb62fc8d122f2240bc7f0e9a5cc86db"
   },
   "src/components/ForecastModal.js": {
-    "mtime": 1782203955.450056,
-    "ast_hash": "71c7f94d91adb5a5bed261d470fc4e97",
-    "semantic_hash": "71c7f94d91adb5a5bed261d470fc4e97"
+    "mtime": 1787406042.0513718,
+    "ast_hash": "ceb3598211a10ca44408989ef89db67e",
+    "semantic_hash": ""
   },
   "src/components/OfficialAlertBanner.js": {
     "mtime": 1783068782.8918395,
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "src/screens/HomeScreen.js": {
-    "mtime": 1786222214.6473682,
-    "ast_hash": "13bee7033b647ee908a2914b19a6b640",
+    "mtime": 1787405993.5320346,
+    "ast_hash": "551ace187db47973ba04f23e13d77ea4",
     "semantic_hash": ""
   },
   "src/screens/InfoScreen.js": {
@@ -292,6 +292,51 @@
   "src/utils/weatherEmoji.js": {
     "mtime": 1785663813.7151935,
     "ast_hash": "3131e852b7c7b33a393b1cf92c2702ac",
+    "semantic_hash": ""
+  },
+  "scripts/generate_snapshot.js": {
+    "mtime": 1787152088.320085,
+    "ast_hash": "91108a484582689cb2b11d090b30c950",
+    "semantic_hash": ""
+  },
+  "landing/index.html": {
+    "mtime": 1787151259.5985112,
+    "ast_hash": "847ae91a4c7421834e05ec6a9b094431",
+    "semantic_hash": ""
+  },
+  "landing/assets/icon.png": {
+    "mtime": 1787151259.5886447,
+    "ast_hash": "fba2536ce047f2a935ecfbb9d3010ff4",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/confronto.jpg": {
+    "mtime": 1787151259.5913677,
+    "ast_hash": "828b16ad1ced36e11a11c24c05296505",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/home.jpg": {
+    "mtime": 1787151259.5942025,
+    "ast_hash": "19e6456a13c250bb6b6eba5f5097734f",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/info.jpg": {
+    "mtime": 1787151259.5953226,
+    "ast_hash": "59d52d5b6e630d6ffa2ad722a29fe190",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/previsioni.jpg": {
+    "mtime": 1787151259.5962732,
+    "ast_hash": "ae0ac5eae499b771a773a8ddfe6bc235",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/radar.jpg": {
+    "mtime": 1787151259.5970984,
+    "ast_hash": "ff996b9594405510f89095dc06343d5e",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/statistiche.jpg": {
+    "mtime": 1787151259.5981638,
+    "ast_hash": "962a42511439a14ba8e0b0c45894ffc6",
     "semantic_hash": ""
   }
 }

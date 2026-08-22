@@ -70,7 +70,17 @@ function AppNavigator() {
   const androidFallbackBottomInset = Platform.OS === 'android'
     ? (initialWindowMetrics?.insets.bottom ?? 0)
     : 0;
-  const bottomInset = Math.max(insets.bottom, androidFallbackBottomInset);
+  // FIX 2026-08-22 — segnalato: su alcuni dispositivi Android (3 tasti,
+  // edge-to-edge) sia l'hook che initialWindowMetrics possono restituire 0
+  // (bug upstream ancora aperto, vedi link sopra) e la tab bar finisce
+  // incollata alla barra di navigazione di sistema ("tagliata" a schermo).
+  // Pavimento minimo di sicurezza solo su Android: non elimina il bug a
+  // monte, ma garantisce sempre un minimo di respiro visivo anche quando
+  // entrambe le fonti di inset falliscono.
+  const ANDROID_MIN_BOTTOM_INSET = 16;
+  const bottomInset = Platform.OS === 'android'
+    ? Math.max(insets.bottom, androidFallbackBottomInset, ANDROID_MIN_BOTTOM_INSET)
+    : insets.bottom;
   const TAB_BAR_CONTENT_HEIGHT = 54;
   return (
     <NavigationContainer>
