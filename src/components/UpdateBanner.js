@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Updates from 'expo-updates';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { logError } from '../utils/errorLogger';
 
 /**
  * Banner "aggiornamento disponibile" — expo-updates scarica già in automatico
@@ -17,24 +18,34 @@ export default function UpdateBanner() {
   const insets = useSafeAreaInsets();
   const [dismissed, setDismissed] = useState(false);
   const [restarting, setRestarting] = useState(false);
+  const [reloadFailed, setReloadFailed] = useState(false);
 
   if (!Updates.isEnabled || !isUpdatePending || dismissed) return null;
 
+  // FIX 2026-08-22 — segnalato: l'errore di reloadAsync() veniva ignorato in
+  // silenzio (catch vuoto) — l'utente premeva "Aggiorna ora", il pulsante
+  // tornava allo stato normale senza nessun avviso, e pensava che l'update
+  // fosse stato applicato mentre l'app continuava a girare sul bundle
+  // vecchio. Ora l'errore va sempre in log (Sentry + tab Info) e il banner
+  // mostra "Riprova" invece di sparire silenziosamente.
   const handleReload = async () => {
     setRestarting(true);
+    setReloadFailed(false);
     try {
       await Updates.reloadAsync();
-    } catch (_) {
+    } catch (err) {
+      logError('UpdateBanner:reload', err);
       setRestarting(false);
+      setReloadFailed(true);
     }
   };
 
   return (
     <View style={[styles.banner, { top: insets.top + 8 }]}>
       <MaterialCommunityIcons name="cloud-download-outline" size={18} color="#0f172a" />
-      <Text style={styles.text} numberOfLines={2}>Nuova versione disponibile</Text>
+      <Text style={styles.text} numberOfLines={2}>{reloadFailed ? 'Riavvio non riuscito, riprova' : 'Nuova versione disponibile'}</Text>
       <TouchableOpacity onPress={handleReload} style={styles.btn} disabled={restarting} accessibilityRole="button" accessibilityLabel="Aggiorna ora">
-        <Text style={styles.btnText}>{restarting ? 'Aggiorno…' : 'Aggiorna ora'}</Text>
+        <Text style={styles.btnText}>{restarting ? 'Aggiorno…' : reloadFailed ? 'Riprova' : 'Aggiorna ora'}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => setDismissed(true)} accessibilityLabel="Ignora" accessibilityRole="button" style={styles.closeBtn}>
         <MaterialCommunityIcons name="close" size={16} color="#0f172a" />
