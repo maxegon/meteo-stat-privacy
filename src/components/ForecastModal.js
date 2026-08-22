@@ -674,11 +674,15 @@ const styles = StyleSheet.create({
 
   // Barra chiudi
   bottomBar: { borderTopWidth: 1 },
+  // FIX 2026-08-22 — segnalato (iOS e Android): la barra "Chiudi" era più alta
+  // del necessario e rubava spazio verticale ai grafici sopra, costringendo a
+  // scorrere per vederli anche quando non ci sarebbe stato bisogno.
+  // paddingVertical ridotto da 14 a 8 (resta un target tappabile comodo).
   closeBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 14,
+    gap: 8, paddingVertical: 8,
   },
-  closeBtnText: { fontSize: 16, fontWeight: '600' },
+  closeBtnText: { fontSize: 15, fontWeight: '600' },
 
   // Grafico andamento 24h
   chartCard: {
