@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, TextInput, Alert, Linking, Modal, useWindowDimensions, AppState,
+  ActivityIndicator, TextInput, Alert, Linking, Modal, useWindowDimensions, AppState, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -1811,10 +1811,15 @@ function makeStyles(c, dark) {
   inlineHourTime: { color: c.textMuted, fontSize: 11, fontWeight: '700' },
   inlineHourTemp: { color: dark ? '#ffffff' : c.accent, fontSize: 20, fontWeight: '700' },
   inlineHourMeta: { flexDirection: 'row', gap: 5, alignItems: 'center', width: 170, justifyContent: 'center' },
-  inlineHourHumidity: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 10 },
-  inlineHourRain: { color: dark ? '#a5f3fc' : '#0e7490', fontSize: 10, fontWeight: '700' },
-  inlineHourWind: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 11 },
-  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center', width: 170 },
+  // FIX 2026-08-22 (7) — segnalato: con le card allargate (164->190, vedi
+  // fix (5) sopra) su iOS resta molto spazio vuoto perché lì il font non ha
+  // mai avuto bisogno del margine estra pensato per Samsung — ingrandito
+  // solo su iOS (Platform.OS==='ios'), Android resta invariato per non
+  // perdere il margine di sicurezza appena guadagnato.
+  inlineHourHumidity: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: Platform.OS === 'ios' ? 12 : 10 },
+  inlineHourRain: { color: dark ? '#a5f3fc' : '#0e7490', fontSize: Platform.OS === 'ios' ? 12 : 10, fontWeight: '700' },
+  inlineHourWind: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: Platform.OS === 'ios' ? 13 : 11 },
+  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: Platform.OS === 'ios' ? 12 : 10, textAlign: 'center', width: 170 },
   // Pulsanti azione (Confronto + 7 giorni)
   // Spaziatura uniforme home = 8px: sopra (forecast) 8, sotto (ad slot) 8.
   actionBtnsSection: { marginHorizontal: 12, marginTop: 0, marginBottom: 8, gap: 8 },

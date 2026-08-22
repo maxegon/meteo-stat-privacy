@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, useWindowDimensions,
+  TouchableOpacity, useWindowDimensions, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -668,9 +668,14 @@ const styles = StyleSheet.create({
   hourTime:    { fontSize: 11, fontWeight: '700' },
   hourTemp:    { fontSize: 20, fontWeight: '700' },
   hourMetaRow: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center', width: 170 },
-  hourSub:     { fontSize: 10, fontWeight: '700' },
+  // FIX 2026-08-22 (7) — segnalato: con le card allargate (164->190, vedi
+  // fix (5) sopra) su iOS resta molto spazio vuoto perché lì il font non ha
+  // mai avuto bisogno del margine extra pensato per Samsung — ingrandito
+  // solo su iOS (Platform.OS==='ios'), Android resta invariato per non
+  // perdere il margine di sicurezza appena guadagnato.
+  hourSub:     { fontSize: Platform.OS === 'ios' ? 12 : 10, fontWeight: '700' },
   hourWindRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, width: 170 },
-  hourWindSub: { fontSize: 10 },
+  hourWindSub: { fontSize: Platform.OS === 'ios' ? 12 : 10 },
   hourSea:     { textAlign: 'center', width: 170 },
 
   // Grafico andamento 24h
