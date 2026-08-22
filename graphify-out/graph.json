@@ -720,7 +720,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "package_dependencies_expo",
-      "community": 37,
+      "community": 9,
       "norm_label": "expo"
     },
     {
@@ -730,7 +730,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "expo",
-      "community": 37,
+      "community": 9,
       "norm_label": "expo"
     },
     {
@@ -780,7 +780,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "package_dependencies_expo_location",
-      "community": 9,
+      "community": 37,
       "norm_label": "expo-location"
     },
     {
@@ -790,7 +790,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "expo_location",
-      "community": 9,
+      "community": 37,
       "norm_label": "expo-location"
     },
     {
@@ -1707,7 +1707,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L572",
+      "source_location": "L570",
       "_origin": "ast",
       "id": "src_components_forecastmodal_styles",
       "community": 4,
@@ -6176,7 +6176,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ForecastModal.js",
-      "source_location": "L572",
+      "source_location": "L570",
       "weight": 1.0,
       "source": "src_components_forecastmodal",
       "target": "src_components_forecastmodal_styles",
@@ -10819,5 +10819,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "23c2b3b242e357b3236e74f133a322830ead7a61"
+  "built_at_commit": "e2942f0d18940010b9a43f0ffb666546d1d6d009"
 }

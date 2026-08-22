@@ -291,7 +291,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
   return (
     <View style={styles.overlay}>
       <AnimatedGradientBg>
-        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
 
           {/* ── HEADER ── */}
           <View style={[styles.topBar, { borderBottomColor: T.divider }]}>
@@ -380,7 +380,7 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
               disponibile, tutto il contenuto resta raggiungibile scorrendo
               insieme, invece di essere schiacciato in un riquadro troppo
               piccolo. */}
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }}>
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
           {/* ── Nota fonti ── */}
           <View style={styles.attribRow}>
             <MaterialCommunityIcons name="information-outline" size={10} color={T.muted} />
@@ -555,13 +555,11 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
           <MiniTrendChart hourly={hourly} dark={dark} T={T} width={screenWidth - 48} />
           </ScrollView>
 
-          {/* ── Tasto chiudi ── */}
-          <SafeAreaView edges={['bottom']} style={[styles.bottomBar, { backgroundColor: T.closeBg, borderTopColor: T.closeBorder }]}>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
-              <MaterialCommunityIcons name="chevron-down" size={20} color={T.main} />
-              <Text style={[styles.closeBtnText, { color: T.main }]}>Chiudi</Text>
-            </TouchableOpacity>
-          </SafeAreaView>
+          {/* FIX 2026-08-22 — rimossa la barra "Chiudi" fissa in fondo: era
+              ridondante con la freccia ← in alto (stesso onClose) e rubava
+              spazio verticale ai grafici sopra su ogni schermo, non solo su
+              Android. Il bottom-safe-area ora è gestito direttamente dalla
+              SafeAreaView esterna (edges include 'bottom'). */}
 
         </SafeAreaView>
       </AnimatedGradientBg>
@@ -674,18 +672,6 @@ const styles = StyleSheet.create({
   hourWindRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, width: 170 },
   hourWindSub: { fontSize: 10 },
   hourSea:     { textAlign: 'center', width: 170 },
-
-  // Barra chiudi
-  bottomBar: { borderTopWidth: 1 },
-  // FIX 2026-08-22 — segnalato (iOS e Android): la barra "Chiudi" era più alta
-  // del necessario e rubava spazio verticale ai grafici sopra, costringendo a
-  // scorrere per vederli anche quando non ci sarebbe stato bisogno.
-  // paddingVertical ridotto da 14 a 6 (resta un target tappabile comodo).
-  closeBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 6,
-  },
-  closeBtnText: { fontSize: 15, fontWeight: '600' },
 
   // Grafico andamento 24h
   chartCard: {
