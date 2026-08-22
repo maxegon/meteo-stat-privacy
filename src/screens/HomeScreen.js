@@ -1240,7 +1240,7 @@ export default function HomeScreen({ navigation }) {
                                       {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity} numberOfLines={1}>💧{Math.round(h.humidity)}%</Text>}
                                       <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
                                     </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, alignSelf: 'stretch' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, width: 144 }}>
                                       {h.windspeed != null && (<>
                                         <MaterialCommunityIcons name="weather-windy" size={10} color={TW} />
                                         <Text style={styles.inlineHourWind} numberOfLines={1}>
@@ -1628,6 +1628,11 @@ function makeStyles(c, dark) {
     marginHorizontal: 12, marginBottom: 8, marginTop: 0,
     padding: 12, borderRadius: 14,
     backgroundColor: c.bgCard, borderWidth: 1, borderColor: c.accent + '30',
+    // FIX 2026-08-22 (2) — rete di sicurezza: impedisce al testo radar
+    // ("☀️ Nessuna pioggia dal radar" ecc.) di sconfinare visivamente fuori
+    // dalla card sui device dove il troncamento con flexShrink non basta
+    // (vedi stesso problema riscontrato nelle card orarie su Samsung One UI).
+    overflow: 'hidden',
   },
   consensusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   consensusLabel: { color: c.accent, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -1786,24 +1791,31 @@ function makeStyles(c, dark) {
   // dimensionata sul contenuto più lungo (riga umidità+pioggia "💧100% 🌧100% · 25.4mm"
   // e stati del mare tipo "🌊Poco increspato") così nessun testo va a capo e le card
   // hanno tutte la stessa larghezza.
-  inlineHourCard: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, gap: 4, width: 164, minWidth: 164, maxWidth: 164 },
+  // FIX 2026-08-22 (2) — segnalato di nuovo su Samsung Galaxy A55/One UI:
+  // alignSelf:'stretch' sulle righe di testo non bastava a far troncare il
+  // testo su questo device — overflow:'hidden' qui è una rete di sicurezza
+  // che impedisce comunque al testo di sconfinare visivamente nella card
+  // accanto, anche se il troncamento a monte dovesse fallire di nuovo.
+  inlineHourCard: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, gap: 4, width: 164, minWidth: 164, maxWidth: 164, overflow: 'hidden' },
   // Box "card" per i dati orari (non per le intestazioni fascia, che hanno
   // già il loro sfondo): riduce lo spazio vuoto attorno ai valori che
   // altrimenti "galleggiavano" senza alcun contenitore visivo.
   inlineHourCardBox: { backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border, marginHorizontal: 3, marginVertical: 2 },
   inlineHourTime: { color: c.textMuted, fontSize: 11, fontWeight: '700' },
   inlineHourTemp: { color: dark ? '#ffffff' : c.accent, fontSize: 20, fontWeight: '700' },
-  // FIX 2026-08-22 — segnalato: senza alignSelf:'stretch' queste righe (dirette
-  // figlie di inlineHourCard, che usa alignItems:'center') si dimensionano sul
-  // contenuto invece che sulla larghezza della card — su Android il testo può
-  // uscire dal bordo invece di troncare, anche con numberOfLines={1}.
-  // alignSelf:'stretch' + justifyContent:'center' vincola la larghezza alla
-  // card così l'ellissi funziona davvero.
-  inlineHourMeta: { flexDirection: 'row', gap: 5, alignItems: 'center', alignSelf: 'stretch', justifyContent: 'center' },
+  // FIX 2026-08-22 — segnalato: senza un vincolo di larghezza queste righe
+  // (dirette figlie di inlineHourCard, che usa alignItems:'center') si
+  // dimensionano sul contenuto invece che sulla larghezza della card — su
+  // Android il testo può uscire dal bordo invece di troncare, anche con
+  // numberOfLines={1}. FIX (2) 2026-08-22: alignSelf:'stretch' non bastava su
+  // Samsung One UI — larghezza numerica esplicita (164 card - 10*2 padding =
+  // 144) invece di stretch, così il vincolo non dipende dalla risoluzione
+  // flex del device.
+  inlineHourMeta: { flexDirection: 'row', gap: 5, alignItems: 'center', width: 144, justifyContent: 'center' },
   inlineHourHumidity: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 10 },
   inlineHourRain: { color: dark ? '#a5f3fc' : '#0e7490', fontSize: 10, fontWeight: '700' },
   inlineHourWind: { color: dark ? '#7dd3fc' : '#0369a1', fontSize: 11 },
-  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center', alignSelf: 'stretch' },
+  inlineHourSea: { color: dark ? '#67e8f9' : '#0891b2', fontSize: 10, textAlign: 'center', width: 144 },
   // Pulsanti azione (Confronto + 7 giorni)
   // Spaziatura uniforme home = 8px: sopra (forecast) 8, sotto (ad slot) 8.
   actionBtnsSection: { marginHorizontal: 12, marginTop: 0, marginBottom: 8, gap: 8 },

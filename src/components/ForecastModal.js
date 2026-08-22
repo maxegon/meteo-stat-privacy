@@ -652,11 +652,16 @@ const styles = StyleSheet.create({
   // contenuto più lungo (stato del mare es. "🌊Poco increspato" e riga
   // umidità+pioggia), così nessun testo va a capo e le card hanno tutte la
   // stessa larghezza. Allineata alla card oraria della Home (164px).
+  // FIX 2026-08-22 (2) — segnalato di nuovo su Samsung Galaxy A55/One UI:
+  // overflow:'hidden' come rete di sicurezza, impedisce al testo di
+  // sconfinare visivamente nella card accanto anche se il troncamento a
+  // monte dovesse fallire di nuovo su questo device.
   hourCard: {
     paddingVertical: 10, paddingHorizontal: 10,
     alignItems: 'center', justifyContent: 'center', gap: 3,
     width: 164, minWidth: 164, maxWidth: 164, height: 160,
     borderRadius: 12, marginHorizontal: 3, marginVertical: 2,
+    overflow: 'hidden',
   },
   hourTime:    { fontSize: 11, fontWeight: '700' },
   hourTemp:    { fontSize: 20, fontWeight: '700' },
@@ -664,13 +669,15 @@ const styles = StyleSheet.create({
   // alignItems:'center') si dimensionavano sul contenuto invece che sulla
   // larghezza della card — su Android il testo (es. stato del mare "🌊Poco
   // increspato") usciva dal bordo invece di troncare, anche con
-  // numberOfLines={1}. alignSelf:'stretch'+justifyContent:'center' vincola
-  // la larghezza alla card così l'ellissi funziona davvero.
-  hourMetaRow: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
+  // numberOfLines={1}. FIX (2) 2026-08-22: alignSelf:'stretch' non bastava su
+  // Samsung One UI — larghezza numerica esplicita (164 card - 10*2 padding =
+  // 144) invece di stretch, così il vincolo non dipende dalla risoluzione
+  // flex del device.
+  hourMetaRow: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center', width: 144 },
   hourSub:     { fontSize: 10, fontWeight: '700' },
-  hourWindRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, alignSelf: 'stretch' },
+  hourWindRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, width: 144 },
   hourWindSub: { fontSize: 10 },
-  hourSea:     { textAlign: 'center', alignSelf: 'stretch' },
+  hourSea:     { textAlign: 'center', width: 144 },
 
   // Barra chiudi
   bottomBar: { borderTopWidth: 1 },
