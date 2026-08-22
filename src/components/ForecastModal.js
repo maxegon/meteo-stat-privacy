@@ -677,10 +677,10 @@ const styles = StyleSheet.create({
   // FIX 2026-08-22 — segnalato (iOS e Android): la barra "Chiudi" era più alta
   // del necessario e rubava spazio verticale ai grafici sopra, costringendo a
   // scorrere per vederli anche quando non ci sarebbe stato bisogno.
-  // paddingVertical ridotto da 14 a 8 (resta un target tappabile comodo).
+  // paddingVertical ridotto da 14 a 6 (resta un target tappabile comodo).
   closeBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 8,
+    gap: 6, paddingVertical: 6,
   },
   closeBtnText: { fontSize: 15, fontWeight: '600' },
 
