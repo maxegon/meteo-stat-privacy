@@ -40,7 +40,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "app_appnavigator",
-      "community": 1,
+      "community": 2,
       "norm_label": "appnavigator()"
     },
     {
@@ -420,7 +420,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "app_expo_updates",
-      "community": 1,
+      "community": 3,
       "norm_label": "updates"
     },
     {
@@ -430,7 +430,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "app_updates_url",
-      "community": 1,
+      "community": 3,
       "norm_label": "url"
     },
     {
@@ -560,7 +560,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "package_dependencies_expo_vector_icons",
-      "community": 17,
+      "community": 9,
       "norm_label": "@expo/vector-icons"
     },
     {
@@ -570,7 +570,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "expo_vector_icons",
-      "community": 17,
+      "community": 9,
       "norm_label": "@expo/vector-icons"
     },
     {
@@ -760,7 +760,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "package_dependencies_expo_linear_gradient",
-      "community": 9,
+      "community": 17,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -770,7 +770,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "expo_linear_gradient",
-      "community": 9,
+      "community": 17,
       "norm_label": "expo-linear-gradient"
     },
     {
@@ -1947,7 +1947,7 @@
       "label": "UpdateBanner()",
       "file_type": "code",
       "source_file": "src/components/UpdateBanner.js",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "src_components_updatebanner_updatebanner",
       "community": 1,
@@ -1957,7 +1957,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "src/components/UpdateBanner.js",
-      "source_location": "L46",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "src_components_updatebanner_styles",
       "community": 1,
@@ -2550,7 +2550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_aggregator",
-      "community": 1,
+      "community": 6,
       "norm_label": "aggregator.js"
     },
     {
@@ -2560,7 +2560,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_aggregator_fetchall",
-      "community": 1,
+      "community": 6,
       "norm_label": "fetchall()"
     },
     {
@@ -2570,7 +2570,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_services_aggregator_fetchalldirect",
-      "community": 1,
+      "community": 6,
       "norm_label": "fetchalldirect()"
     },
     {
@@ -3540,7 +3540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_withretry",
-      "community": 1,
+      "community": 6,
       "norm_label": "withretry.js"
     },
     {
@@ -3550,7 +3550,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_utils_withretry_withretry",
-      "community": 1,
+      "community": 6,
       "norm_label": "withretry()"
     },
     {
@@ -3560,7 +3560,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_utils_withretry_sleep",
-      "community": 1,
+      "community": 6,
       "norm_label": "sleep()"
     },
     {
@@ -4307,7 +4307,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UpdateBanner.js",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "src_components_updatebanner_updatebanner",
       "target": "app_expo_updates"
@@ -7071,7 +7071,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UpdateBanner.js",
-      "source_location": "L46",
+      "source_location": "L57",
       "weight": 1.0,
       "source": "src_components_updatebanner",
       "target": "src_components_updatebanner_styles",
@@ -7081,11 +7081,44 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UpdateBanner.js",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0,
       "source": "src_components_updatebanner",
       "target": "src_components_updatebanner_updatebanner",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/UpdateBanner.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_components_updatebanner",
+      "target": "src_utils_errorlogger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/UpdateBanner.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_components_updatebanner",
+      "target": "src_utils_errorlogger_logerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/UpdateBanner.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "src_components_updatebanner_updatebanner",
+      "target": "src_utils_errorlogger_logerror"
     },
     {
       "relation": "contains",
@@ -10786,5 +10819,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "bd4722f5b14782c045f7f5dafbd78b1f4f5207c7"
+  "built_at_commit": "dfb342100a202643b7d677dc13d0ca532cbbd4a3"
 }
