@@ -959,21 +959,25 @@ export default function HomeScreen({ navigation }) {
                     ? 'weather-partly-cloudy'
                     : (weather.consensus.icon || 'weather-partly-cloudy');
                 return (<>
-                  {/* Riga 1: Media N fonti | attuale · descrizione > */}
-                  {/* FIX 2026-08-22 — segnalato: quando il radar sovrascrive la
-                      descrizione (es. "☀️ Nessuna pioggia dal radar" / "🌧 Pioggia
-                      in corso", più lunghe della descrizione modello media), il
-                      gruppo di destra non aveva un vincolo di larghezza e su
-                      Android usciva dal bordo della card invece di troncare —
-                      flexShrink+minWidth:0 sul gruppo, flexShrink sul testo. */}
+                  {/* Riga 1: Media N fonti — sola, contatore fonti a sinistra */}
+                  <View style={[styles.consensusRow, { marginBottom: 2 }]}>
+                    {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
+                    <Text style={styles.consensusLabel}>Media {weather.consensus.providersCount} fonti</Text>
+                  </View>
+                  {/* Riga 2: attuale · descrizione > — SULLA PROPRIA RIGA a piena
+                      larghezza (non più condivisa con "Media N fonti"). FIX
+                      2026-08-22 (3) — segnalato di nuovo su Samsung One UI:
+                      quando il radar sovrascrive la descrizione con un testo
+                      più lungo ("☀️ Nessuna pioggia dal radar" ecc.),
+                      condividere la riga con "Media N fonti" lasciava troppo
+                      poco spazio e il testo veniva troncato in modo illeggibile
+                      o usciva dal bordo a seconda del device/scala testo.
+                      Ora ha sempre tutta la larghezza della card ed è ammesso
+                      andare a capo su 2 righe invece di troncare. */}
                   <View style={styles.consensusRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                      {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
-                      <Text style={styles.consensusLabel}>Media {weather.consensus.providersCount} fonti</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
                       <Text style={styles.consensusTempLabel}>attuale</Text>
-                      <Text style={[styles.consensusDesc, { flexShrink: 1 }]} numberOfLines={1}>{displayDesc}</Text>
+                      <Text style={[styles.consensusDesc, { flex: 1 }]} numberOfLines={2}>{displayDesc}</Text>
                       <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
                     </View>
                   </View>
@@ -1219,7 +1223,7 @@ export default function HomeScreen({ navigation }) {
                                   {(() => {
                                     const probs = slots.map(s => s.precipProb).filter(v => v != null && !isNaN(v));
                                     if (!probs.length) return null;
-                                    return <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{Math.round(Math.max(...probs))}%</Text>;
+                                    return <Text style={styles.inlineHourRain} numberOfLines={1} allowFontScaling={false}>🌧{Math.round(Math.max(...probs))}%</Text>;
                                   })()}
                                 </View>
                                 {slots.map((h, j) => {
@@ -1228,30 +1232,30 @@ export default function HomeScreen({ navigation }) {
                                   const seaLabel = isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(h.windspeed) ? seaStateFromWind(h.windspeed).label : null;
                                   return (
                                   <View key={j} style={[styles.inlineHourCard, styles.inlineHourCardBox, hourExceeded.length > 0 && { borderColor: topColor + '88', borderWidth: 1.5 }]}>
-                                    <Text style={styles.inlineHourTime}>{h.time.slice(11, 16)}</Text>
+                                    <Text style={styles.inlineHourTime} allowFontScaling={false}>{h.time.slice(11, 16)}</Text>
                                     <WeatherIcon name={h.icon || 'weather-partly-cloudy'} size={28} dark={dark} />
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                                      <Text style={styles.inlineHourTemp}>{Math.round(h.temp)}°</Text>
+                                      <Text style={styles.inlineHourTemp} allowFontScaling={false}>{Math.round(h.temp)}°</Text>
                                       {hourExceeded.map(e => (
                                         <MaterialCommunityIcons key={e.id} name={e.icon} size={13} color={e.color} />
                                       ))}
                                     </View>
                                     <View style={styles.inlineHourMeta}>
-                                      {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity} numberOfLines={1}>💧{Math.round(h.humidity)}%</Text>}
-                                      <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
+                                      {h.humidity != null && !isNaN(h.humidity) && <Text style={styles.inlineHourHumidity} numberOfLines={1} allowFontScaling={false}>💧{Math.round(h.humidity)}%</Text>}
+                                      <Text style={styles.inlineHourRain} numberOfLines={1} allowFontScaling={false}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, width: 144 }}>
                                       {h.windspeed != null && (<>
                                         <MaterialCommunityIcons name="weather-windy" size={10} color={TW} />
-                                        <Text style={styles.inlineHourWind} numberOfLines={1}>
+                                        <Text style={styles.inlineHourWind} numberOfLines={1} allowFontScaling={false}>
                                           {Math.round(h.windspeed)}{h.winddir != null ? ` ${windDirArrow(h.winddir)}` : ''}
                                         </Text>
-                                        <Text style={styles.inlineHourWind}>·</Text>
+                                        <Text style={styles.inlineHourWind} allowFontScaling={false}>·</Text>
                                       </>)}
-                                      <Text style={styles.inlineHourRain} numberOfLines={1}>🌧{(h.precipMm ?? 0).toFixed(1)}mm</Text>
+                                      <Text style={styles.inlineHourRain} numberOfLines={1} allowFontScaling={false}>🌧{(h.precipMm ?? 0).toFixed(1)}mm</Text>
                                     </View>
                                     {seaLabel && (
-                                      <Text style={styles.inlineHourSea} numberOfLines={1}>🌊{seaLabel}</Text>
+                                      <Text style={styles.inlineHourSea} numberOfLines={1} allowFontScaling={false}>🌊{seaLabel}</Text>
                                     )}
                                   </View>
                                   );

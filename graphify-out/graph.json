@@ -560,7 +560,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "package_dependencies_expo_vector_icons",
-      "community": 9,
+      "community": 14,
       "norm_label": "@expo/vector-icons"
     },
     {
@@ -570,7 +570,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "expo_vector_icons",
-      "community": 9,
+      "community": 14,
       "norm_label": "@expo/vector-icons"
     },
     {
@@ -780,7 +780,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "package_dependencies_expo_location",
-      "community": 14,
+      "community": 9,
       "norm_label": "expo-location"
     },
     {
@@ -790,7 +790,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "expo_location",
-      "community": 14,
+      "community": 9,
       "norm_label": "expo-location"
     },
     {
@@ -2337,7 +2337,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1548",
+      "source_location": "L1552",
       "_origin": "ast",
       "id": "src_screens_homescreen_makestyles",
       "community": 0,
@@ -7901,7 +7901,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1548",
+      "source_location": "L1552",
       "weight": 1.0,
       "source": "src_screens_homescreen",
       "target": "src_screens_homescreen_makestyles",
@@ -8458,7 +8458,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1042",
+      "source_location": "L1046",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_seastatefromwind",
@@ -8469,7 +8469,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1442",
+      "source_location": "L1446",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_screens_homescreen_formatdate",
@@ -8602,7 +8602,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1124",
+      "source_location": "L1128",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_getdatestr"
@@ -8613,7 +8613,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1122",
+      "source_location": "L1126",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_gethour"
@@ -8624,7 +8624,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1358",
+      "source_location": "L1362",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheraggregator_pct"
@@ -8635,7 +8635,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1067",
+      "source_location": "L1071",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheralerts_checkdaythresholds"
@@ -8646,7 +8646,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1226",
+      "source_location": "L1230",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_services_weatheralerts_checkhourthresholds"
@@ -8701,7 +8701,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1042",
+      "source_location": "L1046",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_iscoastal_iscoastal"
@@ -8734,7 +8734,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1394",
+      "source_location": "L1398",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_weathericoncolor_geticoncolor"
@@ -8745,7 +8745,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/HomeScreen.js",
-      "source_location": "L1028",
+      "source_location": "L1032",
       "weight": 1.0,
       "source": "src_screens_homescreen_homescreen",
       "target": "src_utils_winddir_winddirarrow"
@@ -10819,5 +10819,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "dfb342100a202643b7d677dc13d0ca532cbbd4a3"
+  "built_at_commit": "23c2b3b242e357b3236e74f133a322830ead7a61"
 }

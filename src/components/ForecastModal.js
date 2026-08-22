@@ -511,31 +511,31 @@ export default function ForecastModal({ visible, onClose, data, title, color, in
                           const hTopColor = hExceeded.length ? hExceeded[0].color : null;
                           return (
                           <View key={j} style={[styles.hourCard, { backgroundColor: T.dividerCard, borderWidth: 1, borderColor: hTopColor ? hTopColor + '88' : T.divider }, hTopColor && { borderWidth: 1.5 }]}>
-                            <Text style={[styles.hourTime, { color: T.muted }]}>{formatHour(h.time)}</Text>
+                            <Text style={[styles.hourTime, { color: T.muted }]} allowFontScaling={false}>{formatHour(h.time)}</Text>
                             <WeatherIcon name={h.icon || 'weather-partly-cloudy'} size={32} dark={dark} />
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                              <Text style={[styles.hourTemp, { color: T.tempColor }]}>{Math.round(h.temp)}°</Text>
+                              <Text style={[styles.hourTemp, { color: T.tempColor }]} allowFontScaling={false}>{Math.round(h.temp)}°</Text>
                               {hExceeded.map(e => (
                                 <MaterialCommunityIcons key={e.id} name={e.icon} size={13} color={e.color} />
                               ))}
                             </View>
                             <View style={styles.hourMetaRow}>
-                              {h.humidity != null && !isNaN(h.humidity) && <Text style={[styles.hourSub, { color: T.wind }]} numberOfLines={1}>💧{Math.round(h.humidity)}%</Text>}
-                              <Text style={[styles.hourSub, { color: T.rainColor }]} numberOfLines={1}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
+                              {h.humidity != null && !isNaN(h.humidity) && <Text style={[styles.hourSub, { color: T.wind }]} numberOfLines={1} allowFontScaling={false}>💧{Math.round(h.humidity)}%</Text>}
+                              <Text style={[styles.hourSub, { color: T.rainColor }]} numberOfLines={1} allowFontScaling={false}>🌧{h.precipProb != null ? Math.round(h.precipProb) : 0}%</Text>
                             </View>
                             <View style={styles.hourWindRow}>
                               {h.windspeed != null && (<>
                                 <MaterialCommunityIcons name="weather-windy" size={10} color="#7dd3fc" />
-                                <Text style={[styles.hourWindSub, { color: T.wind }]} numberOfLines={1}>
+                                <Text style={[styles.hourWindSub, { color: T.wind }]} numberOfLines={1} allowFontScaling={false}>
                                   {Math.round(h.windspeed)}{h.winddir != null ? ` ${windDirArrow(h.winddir)}` : ''}
                                 </Text>
-                                <Text style={[styles.hourWindSub, { color: T.wind }]}>·</Text>
+                                <Text style={[styles.hourWindSub, { color: T.wind }]} allowFontScaling={false}>·</Text>
                               </>)}
-                              <Text style={[styles.hourSub, { color: T.rainColor }]} numberOfLines={1}>🌧{(h.precipMm ?? 0).toFixed(1)}mm</Text>
+                              <Text style={[styles.hourSub, { color: T.rainColor }]} numberOfLines={1} allowFontScaling={false}>🌧{(h.precipMm ?? 0).toFixed(1)}mm</Text>
                             </View>
                             {(() => {
                               const seaInfo = isCoastal(cityInfo?.lat, cityInfo?.lon) && seaStateFromWind(h.windspeed);
-                              return seaInfo ? <Text style={[styles.hourSub, styles.hourSea, { color: T.cyan || '#67e8f9' }]} numberOfLines={1}>🌊{seaInfo}</Text> : null;
+                              return seaInfo ? <Text style={[styles.hourSub, styles.hourSea, { color: T.cyan || '#67e8f9' }]} numberOfLines={1} allowFontScaling={false}>🌊{seaInfo}</Text> : null;
                             })()}
                           </View>
                           );
