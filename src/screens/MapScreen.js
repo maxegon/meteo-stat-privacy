@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,9 +7,12 @@ import * as Location from 'expo-location';
 import RadarMap from '../components/RadarMap';
 import { useWeather } from '../context/WeatherContext';
 import AnimatedGradientBg from '../components/AnimatedGradientBg';
+import { useTheme } from '../context/ThemeContext';
 
 export default function MapScreen() {
   const { selectedCity } = useWeather();
+  const { colors: c, dark } = useTheme();
+  const styles = useMemo(() => makeStyles(c, dark), [c, dark]);
   const mapRef = useRef(null);
   const [locating, setLocating] = useState(false);
 
@@ -30,11 +33,11 @@ export default function MapScreen() {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View style={styles.headerTitleRow}>
-              <MaterialCommunityIcons name="radar" size={20} color="#7ed4f5" />
+              <MaterialCommunityIcons name="radar" size={20} color={c.accent} />
               <Text style={styles.title} numberOfLines={1}>Radar Precipitazioni</Text>
             </View>
             <TouchableOpacity onPress={goToMyLocation} style={styles.gpsBtn} accessibilityLabel="Vai alla mia posizione">
-              <MaterialCommunityIcons name={locating ? 'loading' : 'crosshairs-gps'} size={20} color="#38bdf8" />
+              <MaterialCommunityIcons name={locating ? 'loading' : 'crosshairs-gps'} size={20} color={c.accent} />
             </TouchableOpacity>
           </View>
           {selectedCity ? (
@@ -58,7 +61,8 @@ export default function MapScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c, dark) {
+  return StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: 'transparent',
@@ -67,7 +71,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.12)',
+    borderBottomColor: c.border,
   },
   headerTop: {
     flexDirection: 'row',
@@ -81,18 +85,18 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   title: {
-    color: '#ffffff',
+    color: c.text,
     fontSize: 16,
     fontWeight: '600',
     flexShrink: 1,
   },
   cityName: {
-    color: 'rgba(255,255,255,0.65)',
+    color: c.textMuted,
     fontSize: 13,
     marginTop: 4,
   },
   noCityHint: {
-    color: 'rgba(255,255,255,0.4)',
+    color: c.textMuted,
     fontSize: 12,
     fontStyle: 'italic',
     marginTop: 4,
@@ -100,7 +104,7 @@ const styles = StyleSheet.create({
   gpsBtn: {
     padding: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(56,189,248,0.15)',
+    backgroundColor: c.accent + '26',
   },
 
   // Wrapper con bordo visibile che isola la mappa
@@ -109,16 +113,17 @@ const styles = StyleSheet.create({
     margin: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: c.border,
     overflow: 'hidden',
     // Ombre per dare profondità
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: dark ? 0.3 : 0.15,
     shadowRadius: 8,
     elevation: 8,
   },
   mapContainer: {
     flex: 1,
   },
-});
+  });
+}

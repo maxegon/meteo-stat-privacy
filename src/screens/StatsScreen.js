@@ -166,7 +166,7 @@ export default function StatsScreen({ navigation }) {
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statLabel}>🥶 Min assoluta</Text>
-                <Text style={[styles.statVal, { color: '#38bdf8' }]}>{stats.absMin != null ? `${round1(stats.absMin)}°C` : '—'}</Text>
+                <Text style={[styles.statVal, { color: c.accent }]}>{stats.absMin != null ? `${round1(stats.absMin)}°C` : '—'}</Text>
                 <Text style={styles.statDate}>{formatDate(stats.dateMin)}</Text>
               </View>
               <View style={styles.statCard}>
@@ -176,7 +176,7 @@ export default function StatsScreen({ navigation }) {
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statLabel}>🌧️ Pioggia totale</Text>
-                <Text style={[styles.statVal, { color: '#38bdf8' }]}>{stats.totalRain != null ? `${stats.totalRain} mm` : '—'}</Text>
+                <Text style={[styles.statVal, { color: c.accent }]}>{stats.totalRain != null ? `${stats.totalRain} mm` : '—'}</Text>
                 <Text style={styles.statDate}>{stats.rainDays} giorni di pioggia (≥1mm)</Text>
               </View>
               <View style={styles.statCard}>

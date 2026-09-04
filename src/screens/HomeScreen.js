@@ -896,7 +896,7 @@ export default function HomeScreen({ navigation }) {
               activeOpacity={0.8}
               accessibilityLabel="Media fonti, tocca per dettagli"
               accessibilityRole="button"
-              onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus.providersCount} fonti`, color: '#38bdf8' })}
+              onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus.providersCount} fonti`, color: c.accent })}
             >
               {/* Header: Media N fonti — — — attuale · descrizione > */}
               {(() => {
@@ -1284,7 +1284,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.actionBtnText}>Dati meteo per fonte</Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={c.textMuted} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: '#38bdf8', initialDay: 0 })} accessibilityRole="button">
+            <TouchableOpacity style={styles.actionBtn} onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: c.accent, initialDay: 0 })} accessibilityRole="button">
               <MaterialCommunityIcons name="clock-time-four-outline" size={20} color={c.accent} />
               <Text style={styles.actionBtnText}>Previsioni orarie</Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={c.textMuted} />
@@ -1385,9 +1385,9 @@ export default function HomeScreen({ navigation }) {
                   const meanMax = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
                   return (
                     <TouchableOpacity key={i} style={[styles.dayCompareRow, i === 0 && styles.dayCompareRowToday]}
-                      onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus.providersCount} fonti`, color: '#38bdf8', initialDay: i })}
+                      onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus.providersCount} fonti`, color: c.accent, initialDay: i })}
                       activeOpacity={0.7}>
-                      <Text style={[styles.dayCompareDay, i === 0 && { color: '#38bdf8', fontWeight: '700' }]}>{days[i]}</Text>
+                      <Text style={[styles.dayCompareDay, i === 0 && { color: c.accent, fontWeight: '700' }]}>{days[i]}</Text>
                       {providers.map(p => {
                         const d = p.daily?.[i];
                         const diff = pct(d?.tempMax, meanMax);
@@ -1441,7 +1441,7 @@ export default function HomeScreen({ navigation }) {
                 const dayExceeded = alertsEnabled ? checkDayThresholds(day, alertThresholds) : [];
                 return (
                   <TouchableOpacity key={day.date} style={[styles.dayRow, i === 0 && styles.dayRowToday, dayExceeded.length > 0 && { borderColor: dayExceeded[0].color + '88', borderWidth: 1.5 }]}
-                    onPress={() => setModal({ data: aggData, title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: '#38bdf8', initialDay: i })}
+                    onPress={() => setModal({ data: aggData, title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: c.accent, initialDay: i })}
                     activeOpacity={0.7}>
                     <Text style={[styles.dayName, i === 0 && styles.dayNameToday]}>{i === 0 ? 'Oggi' : formatDate(day.date)}</Text>
                     <WeatherIcon name={day.icon} size={24} dark={dark} />
@@ -1696,7 +1696,7 @@ function makeStyles(c, dark) {
   compareBar: { flex: 1, height: 8, backgroundColor: c.bgCard, borderRadius: 4, overflow: 'hidden' },
   compareBarFill: { height: '100%', borderRadius: 4 },
   compareTemp: { width: 48, textAlign: 'right', fontWeight: '700', fontSize: 15 },
-  paramRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)' },
+  paramRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.10)' },
   cmpBlock: { marginHorizontal: 12, marginBottom: 10, backgroundColor: c.bgCard, borderRadius: 12, borderWidth: 1, borderColor: c.border, overflow: 'hidden' },
   cmpMeanRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: c.border },
   cmpLabel: { color: c.textSub, fontSize: 12, fontWeight: '600' },
@@ -1708,7 +1708,7 @@ function makeStyles(c, dark) {
   cmpVal: { fontSize: 14, fontWeight: '700' },
   cmpPct: { fontSize: 10, fontWeight: '600' },
   dayCompareHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 4 },
-  dayCompareRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)' },
+  dayCompareRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.10)' },
   dayCompareRowToday: { backgroundColor: c.accent + '18' },
   dayCompareDay: { color: c.textSub, fontSize: 12, width: 68 },
   dayCompareProvName: { flex: 1, fontSize: 10, fontWeight: '700', textAlign: 'center' },
@@ -1725,7 +1725,7 @@ function makeStyles(c, dark) {
   dayRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 12, paddingVertical: 13,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)',
+    borderBottomWidth: 1, borderBottomColor: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.10)',
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
   dayRowToday: { backgroundColor: 'rgba(56,189,248,0.15)' },
@@ -1756,18 +1756,18 @@ function makeStyles(c, dark) {
     backgroundColor: dark ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.25)',
     borderColor: c.accent,
   },
-  dayBtnLabel: { color: dark ? '#94a3b8' : '#94a3b8', fontSize: 11, fontWeight: '700' },
+  dayBtnLabel: { color: dark ? '#94a3b8' : c.textMuted, fontSize: 11, fontWeight: '700' },
   dayBtnLabelActive: { color: c.accent, fontWeight: '800' },
-  dayBtnLabelThird: { color: '#94a3b8' },
-  dayBtnDate: { color: '#94a3b8', fontSize: 9, fontWeight: '500', marginTop: -2 },
+  dayBtnLabelThird: { color: dark ? '#94a3b8' : c.textMuted },
+  dayBtnDate: { color: dark ? '#94a3b8' : c.textMuted, fontSize: 9, fontWeight: '500', marginTop: -2 },
   dayBtnDateActive: { color: c.accent },
   dayBtnTemps: { flexDirection: 'row', gap: 4, alignItems: 'center' },
   dayBtnMax: { color: '#fb923c', fontWeight: '700', fontSize: 14 },
   dayBtnMin: { color: dark ? '#94a3b8' : c.accent, fontSize: 13 },
-  dayBtnMinThird: { color: '#94a3b8' },
+  dayBtnMinThird: { color: dark ? '#94a3b8' : c.textMuted },
   dayBtnRain: { color: dark ? '#94a3b8' : c.accent, fontSize: 9 },
   dayBtnSources: { fontSize: 8, color: c.textMuted, textAlign: 'center', marginTop: 1 },
-  dayBtnRainThird: { color: '#94a3b8' },
+  dayBtnRainThird: { color: dark ? '#94a3b8' : c.textMuted },
   // Attribuzione fonte dati
   inlineAttrib: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
   inlineAttribText: { color: c.textMuted, fontSize: 10, fontStyle: 'italic', flex: 1 },

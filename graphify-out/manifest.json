@@ -120,18 +120,18 @@
     "semantic_hash": ""
   },
   "src/screens/HomeScreen.js": {
-    "mtime": 1787416166.2786217,
-    "ast_hash": "a52cd890aed0bfc02cabacbdd2342ea8",
+    "mtime": 1788511476.6850884,
+    "ast_hash": "2507f845c76634cf9524502995ae23dd",
     "semantic_hash": ""
   },
   "src/screens/InfoScreen.js": {
-    "mtime": 1785660820.2120547,
-    "ast_hash": "b83fbd92157a8ff15e47727ac8be9a48",
+    "mtime": 1788511525.2751625,
+    "ast_hash": "117b21993467eaa7b3b0fda90e87858e",
     "semantic_hash": ""
   },
   "src/screens/MapScreen.js": {
-    "mtime": 1786996837.6700895,
-    "ast_hash": "4fe3ea6ada95d3ae08eaab042c31d734",
+    "mtime": 1788511421.405565,
+    "ast_hash": "3a68d9ebb2bdcd81a3343592474614bb",
     "semantic_hash": ""
   },
   "src/screens/OnboardingScreen.js": {
@@ -145,9 +145,9 @@
     "semantic_hash": "8cbeb94a045219332fa40cef2c576264"
   },
   "src/screens/StatsScreen.js": {
-    "mtime": 1783170874.4073744,
-    "ast_hash": "c28114255c33c19a06305b0369e37e42",
-    "semantic_hash": "c28114255c33c19a06305b0369e37e42"
+    "mtime": 1788511536.3995965,
+    "ast_hash": "d4bc896e2a5b686e3459a6f2f3fd265d",
+    "semantic_hash": ""
   },
   "src/services/aggregator.js": {
     "mtime": 1783068782.856179,
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1783068782.8268652,
-    "ast_hash": "a8b6d50addc6acb309e4dfabdcadabf0",
+    "mtime": 1787833196.364685,
+    "ast_hash": "7c74efcf4a680e8db5fabaeaee69915d",
     "semantic_hash": ""
   },
   "assets/adaptive-icon.png": {
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "landing/index.html": {
-    "mtime": 1787151259.5985112,
-    "ast_hash": "847ae91a4c7421834e05ec6a9b094431",
+    "mtime": 1787833202.197576,
+    "ast_hash": "1e6b174ff8d91d5bbc8f65f1281a280f",
     "semantic_hash": ""
   },
   "landing/assets/icon.png": {
@@ -337,6 +337,51 @@
   "landing/assets/screenshots/statistiche.jpg": {
     "mtime": 1787151259.5981638,
     "ast_hash": "962a42511439a14ba8e0b0c45894ffc6",
+    "semantic_hash": ""
+  },
+  "9Cluib0RJlnGCWl2JzotkBeTejAggPoS.txt": {
+    "mtime": 1787833188.139931,
+    "ast_hash": "10243d735848a9a32385f4f45cb29665",
+    "semantic_hash": ""
+  },
+  "fWoCk437sYYrNPPUUTq7nvr6cp6Pmm80.txt": {
+    "mtime": 1787833795.894318,
+    "ast_hash": "65269db293200a1b7ec43382d166940a",
+    "semantic_hash": ""
+  },
+  "landing/tiktok9Cluib0RJlnGCWl2JzotkBeTejAggPoS.txt": {
+    "mtime": 1787833510.34429,
+    "ast_hash": "5d43fd1def6c1312b9937e4c9ead0946",
+    "semantic_hash": ""
+  },
+  "tiktok-developers-site-verification.html": {
+    "mtime": 1787833192.9870303,
+    "ast_hash": "55d142d0b35c41075ded6bb975742aea",
+    "semantic_hash": ""
+  },
+  "tiktok-developers-site-verification.txt": {
+    "mtime": 1787833182.4001055,
+    "ast_hash": "10243d735848a9a32385f4f45cb29665",
+    "semantic_hash": ""
+  },
+  "tiktok-site-verification.txt": {
+    "mtime": 1787833067.6391451,
+    "ast_hash": "b4b1d56effc477588aa87038516710fd",
+    "semantic_hash": ""
+  },
+  "tiktok9Cluib0RJlnGCWl2JzotkBeTejAggPoS.html": {
+    "mtime": 1787832932.9692996,
+    "ast_hash": "36ff08e82278db87730b9807ba2854d8",
+    "semantic_hash": ""
+  },
+  "tiktok9Cluib0RJlnGCWl2JzotkBeTejAggPoS.txt": {
+    "mtime": 1787833510.3409634,
+    "ast_hash": "5d43fd1def6c1312b9937e4c9ead0946",
+    "semantic_hash": ""
+  },
+  "tiktokfWoCk437sYYrNPPUUTq7nvr6cp6Pmm80.txt": {
+    "mtime": 1787833795.89136,
+    "ast_hash": "65269db293200a1b7ec43382d166940a",
     "semantic_hash": ""
   }
 }

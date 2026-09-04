@@ -198,28 +198,28 @@ export default function InfoScreen() {
 
         {/* Affidabilità */}
         <TouchableOpacity style={[styles.policyBtn, { marginTop: 6 }]} onPress={() => setShowAffid(true)}>
-          <MaterialCommunityIcons name="shield-check-outline" size={18} color="#38bdf8" />
+          <MaterialCommunityIcons name="shield-check-outline" size={18} color={c.accent} />
           <Text style={styles.policyBtnText}>Affidabilità delle previsioni</Text>
-          <MaterialCommunityIcons name="chevron-right" size={18} color="#38bdf8" />
+          <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
         </TouchableOpacity>
 
         {/* Segnala Meteo */}
         <TouchableOpacity style={[styles.policyBtn, { marginTop: 6 }]} onPress={() => Linking.openURL('https://www.meteonetwork.it')}>
-          <MaterialCommunityIcons name="flag-outline" size={18} color="#38bdf8" />
+          <MaterialCommunityIcons name="flag-outline" size={18} color={c.accent} />
           <Text style={styles.policyBtnText}>Segnala Meteo (MeteoNetwork)</Text>
-          <MaterialCommunityIcons name="chevron-right" size={18} color="#38bdf8" />
+          <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
         </TouchableOpacity>
 
         {/* Privacy Policy */}
         <TouchableOpacity style={[styles.policyBtn, { marginTop: 6 }]} onPress={() => setShowPolicy(true)}>
-          <MaterialCommunityIcons name="file-document-outline" size={18} color="#38bdf8" />
+          <MaterialCommunityIcons name="file-document-outline" size={18} color={c.accent} />
           <Text style={styles.policyBtnText}>Privacy Policy</Text>
-          <MaterialCommunityIcons name="chevron-right" size={18} color="#38bdf8" />
+          <MaterialCommunityIcons name="chevron-right" size={18} color={c.accent} />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.policyBtn, { marginTop: 6 }]} onPress={() => Linking.openURL('https://maxegon.github.io/meteo-stat-privacy/')}>
           <MaterialCommunityIcons name="web" size={18} color="#64748b" />
-          <Text style={[styles.policyBtnText, { color: '#38bdf8' }]}>Privacy Policy (web)</Text>
-          <MaterialCommunityIcons name="open-in-new" size={16} color="#38bdf8" />
+          <Text style={[styles.policyBtnText, { color: c.accent }]}>Privacy Policy (web)</Text>
+          <MaterialCommunityIcons name="open-in-new" size={16} color={c.accent} />
         </TouchableOpacity>
 
         {/* Legal */}

@@ -40,7 +40,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "app_appnavigator",
-      "community": 2,
+      "community": 1,
       "norm_label": "appnavigator()"
     },
     {
@@ -420,7 +420,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "app_expo_updates",
-      "community": 3,
+      "community": 1,
       "norm_label": "updates"
     },
     {
@@ -430,7 +430,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "app_updates_url",
-      "community": 3,
+      "community": 1,
       "norm_label": "url"
     },
     {
@@ -1090,7 +1090,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "ref_sentry_react_native",
-      "community": 1,
+      "community": 8,
       "norm_label": "@sentry/react-native"
     },
     {
@@ -1120,7 +1120,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "ref_react_native_webview",
-      "community": 8,
+      "community": 2,
       "norm_label": "react-native-webview"
     },
     {
@@ -1770,7 +1770,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_providerbadge",
-      "community": 0,
+      "community": 7,
       "norm_label": "providerbadge.js"
     },
     {
@@ -1780,7 +1780,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_components_providerbadge_providerbadge",
-      "community": 0,
+      "community": 7,
       "norm_label": "providerbadge()"
     },
     {
@@ -1790,7 +1790,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_components_providerbadge_styles",
-      "community": 0,
+      "community": 7,
       "norm_label": "styles"
     },
     {
@@ -2000,7 +2000,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_weathercard",
-      "community": 0,
+      "community": 2,
       "norm_label": "weathercard.js"
     },
     {
@@ -2010,7 +2010,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_weathercard_weathercard",
-      "community": 0,
+      "community": 2,
       "norm_label": "weathercard()"
     },
     {
@@ -2020,7 +2020,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_components_weathercard_styles",
-      "community": 0,
+      "community": 2,
       "norm_label": "styles"
     },
     {
@@ -2110,7 +2110,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_weathercontext",
-      "community": 35,
+      "community": 0,
       "norm_label": "weathercontext.js"
     },
     {
@@ -2120,7 +2120,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_context_weathercontext_weathercontext",
-      "community": 35,
+      "community": 0,
       "norm_label": "weathercontext"
     },
     {
@@ -2130,7 +2130,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_context_weathercontext_weatherprovider",
-      "community": 35,
+      "community": 0,
       "norm_label": "weatherprovider()"
     },
     {
@@ -2387,21 +2387,21 @@
       "label": "MapScreen()",
       "file_type": "code",
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L11",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "src_screens_mapscreen_mapscreen",
       "community": 2,
       "norm_label": "mapscreen()"
     },
     {
-      "label": "styles",
+      "label": "makeStyles()",
       "file_type": "code",
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L61",
+      "source_location": "L64",
       "_origin": "ast",
-      "id": "src_screens_mapscreen_styles",
+      "id": "src_screens_mapscreen_makestyles",
       "community": 2,
-      "norm_label": "styles"
+      "norm_label": "makestyles()"
     },
     {
       "label": "OnboardingScreen.js",
@@ -2550,7 +2550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_aggregator",
-      "community": 6,
+      "community": 1,
       "norm_label": "aggregator.js"
     },
     {
@@ -2560,7 +2560,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_aggregator_fetchall",
-      "community": 6,
+      "community": 1,
       "norm_label": "fetchall()"
     },
     {
@@ -2570,7 +2570,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_services_aggregator_fetchalldirect",
-      "community": 6,
+      "community": 1,
       "norm_label": "fetchalldirect()"
     },
     {
@@ -2980,7 +2980,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_weatheraggregator",
-      "community": 35,
+      "community": 0,
       "norm_label": "weatheraggregator.js"
     },
     {
@@ -2990,7 +2990,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_aggavg",
-      "community": 35,
+      "community": 0,
       "norm_label": "aggavg()"
     },
     {
@@ -3000,7 +3000,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_getactiveprovidercount",
-      "community": 35,
+      "community": 0,
       "norm_label": "getactiveprovidercount()"
     },
     {
@@ -3010,7 +3010,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_aggmajority",
-      "community": 35,
+      "community": 0,
       "norm_label": "aggmajority()"
     },
     {
@@ -3020,7 +3020,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_aggmajoritypair",
-      "community": 35,
+      "community": 0,
       "norm_label": "aggmajoritypair()"
     },
     {
@@ -3030,7 +3030,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_toutcepoch",
-      "community": 35,
+      "community": 0,
       "norm_label": "toutcepoch()"
     },
     {
@@ -3040,7 +3040,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_hourkey",
-      "community": 35,
+      "community": 0,
       "norm_label": "hourkey()"
     },
     {
@@ -3060,7 +3060,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_getdatestr",
-      "community": 35,
+      "community": 0,
       "norm_label": "getdatestr()"
     },
     {
@@ -3070,7 +3070,7 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_gethour",
-      "community": 35,
+      "community": 0,
       "norm_label": "gethour()"
     },
     {
@@ -3080,7 +3080,7 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildaggregatehourly",
-      "community": 35,
+      "community": 0,
       "norm_label": "buildaggregatehourly()"
     },
     {
@@ -3090,7 +3090,7 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildaggregatedays",
-      "community": 35,
+      "community": 0,
       "norm_label": "buildaggregatedays()"
     },
     {
@@ -3100,7 +3100,7 @@
       "source_location": "L314",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildtomorrownarrative",
-      "community": 35,
+      "community": 0,
       "norm_label": "buildtomorrownarrative()"
     },
     {
@@ -3110,7 +3110,7 @@
       "source_location": "L428",
       "_origin": "ast",
       "id": "src_services_weatheraggregator_buildaggregatedata",
-      "community": 35,
+      "community": 0,
       "norm_label": "buildaggregatedata()"
     },
     {
@@ -3540,7 +3540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_withretry",
-      "community": 6,
+      "community": 1,
       "norm_label": "withretry.js"
     },
     {
@@ -3550,7 +3550,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_utils_withretry_withretry",
-      "community": 6,
+      "community": 1,
       "norm_label": "withretry()"
     },
     {
@@ -3560,7 +3560,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_utils_withretry_sleep",
-      "community": 6,
+      "community": 1,
       "norm_label": "sleep()"
     },
     {
@@ -7455,6 +7455,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/screens/MapScreen.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_screens_mapscreen",
+      "target": "src_context_themecontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/screens/StatsScreen.js",
       "source_location": "L9",
       "weight": 1.0,
@@ -7526,6 +7537,28 @@
       "source_location": "L27",
       "weight": 1.0,
       "source": "src_screens_infoscreen_infoscreen",
+      "target": "src_context_themecontext_usetheme"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/screens/MapScreen.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_screens_mapscreen",
+      "target": "src_context_themecontext_usetheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/screens/MapScreen.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "src_screens_mapscreen_mapscreen",
       "target": "src_context_themecontext_usetheme"
     },
     {
@@ -7707,7 +7740,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0,
       "source": "src_screens_mapscreen_mapscreen",
       "target": "src_context_weathercontext_useweather"
@@ -8906,20 +8939,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L11",
+      "source_location": "L64",
       "weight": 1.0,
       "source": "src_screens_mapscreen",
-      "target": "src_screens_mapscreen_mapscreen",
+      "target": "src_screens_mapscreen_makestyles",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/screens/MapScreen.js",
-      "source_location": "L61",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "src_screens_mapscreen",
-      "target": "src_screens_mapscreen_styles",
+      "target": "src_screens_mapscreen_mapscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/screens/MapScreen.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "src_screens_mapscreen_mapscreen",
+      "target": "src_screens_mapscreen_makestyles",
       "confidence_score": 1.0
     },
     {
@@ -10819,5 +10863,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e2942f0d18940010b9a43f0ffb666546d1d6d009"
+  "built_at_commit": "73a11f57c0316cbc6fc11b7d9d328452422a37ab"
 }
