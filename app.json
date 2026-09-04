@@ -58,7 +58,8 @@
           "organization": "max-egon",
           "project": "react-native"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "updates": {
       "url": "https://u.expo.dev/2cf51c05-7556-454b-ae6d-fc6090154682"
