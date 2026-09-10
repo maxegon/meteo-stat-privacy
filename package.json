@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "ios:clean": "rm -rf \"$TMPDIR/metro-cache\" && rm -rf ~/Library/Developer/Xcode/DerivedData/Solo1Meteo-* && cd ios && pod install && cd .. && expo run:ios",
+    "start:clean": "expo start --dev-client --clear"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
