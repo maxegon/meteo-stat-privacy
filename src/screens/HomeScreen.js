@@ -38,6 +38,7 @@ import {
   buildAggregateHourly, buildAggregateDays, buildAggregateData,
   buildTomorrowNarrative,
   getDateStr, getHour, getActiveProviderCount,
+  resolveNowCondition, findCurrentHourIndex,
 } from '../services/weatherAggregator';
 
 // Municipi/circoscrizioni sono unità amministrative, non nomi di quartiere
@@ -170,7 +171,6 @@ export default function HomeScreen({ navigation }) {
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [nowcast, setNowcast] = useState(null);
   const [cityInfo, setCityInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('current');
   const [activeDay, setActiveDay] = useState(0);
@@ -210,6 +210,8 @@ export default function HomeScreen({ navigation }) {
     setIsLoading: _setCtxLoading,
     isPartial,
     setIsPartial,
+    nowcast,
+    setNowcast,
   } = useWeather();
   // Allerte UFFICIALI (da WeatherAPI, riprodotte senza calcolo) — distinte
   // dagli alert su soglie/anomalie (weatherAlerts sopra). Pura funzione di
@@ -349,6 +351,50 @@ export default function HomeScreen({ navigation }) {
       subscription.remove();
     };
   }, []);
+
+  // FIX 2026-09-10 — TEMPI DI REAZIONE DEL RADAR.
+  // Segnalato: "per quasi un'ora sole e nuvole mentre c'era un forte
+  // temporale". Il radar era l'unica fonte in grado di smentire i modelli in
+  // tempo reale, ma arrivava tardi perché veniva chiesto SOLO insieme al meteo
+  // (auto-refresh ogni 10 min) e il backend lo teneva in cache 9 min: nel caso
+  // peggiore l'utente vedeva un frame radar di ~20 minuti prima. Su un
+  // temporale a celle, che nasce e si sposta in 15-20 minuti, equivale a non
+  // avere il radar. Ora il radar ha una cadenza propria di 5 minuti (la cache
+  // backend è scesa a 4 min nello stesso fix), indipendente dal ciclo meteo:
+  // è una sola chiamata leggera e non tocca le 8 fonti previsionali.
+  useEffect(() => {
+    const RADAR_REFRESH_MS = 5 * 60 * 1000;
+    let intervalId = null;
+
+    const tick = () => {
+      const city = cityInfoRef.current;
+      if (city?.lat != null && city?.lon != null) {
+        getNowcast(city.lat, city.lon).then(setNowcast).catch(() => {});
+      }
+    };
+    const startInterval = () => {
+      if (intervalId) return;
+      intervalId = setInterval(tick, RADAR_REFRESH_MS);
+    };
+    const stopInterval = () => {
+      clearInterval(intervalId);
+      intervalId = null;
+    };
+
+    startInterval();
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      // Al rientro in foreground il radar si aggiorna SUBITO (senza aspettare
+      // i 10 min di "stale" del meteo): è il momento in cui l'utente guarda
+      // fuori dalla finestra e confronta con l'app.
+      if (nextState === 'active') { tick(); startInterval(); }
+      else stopInterval();
+    });
+
+    return () => {
+      stopInterval();
+      subscription.remove();
+    };
+  }, [setNowcast]);
 
   // Torna al tab iniziale quando si preme Meteo dal menu in basso
   useEffect(() => {
@@ -490,8 +536,10 @@ export default function HomeScreen({ navigation }) {
       } else {
         setIsPartial(false);
       }
-      // Nowcasting radar in parallelo, stessa cadenza del meteo: è un'aggiunta
-      // "best effort", un suo fallimento non deve bloccare la card meteo.
+      // Nowcasting radar in parallelo: è un'aggiunta "best effort", un suo
+      // fallimento non deve bloccare la card meteo. Oltre a questo fetch
+      // "insieme al meteo" il radar ha una cadenza propria più fitta — vedi
+      // l'effect RADAR_REFRESH_MS più sotto.
       getNowcast(lat, lon).then(setNowcast).catch(() => setNowcast(null));
     } catch (e) {
       Alert.alert('Errore', 'Impossibile caricare i dati meteo. Controlla la connessione.');
@@ -896,7 +944,7 @@ export default function HomeScreen({ navigation }) {
               activeOpacity={0.8}
               accessibilityLabel="Media fonti, tocca per dettagli"
               accessibilityRole="button"
-              onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus.providersCount} fonti`, color: c.accent })}
+              onPress={() => setModal({ data: buildAggregateData(weather, nowcast), title: `Media ${weather.consensus.providersCount} fonti`, color: c.accent })}
             >
               {/* Header: Media N fonti — — — attuale · descrizione > */}
               {(() => {
@@ -913,13 +961,18 @@ export default function HomeScreen({ navigation }) {
                 // card fascia (Mattina/Pomeriggio/Notte) e card giorno =
                 // probabilità sull'intero arco temporale. Fallback: primo slot
                 // futuro, poi dato giornaliero.
-                const rainNow = new Date();
-                const rainSlots = (aggregateHourly || [])
-                  .filter(h => h?.precipProb != null && !isNaN(h.precipProb));
-                const currentSlot = rainSlots.find(h => {
-                  const dt = rainNow - new Date(h.time);
-                  return dt >= 0 && dt < 3600 * 1000; // ora corrente: t <= adesso < t+1h
-                }) || rainSlots.find(h => new Date(h.time) > rainNow);
+                // FIX 2026-09-10 — l'ora corrente si individua con
+                // findCurrentHourIndex (chiave oraria nel fuso della CITTÀ),
+                // non con `new Date(h.time)`: le stringhe orarie di Open-Meteo
+                // sono "naive" e venivano interpretate nel fuso del DEVICE,
+                // quindi per una città in un altro fuso lo slot "adesso" era
+                // sbagliato di ore. Stessa funzione usata dalla serie oraria.
+                const nowIdxCard = findCurrentHourIndex(aggregateHourly, weather.utcOffsetSeconds ?? 0);
+                const currentHourSlot = nowIdxCard >= 0 ? aggregateHourly[nowIdxCard] : null;
+                const hasProb = h => h?.precipProb != null && !isNaN(h.precipProb);
+                const currentSlot = hasProb(currentHourSlot)
+                  ? currentHourSlot
+                  : (aggregateHourly || []).slice(Math.max(nowIdxCard, 0) + 1).find(hasProb) || null;
                 // COERENZA: % e mm devono venire dalla STESSA finestra temporale.
                 // Se mostriamo la probabilità dell'ora corrente, anche i mm sono
                 // quelli dell'ora corrente (currentSlot.precipMm); nel fallback
@@ -930,34 +983,24 @@ export default function HomeScreen({ navigation }) {
                 const rainMm = currentSlot
                   ? (currentSlot.precipMm ?? null)
                   : (today?.precipitation ?? null);
-                // Nowcasting radar (RainViewer): se rileva pioggia ORA in zona, sovrascrive
-                // solo icona+descrizione mostrate (mai i valori numerici/la media provider —
-                // vedi invariante CLAUDE.md). Badge "Radar live" per trasparenza sulla fonte.
-                const isRainingNow = nowcast?.isRainingNow === true;
-                // FIX 2026-07-02 — segnalato: media provider dice "Pioggia" ma cielo sereno
-                // e radar senza echi. Prima la correzione radar funzionava solo in un verso
-                // (radar conferma pioggia → sovrascrive testo); ora corregge anche il verso
-                // opposto: radar conferma ESPLICITAMENTE "nessuna pioggia" (non un errore di
-                // rete/fetch — il backend distingue i due casi col campo `error`) mentre la
-                // media dei modelli dice pioggia → mostra il segnale radar invece del testo
-                // modello (che in questo istante è verificabilmente sbagliato). I valori
-                // numerici (temperatura, umidità, ecc.) restano SEMPRE la media provider,
-                // qui si corregge solo testo/icona con lo stesso badge di trasparenza già
-                // usato per la correzione positiva.
-                const RAIN_ICONS = ['weather-rainy', 'weather-pouring', 'weather-lightning-rainy', 'weather-snowy-rainy'];
-                const radarConfirmedDry = nowcast != null && nowcast.isRainingNow === false && nowcast.error !== true;
-                const consensusSaysRain = RAIN_ICONS.includes(weather.consensus.icon);
-                const radarOverridesDry = radarConfirmedDry && consensusSaysRain;
-                const displayDesc = isRainingNow
-                  ? '🌧 Pioggia in corso'
-                  : radarOverridesDry
-                    ? '☀️ Nessuna pioggia dal radar'
-                    : translateDescription(weather.consensus.description);
-                const displayIcon = isRainingNow
-                  ? 'weather-pouring'
-                  : radarOverridesDry
-                    ? 'weather-partly-cloudy'
-                    : (weather.consensus.icon || 'weather-partly-cloudy');
+                // FIX 2026-09-10 — condizione "adesso": UNA sola funzione,
+                // resolveNowCondition, condivisa con lo slot dell'ora corrente
+                // della serie oraria (vedi buildAggregateHourly). Prima la card
+                // aveva questa logica inline e le previsioni orarie ne avevano
+                // un'altra: sullo stesso istante potevano dire due cose diverse
+                // — è esattamente il bug segnalato ("sole e nuvole" in card,
+                // "Temporale" entrando dalla freccia). Resta invariata la
+                // gerarchia radar > modelli, e restano invariati i VALORI
+                // NUMERICI, sempre media dei provider (INVARIANTE — CLAUDE.md):
+                // qui si decide solo testo+icona.
+                const nowCondition = resolveNowCondition(weather, nowcast);
+                // Il badge "📡 Radar live" segnala che testo+icona vengono dal
+                // radar e non dalla media dei modelli — vale in entrambi i
+                // versi (pioggia confermata / pioggia esclusa).
+                const radarOverride = nowCondition?.source === 'radar';
+                const displayDesc = nowCondition?.label
+                  || translateDescription(nowCondition?.description || weather.consensus.description);
+                const displayIcon = nowCondition?.icon || weather.consensus.icon || 'weather-partly-cloudy';
                 return (<>
                   {/* Riga 1: Media N fonti — sola, contatore fonti a sinistra */}
                   <View style={[styles.consensusRow, { marginBottom: 2 }]}>
@@ -987,9 +1030,9 @@ export default function HomeScreen({ navigation }) {
                     <WeatherIcon name={displayIcon} size={48} dark={dark} />
                   </View>
                   {/* Riga 3: 📡 radar live · 🌧 X%  · mm  💧 umidità%  📊 pressione hPa — sotto, giustificati a destra */}
-                  {(rain != null || humidity != null || pressure != null || isRainingNow || radarOverridesDry) && (
+                  {(rain != null || humidity != null || pressure != null || radarOverride) && (
                     <View style={styles.consensusBadgeRow}>
-                      {(isRainingNow || radarOverridesDry) && <Text style={styles.consensusBadge}>📡 Radar live</Text>}
+                      {radarOverride && <Text style={styles.consensusBadge}>📡 Radar live</Text>}
                       {rain != null && (
                         <Text style={styles.consensusBadge}>
                           🌧 {Math.round(rain)}%{rainMm != null && rainMm >= 0.05 ? ` · ${rainMm.toFixed(1)}mm` : ''}
@@ -1116,7 +1159,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* Previsioni inline — timeline 3 giorni con scroll sincronizzato */}
           {(() => {
-            const aggData = buildAggregateData(weather);
+            const aggData = buildAggregateData(weather, nowcast);
             const { hourly, daily } = aggData;
             const selDay = daily?.[activeDay];
 
@@ -1284,7 +1327,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.actionBtnText}>Dati meteo per fonte</Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={c.textMuted} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: c.accent, initialDay: 0 })} accessibilityRole="button">
+            <TouchableOpacity style={styles.actionBtn} onPress={() => setModal({ data: buildAggregateData(weather, nowcast), title: `Media ${weather.consensus?.providersCount ?? 8} fonti`, color: c.accent, initialDay: 0 })} accessibilityRole="button">
               <MaterialCommunityIcons name="clock-time-four-outline" size={20} color={c.accent} />
               <Text style={styles.actionBtnText}>Previsioni orarie</Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={c.textMuted} />
@@ -1385,7 +1428,7 @@ export default function HomeScreen({ navigation }) {
                   const meanMax = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
                   return (
                     <TouchableOpacity key={i} style={[styles.dayCompareRow, i === 0 && styles.dayCompareRowToday]}
-                      onPress={() => setModal({ data: buildAggregateData(weather), title: `Media ${weather.consensus.providersCount} fonti`, color: c.accent, initialDay: i })}
+                      onPress={() => setModal({ data: buildAggregateData(weather, nowcast), title: `Media ${weather.consensus.providersCount} fonti`, color: c.accent, initialDay: i })}
                       activeOpacity={0.7}>
                       <Text style={[styles.dayCompareDay, i === 0 && { color: c.accent, fontWeight: '700' }]}>{days[i]}</Text>
                       {providers.map(p => {
@@ -1420,7 +1463,7 @@ export default function HomeScreen({ navigation }) {
           {/* TAB: 7 GIORNI */}
           {activeTab === 'forecast' && (() => {
             const aggDays = aggregateDays;
-            const aggData = buildAggregateData(weather);
+            const aggData = buildAggregateData(weather, nowcast);
             // Niente "weather.openMeteo &&" qui: se Open-Meteo non risponde,
             // aggDays usa comunque il provider disponibile come base (vedi
             // buildAggregateDays) — altrimenti questa tab restava vuota.

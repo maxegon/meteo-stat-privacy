@@ -34,6 +34,8 @@
   "32": "@react-navigation/native",
   "33": "@react-navigation/stack",
   "34": "@sentry/react-native",
+  "35": "expo-web-browser",
   "36": "generate_snapshot.js",
-  "37": "expo"
+  "37": "expo",
+  "38": "react-native-safe-area-context"
 }

@@ -111,11 +111,128 @@ export function getHour(t) { return parseInt(t.replace('T', ' ').slice(11, 13), 
 // ─── AGGREGATORI PRINCIPALI ───────────────────────────────────────────────────
 
 /**
+ * ─── CONDIZIONE "ADESSO" — UNA SOLA FONTE DI VERITÀ ─────────────────────────
+ *
+ * FIX 2026-09-10 — segnalato: "l'app ha mostrato sole e nuvole per quasi
+ * un'ora mentre c'era un forte temporale; entrando dalla freccia della card
+ * nelle previsioni orarie diceva Temporale. Le due cose devono combaciare."
+ *
+ * Il disaccordo era strutturale, non un caso isolato: la card leggeva
+ * `consensus` (calcolato dal backend sui campi `current` degli 8 provider),
+ * la serie oraria leggeva la media degli hourly per quella stessa ora — due
+ * pipeline diverse sullo stesso istante. Probe live del 2026-09-10 su 12
+ * città italiane: 8 su 12 avevano card e ora corrente in disaccordo
+ * (Trieste "Coperto" vs "Pioggia", Venezia "Coperto" vs "Pioggia", ecc.).
+ *
+ * Ora la condizione di ADESSO si calcola in un punto solo — resolveNowCondition
+ * — e da lì viene usata sia dalla card sia dallo slot dell'ora corrente della
+ * serie oraria, quindi non possono più divergere. I VALORI NUMERICI restano
+ * quelli di sempre: media dei provider disponibili per quell'ora/giorno, con
+ * il contatore fonti accanto (INVARIANTE — vedi CLAUDE.md). Qui si allinea
+ * solo la coppia testo+icona della condizione.
+ */
+const NOW_CATEGORIES = [
+  { id: 'temporale', rank: 4, re: /temporal|grandine|tempesta|thunder|hail/i },
+  { id: 'neve',      rank: 3, re: /neve|nevisc|snow|sleet/i },
+  { id: 'pioggia',   rank: 2, re: /pioggia|piogger|rovesc|acquazzon|rain|shower|drizzle/i },
+  { id: 'nebbia',    rank: 1, re: /nebbia|foschia|fog|mist/i },
+  { id: 'vento',     rank: 1, re: /ventos|vento |raffic|wind/i },
+];
+
+/** Categoria di una descrizione condizione ('pioggia', 'temporale', …) o null
+ *  se descrive solo "quanto cielo" (sereno/nuvoloso/coperto). */
+export const conditionCategory = (description) => {
+  if (!description) return null;
+  const hit = NOW_CATEGORIES.find(c => c.re.test(description));
+  return hit ? hit.id : null;
+};
+
+/** true se la condizione è una precipitazione (pioggia, temporale o neve). */
+export const isPrecipCondition = (description) =>
+  ['pioggia', 'temporale', 'neve'].includes(conditionCategory(description));
+
+/** Indice dello slot orario che copre l'ora IN CORSO nella città, o -1.
+ *  Usa hourKey (non `new Date(slot.time)`) così funziona anche quando il fuso
+ *  del device è diverso da quello della città cercata. */
+export const findCurrentHourIndex = (hourly, utcOffsetSeconds = 0, now = new Date()) => {
+  if (!hourly?.length) return -1;
+  const nowKey = hourKey(now.toISOString(), utcOffsetSeconds);
+  return hourly.findIndex(h => h?.time && hourKey(h.time, utcOffsetSeconds) === nowKey);
+};
+
+/**
+ * Condizione mostrata per ADESSO, da usare ovunque l'app dica "attuale".
+ *
+ * Priorità:
+ *  1. RADAR (nowcast RainViewer) quando rileva pioggia in corso sulla zona —
+ *     è un'osservazione, non un modello, e per definizione non è in ritardo
+ *     come le "condizioni attuali" interpolate dai provider.
+ *  2. RADAR quando esclude ESPLICITAMENTE la pioggia (non un errore di rete —
+ *     il backend distingue i due casi col campo `error`) mentre i modelli la
+ *     danno: in quell'istante il modello è verificabilmente sbagliato.
+ *  3. Consenso dei provider (media/voto già calcolato dal backend).
+ *
+ * Ritorna { description, icon, label, source }:
+ *  - `description`/`icon`: testo neutro e icona, usati anche dalla serie oraria
+ *  - `label`: stringa da mostrare in card (può avere emoji), mai propagata
+ *    nei dati aggregati
+ */
+export const resolveNowCondition = (w, nowcast) => {
+  const consensus = w?.consensus;
+  if (!consensus) return null;
+
+  const modelDesc = consensus.description || null;
+  const modelCat  = conditionCategory(modelDesc);
+
+  if (nowcast?.isRainingNow === true) {
+    // Il radar dice che sta precipitando. Se anche i modelli vedono un
+    // temporale teniamo quel dettaglio (un temporale è pioggia più altro),
+    // altrimenti descriviamo solo quello che il radar può davvero misurare:
+    // che sta piovendo, e con che intensità.
+    if (modelCat === 'temporale') {
+      return { description: modelDesc, icon: 'weather-lightning-rainy', label: '⛈ Temporale in corso', source: 'radar' };
+    }
+    const heavy = nowcast.intensity === 'heavy';
+    return {
+      description: heavy ? 'Pioggia forte' : 'Pioggia',
+      icon:        heavy ? 'weather-pouring' : 'weather-rainy',
+      label:       heavy ? '🌧 Pioggia forte in corso' : '🌧 Pioggia in corso',
+      source: 'radar',
+    };
+  }
+
+  const radarConfirmedDry = nowcast != null && nowcast.isRainingNow === false && nowcast.error !== true;
+  if (radarConfirmedDry && isPrecipCondition(modelDesc)) {
+    // Il radar esclude la pioggia che i modelli danno in corso. Come CONDIZIONE
+    // mostriamo il cielo realmente misurato (media cloud cover degli 8 provider,
+    // campo `skyDescription` dal backend) — "Nessuna pioggia dal radar" resta
+    // solo l'etichetta della card, perché è una smentita, non una condizione, e
+    // come testo non ha senso in una riga oraria o dentro il motore alert.
+    // Fallback su risposte di backend più vecchie (senza skyDescription):
+    // si tiene il testo dei modelli e l'etichetta radar spiega la differenza.
+    const sky = consensus.skyDescription || null;
+    return {
+      description: sky || modelDesc,
+      icon: sky ? (consensus.skyIcon || 'weather-cloudy') : (consensus.icon || 'weather-partly-cloudy'),
+      label: '☀️ Nessuna pioggia dal radar',
+      source: 'radar',
+    };
+  }
+
+  return {
+    description: modelDesc,
+    icon: consensus.icon || 'weather-partly-cloudy',
+    label: null, // il chiamante traduce e mostra `description`
+    source: 'consensus',
+  };
+};
+
+/**
  * INVARIANTE — vedi CLAUDE.md "Regole intoccabili"
  * Media oraria: solo provider che hanno dati per quell'ora specifica
  * (filter(Boolean) sulla mappa ora→slot)
  */
-export const buildAggregateHourly = (w) => {
+export const buildAggregateHourly = (w, nowcast = null) => {
   const allHourlyProviders = [
     w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
     w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo,
@@ -145,7 +262,7 @@ export const buildAggregateHourly = (w) => {
   // Prima si cercava un campo `precipMm` che non esiste mai in nessun provider,
   // quindi i mm orari risultavano sempre assenti.
   const precipMmOf = s => (s.precipitation != null ? s.precipitation : (s.precipMm != null ? s.precipMm : null));
-  return base.map(slot => {
+  const hours = base.map(slot => {
     const key = hourKey(slot.time, offsetSec);
     const others = otherMaps.map(m => m[key]).filter(Boolean);
     const all = [slot, ...others];
@@ -167,6 +284,23 @@ export const buildAggregateHourly = (w) => {
       ...(aggMajorityPair(all.map(s => ({ icon: s.icon, description: s.description }))) || { icon: slot.icon, description: slot.description }),
     };
   });
+
+  // FIX 2026-09-10 — allineamento dell'ora IN CORSO alla condizione mostrata
+  // dalla card consenso (vedi resolveNowCondition): card e previsioni orarie
+  // non possono più dire due cose diverse sullo stesso istante. Tocchiamo solo
+  // testo+icona: temperatura, probabilità, mm e vento di questo slot restano la
+  // media dei provider che hanno quell'ora (INVARIANTE — vedi CLAUDE.md).
+  const nowIdx = findCurrentHourIndex(hours, offsetSec);
+  const nowCondition = resolveNowCondition(w, nowcast);
+  if (nowIdx >= 0 && nowCondition?.description) {
+    hours[nowIdx] = {
+      ...hours[nowIdx],
+      description: nowCondition.description,
+      icon: nowCondition.icon,
+      nowSource: nowCondition.source,
+    };
+  }
+  return hours;
 };
 
 /**
@@ -423,17 +557,24 @@ export const buildTomorrowNarrative = (aggregateDays, aggregateHourly, locationL
 
 /**
  * Compone i dati aggregati completi (current + hourly + daily).
- * `current` viene dal consensus calcolato dal backend.
+ * I valori numerici di `current` vengono dal consensus calcolato dal backend
+ * (media dei provider). Testo e icona passano da resolveNowCondition, la stessa
+ * usata dalla card in home e dallo slot dell'ora corrente della serie oraria —
+ * FIX 2026-09-10, così questo modal (quello che si apre dalla freccia della
+ * card) non può più mostrare una condizione diversa da quella della card.
  */
-export const buildAggregateData = (w) => ({
-  current: w.consensus ? {
-    temperature: w.consensus.temperature,
-    feelsLike:   w.consensus.feelsLike,
-    humidity:    w.consensus.humidity,
-    windspeed:   w.consensus.windspeed,
-    description: w.consensus.description,
-    icon:        w.consensus.icon || 'weather-partly-cloudy',
-  } : null,
-  hourly: buildAggregateHourly(w),
-  daily:  buildAggregateDays(w),
-});
+export const buildAggregateData = (w, nowcast = null) => {
+  const now = resolveNowCondition(w, nowcast);
+  return {
+    current: w.consensus ? {
+      temperature: w.consensus.temperature,
+      feelsLike:   w.consensus.feelsLike,
+      humidity:    w.consensus.humidity,
+      windspeed:   w.consensus.windspeed,
+      description: now?.description || w.consensus.description,
+      icon:        now?.icon || w.consensus.icon || 'weather-partly-cloudy',
+    } : null,
+    hourly: buildAggregateHourly(w, nowcast),
+    daily:  buildAggregateDays(w),
+  };
+};

@@ -5,6 +5,8 @@
  *   selectedCity      — città attiva { name, region, country, lat, lon }
  *   setSelectedCity   — setter diretto (uso interno: preferire setWeatherData)
  *   weatherData       — risposta raw dal backend (oggetto completo)
+ *   nowcast           — ultimo esito del radar RainViewer ({ isRainingNow, intensity, … })
+ *   setNowcast        — setter (HomeScreen lo aggiorna con la propria cadenza)
  *   aggregateHourly   — output di buildAggregateHourly(weatherData), pre-calcolato
  *   aggregateDays     — output di buildAggregateDays(weatherData), pre-calcolato
  *   lastUpdated       — Date dell'ultimo fetch completato (o null)
@@ -31,6 +33,11 @@ export function WeatherProvider({ children }) {
   // { name, region, country, lat, lon }
 
   const [weatherData, setWeatherDataRaw] = useState(null);
+  // FIX 2026-09-10 — il nowcast radar viveva solo dentro HomeScreen, quindi la
+  // serie oraria (calcolata qui) non poteva tenerne conto e l'ora corrente
+  // divergeva dalla card. Ora sta nel context: card e previsioni orarie
+  // leggono lo stesso segnale. Vedi resolveNowCondition in weatherAggregator.
+  const [nowcast, setNowcast]             = useState(null);
   const [lastUpdated, setLastUpdated]     = useState(null);
   const [isLoading, setIsLoading]         = useState(false);
   const [isPartial, setIsPartial]         = useState(false);
@@ -39,8 +46,8 @@ export function WeatherProvider({ children }) {
   // Vengono esposti direttamente così i consumer non devono chiamare
   // buildAggregateHourly/buildAggregateDays per conto proprio.
   const aggregateHourly = useMemo(
-    () => (weatherData ? buildAggregateHourly(weatherData) : []),
-    [weatherData],
+    () => (weatherData ? buildAggregateHourly(weatherData, nowcast) : []),
+    [weatherData, nowcast],
   );
   const aggregateDays = useMemo(
     () => (weatherData ? buildAggregateDays(weatherData) : []),
@@ -69,6 +76,10 @@ export function WeatherProvider({ children }) {
     // Dati meteo raw
     weatherData,
     setWeatherData,
+
+    // Nowcast radar (RainViewer)
+    nowcast,
+    setNowcast,
 
     // Aggregati pre-calcolati
     aggregateHourly,
