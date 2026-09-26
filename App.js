@@ -17,7 +17,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, ActivityIndicator, LogBox, Platform } from 'react-native';
+import { View, ActivityIndicator, LogBox, Platform, AppState } from 'react-native';
+import * as Updates from 'expo-updates';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets, initialWindowMetrics } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -128,6 +129,27 @@ function AppNavigator() {
     </NavigationContainer>
   );
 }
+
+// ─── Applicazione automatica degli OTA al rientro in foreground (26/09/2026) ──
+// `UpdateBanner.js` aspetta che l'utente noti e tocchi "Aggiorna ora" — un
+// utente normale non forza mai davvero la chiusura dell'app (cambia app e
+// torna indietro, il che non riavvia il processo e non fa scattare un nuovo
+// controllo ON_LOAD), quindi un fix pubblicato può restare invisibile per
+// giorni. Stesso bug trovato e corretto lo stesso giorno su SportViewLens,
+// ShowViewLens e PodcastViewLens ("ho dovuto aggiornare molte volte per
+// farla comparire"). Qui si applica in silenzio al rientro in foreground —
+// il banner resta come fallback/scelta manuale, non tolto.
+let _otaCheckInCorso = false;
+AppState.addEventListener('change', (status) => {
+  if (status !== 'active') return;
+  if (!Updates.isEnabled || _otaCheckInCorso) return;
+  _otaCheckInCorso = true;
+  Updates.checkForUpdateAsync()
+    .then((check) => (check.isAvailable ? Updates.fetchUpdateAsync() : null))
+    .then((fetched) => { if (fetched?.isNew) return Updates.reloadAsync(); })
+    .catch((e) => logError('AppState:otaCheck', e))
+    .finally(() => { _otaCheckInCorso = false; });
+});
 
 function App() {
   const [onboardingDone, setOnboardingDone] = useState(null);
