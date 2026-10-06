@@ -214,7 +214,7 @@ export const resolveNowCondition = (w, nowcast) => {
     return {
       description: sky || modelDesc,
       icon: sky ? (consensus.skyIcon || 'weather-cloudy') : (consensus.icon || 'weather-partly-cloudy'),
-      label: '☀️ Nessuna pioggia dal radar',
+      label: 'Nessuna pioggia dal radar',
       source: 'radar',
     };
   }

@@ -1005,13 +1005,13 @@ export default function HomeScreen({ navigation }) {
                   {/* Riga 1: Media N fonti — sola, contatore fonti a sinistra */}
                   <View style={[styles.consensusRow, { marginBottom: 2 }]}>
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
-                    <Text style={styles.consensusLabel}>Adesso · Media {weather.consensus.providersCount} fonti</Text>
+                    <Text style={styles.consensusLabel}>Media {weather.consensus.providersCount} fonti</Text>
                   </View>
                   {/* Riga 2: attuale · descrizione > — SULLA PROPRIA RIGA a piena
                       larghezza (non più condivisa con "Media N fonti"). FIX
                       2026-08-22 (3) — segnalato di nuovo su Samsung One UI:
                       quando il radar sovrascrive la descrizione con un testo
-                      più lungo ("☀️ Nessuna pioggia dal radar" ecc.),
+                      più lungo ("Nessuna pioggia dal radar" ecc.),
                       condividere la riga con "Media N fonti" lasciava troppo
                       poco spazio e il testo veniva troncato in modo illeggibile
                       o usciva dal bordo a seconda del device/scala testo.
@@ -1174,7 +1174,11 @@ export default function HomeScreen({ navigation }) {
             });
 
             const BLOCK_ORDER = ['Mattina', 'Pomeriggio', 'Notte'];
-            const BLOCK_ICON  = { Mattina: 'weather-sunset-up', Pomeriggio: 'white-balance-sunny', Notte: 'weather-night' };
+            // FIX 2026-10-06 — icone NEUTRE (orologio): prima Pomeriggio aveva un sole
+            // fisso che, accanto a un 42% di pioggia o a un'ora con icona di
+            // pioggia, sembrava una condizione meteo e contraddiceva il resto.
+            // Questa è solo l'etichetta della fascia, non una previsione.
+            const BLOCK_ICON  = { Mattina: 'clock-time-nine-outline', Pomeriggio: 'clock-time-three-outline', Notte: 'clock-time-ten-outline' };
             const BLOCK_COLOR = dark
               ? { Mattina: '#fbbf24', Pomeriggio: '#fb923c', Notte: '#818cf8' }
               : { Mattina: '#b45309', Pomeriggio: '#c2410c', Notte: '#3730a3' };
@@ -1676,7 +1680,7 @@ function makeStyles(c, dark) {
     padding: 12, borderRadius: 14,
     backgroundColor: c.bgCard, borderWidth: 1, borderColor: c.accent + '30',
     // FIX 2026-08-22 (2) — rete di sicurezza: impedisce al testo radar
-    // ("☀️ Nessuna pioggia dal radar" ecc.) di sconfinare visivamente fuori
+    // ("Nessuna pioggia dal radar" ecc.) di sconfinare visivamente fuori
     // dalla card sui device dove il troncamento con flexShrink non basta
     // (vedi stesso problema riscontrato nelle card orarie su Samsung One UI).
     overflow: 'hidden',
