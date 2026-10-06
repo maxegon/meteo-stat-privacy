@@ -390,13 +390,15 @@ export const buildAggregateDays = (w) => {
     // separatamente — altrimenti l'icona "vincente" può appartenere a un
     // provider diverso da quello della descrizione "vincente" e mostrare
     // combinazioni incoerenti (es. testo "Sereno" con icona nuvola).
-    const pair = i === 0
-      ? (aggMajorityPair(providers.map(p => ({ icon: p.current?.icon, description: p.current?.description })))
-          || prevalentPairForDate(day.date)
-          || { icon: day.icon, description: day.description })
-      : (prevalentPairForDate(day.date)
-          || aggMajorityPair(dayProviders.map(p => ({ icon: p.daily[i].icon, description: p.daily[i].description })))
-          || { icon: day.icon, description: day.description });
+    // FIX 2026-10-06 — la card giornaliera (anche "Oggi") rappresenta la
+    // GIORNATA INTERA: condizione prevalente delle ore 6–20 votata fra tutti i
+    // provider, stesso metodo per Oggi/Domani/Dopodomani. La condizione
+    // dell'istante (radar > modelli) resta alla card consenso e all'ora
+    // corrente, vedi resolveNowCondition. Il voto sulle icone `current` è
+    // stato tolto: era istantaneo e faceva divergere "Oggi" dal resto.
+    const pair = prevalentPairForDate(day.date)
+      || aggMajorityPair(dayProviders.map(p => ({ icon: p.daily[i].icon, description: p.daily[i].description })))
+      || { icon: day.icon, description: day.description };
     // Ore aggregate di questo giorno (per oggi, i===0, solo ore future come le
     // card). Se disponibili, max/min derivano da queste (così compaiono nelle
     // card orarie); altrimenti fallback alla media dei max/min giornalieri.

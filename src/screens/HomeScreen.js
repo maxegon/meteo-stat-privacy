@@ -1005,7 +1005,7 @@ export default function HomeScreen({ navigation }) {
                   {/* Riga 1: Media N fonti — sola, contatore fonti a sinistra */}
                   <View style={[styles.consensusRow, { marginBottom: 2 }]}>
                     {/* INVARIANTE — vedi CLAUDE.md "Regole intoccabili": contatore fonti obbligatorio */}
-                    <Text style={styles.consensusLabel}>Media {weather.consensus.providersCount} fonti</Text>
+                    <Text style={styles.consensusLabel}>Adesso · Media {weather.consensus.providersCount} fonti</Text>
                   </View>
                   {/* Riga 2: attuale · descrizione > — SULLA PROPRIA RIGA a piena
                       larghezza (non più condivisa con "Media N fonti"). FIX
