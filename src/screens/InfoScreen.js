@@ -8,6 +8,7 @@ import AnimatedGradientBg from '../components/AnimatedGradientBg';
 import AlertSettingsModal from '../components/AlertSettingsModal';
 import PrivacyPolicyScreen from './PrivacyPolicyScreen';
 import AffidabilitaScreen from './AffidabilitaScreen';
+import DeviceDiagnostics from '../components/DeviceDiagnostics';
 import { useTheme } from '../context/ThemeContext';
 import { readErrorLogs, clearErrorLogs } from '../utils/errorLogger';
 
@@ -245,6 +246,7 @@ export default function InfoScreen() {
         {/* Sezione diagnostica — visibile solo dopo 5 tap */}
         {showDiag && (
           <View style={styles.diagSection}>
+            <DeviceDiagnostics />
             <View style={styles.diagHeader}>
               <MaterialCommunityIcons name="bug-outline" size={16} color="#f59e0b" />
               <Text style={styles.diagTitle}>
