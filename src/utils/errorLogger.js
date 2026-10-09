@@ -16,6 +16,10 @@ export async function logError(context, error, extra = '') {
   try {
     Sentry.withScope(scope => {
       scope.setTag('context', String(context));
+      // Status HTTP come tag filtrabile: serve alla regola Sentry "backend 401"
+      // (OTA/build pubblicato senza X-App-Token → fallback silenzioso, vedi HANDOFF 2026-10-09).
+      const httpStatus = error?.response?.status;
+      if (httpStatus != null) scope.setTag('http_status', String(httpStatus));
       if (extra) scope.setExtra('detail', String(extra).slice(0, 300));
       if (error instanceof Error) {
         Sentry.captureException(error);
