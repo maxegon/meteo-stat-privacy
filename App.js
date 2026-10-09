@@ -88,7 +88,12 @@ function AppNavigator() {
   const bottomInset = Platform.OS === 'android'
     ? Math.max(insets.bottom, androidFallbackBottomInset, ANDROID_MIN_BOTTOM_INSET)
     : insets.bottom;
-  const TAB_BAR_CONTENT_HEIGHT = 54;
+  // FIX 2026-10-09 (3/3) — Galaxy A55 con Zoom schermo al massimo (window 320dp)
+  // e fontScale 1.3: icona + etichetta ingrandita non stanno in 54dp, l'etichetta
+  // finisce sul bordo e viene coperta dalla barra di sistema (inset 48 corretto,
+  // misurato col pannello DeviceDiagnostics). Su Android: contenuto più alto e
+  // etichette senza font scaling (10pt fissi) — l'icona resta il riferimento.
+  const TAB_BAR_CONTENT_HEIGHT = Platform.OS === 'android' ? 68 : 54;
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
@@ -109,6 +114,7 @@ function AppNavigator() {
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: dark ? 'rgba(255,255,255,0.45)' : 'rgba(2,132,199,0.50)',
           tabBarLabelStyle: { fontSize: 10, marginTop: 2, fontWeight: '600' },
+          tabBarAllowFontScaling: Platform.OS !== 'android',
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name={TAB_ICONS[route.name]}
