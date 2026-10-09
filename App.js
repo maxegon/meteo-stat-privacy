@@ -78,16 +78,15 @@ function AppNavigator() {
   // Pavimento minimo di sicurezza solo su Android: non elimina il bug a
   // monte, ma garantisce sempre un minimo di respiro visivo anche quando
   // entrambe le fonti di inset falliscono.
-  // FIX 2026-10-09 — Galaxy A55 (One UI, navigazione a 3 tasti ≈ 48dp): il
-  // pavimento fisso a 16 non bastava quando hook e initialWindowMetrics
-  // restituiscono entrambi 0 → tab bar sotto la barra di sistema. Se NESSUNA
-  // fonte riporta un inset reale uso 48dp (conservativo: con i gesti la barra
-  // è solo un po' più alta, mai tagliata); se almeno una lo riporta, vale quella.
-  const ANDROID_MIN_BOTTOM_INSET = 16;
-  const ANDROID_ZERO_INSET_FALLBACK = 48;
-  const realAndroidInset = Math.max(insets.bottom, androidFallbackBottomInset);
+  // FIX 2026-10-09 (2/2) — Galaxy A55 (One UI, 3 tasti ≈ 48dp): il fix 1/2
+  // scattava solo con inset == 0, ma l'hook/initialWindowMetrics possono
+  // riportare un valore piccolo NON nullo (es. 16) → tab bar ancora coperta
+  // (verificato dall'utente su device reale). Su Android l'inset effettivo è
+  // quindi SEMPRE almeno 48dp, qualunque cosa riportino le fonti. Costo: con
+  // la navigazione a gesti la barra risulta un po' più alta; mai tagliata.
+  const ANDROID_MIN_BOTTOM_INSET = 48;
   const bottomInset = Platform.OS === 'android'
-    ? Math.max(realAndroidInset > 0 ? realAndroidInset : ANDROID_ZERO_INSET_FALLBACK, ANDROID_MIN_BOTTOM_INSET)
+    ? Math.max(insets.bottom, androidFallbackBottomInset, ANDROID_MIN_BOTTOM_INSET)
     : insets.bottom;
   const TAB_BAR_CONTENT_HEIGHT = 54;
   return (
