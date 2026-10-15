@@ -103,7 +103,7 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude, weatherEmoj
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map', { zoomControl: true, attributionControl: false, maxZoom: 19 })
+    const map = L.map('map', { zoomControl: true, attributionControl: true, maxZoom: 19 })
       .setView([${lat}, ${lon}], 6);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -232,7 +232,7 @@ const RadarMap = forwardRef(function RadarMap({ latitude, longitude, weatherEmoj
         javaScriptEnabled
         domStorageEnabled
         allowsInlineMediaPlayback
-        mixedContentMode="always"
+        mixedContentMode="never"
       />
     </View>
   );

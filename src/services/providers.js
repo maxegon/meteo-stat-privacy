@@ -8,7 +8,7 @@
  *  - MET Norway:      NLOD + CC BY 4.0 https://api.met.no/doc/
  *  - Brightsky/DWD:   CC BY 4.0       https://brightsky.dev
  *  - Visual Crossing: ToS + attrib.   https://www.visualcrossing.com/weather-services-terms
- *  - 7Timer!:         pubblico        http://www.7timer.info
+ *  - 7Timer!:         pubblico        https://www.7timer.info
  *  - Tomorrow.io:     ToS free tier   https://www.tomorrow.io/terms-of-service/
  */
 
@@ -95,12 +95,12 @@ export const PROVIDERS = {
     shortName: '7TMR',
     color: '#60a5fa',
     logo: '7️⃣',
-    licenseUrl: 'http://www.7timer.info',
+    licenseUrl: 'https://www.7timer.info',
     attribution: 'Dati meteo forniti da 7Timer! (GFS/NOAA)',
     officialSource: { ente: 'NOAA — National Oceanic and Atmospheric Administration (USA)', url: 'https://www.noaa.gov' },
     apiKeyRequired: false,
     free: true,
-    baseUrl: 'http://www.7timer.info/bin',
+    baseUrl: 'https://www.7timer.info/bin',
   },
   TOMORROW_IO: {
     id: 'tomorrow_io',

@@ -4,13 +4,50 @@ import * as Sentry from '@sentry/react-native';
 // ⚠️  Sostituisci SENTRY_DSN con la stringa che trovi su sentry.io → Project → Settings → DSN
 const SENTRY_DSN = 'https://cdb1fb2a942313c6804638af266d7a62@o4511524236689408.ingest.de.sentry.io/4511524250976336';
 
+// Privacy: coordinate e IP dell'utente non devono mai arrivare a Sentry.
+// Redact dei parametri di posizione negli URL e delle coordinate numeriche nei testi.
+const GEO_PARAMS = /([?&](?:lat|lon|latitude|longitude|q|location)=)[^&#\s"']*/gi;
+const COORD_NUMBER = /-?\d{1,3}\.\d{3,}/g;
+const scrubUrl = (u) => (typeof u === 'string' ? u.replace(GEO_PARAMS, '$1[redacted]') : u);
+const scrubText = (t) => (typeof t === 'string' ? scrubUrl(t).replace(COORD_NUMBER, '[coord]') : t);
+
 Sentry.init({
   dsn: SENTRY_DSN,
-  // Campiona il 20% delle sessioni normali (risparmia quota gratuita)
+  sendDefaultPii: false,
+  // Performance tracing disattivato: non serve per i crash e riduce i dati raccolti
   // Gli errori vengono sempre inviati al 100%
-  tracesSampleRate: 0.2,
+  tracesSampleRate: 0,
   // In sviluppo mostra gli errori nella console invece di inviarli
   enabled: !__DEV__,
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.category === 'console') return null;
+    if (breadcrumb.data) {
+      if (breadcrumb.data.url) breadcrumb.data.url = scrubUrl(breadcrumb.data.url);
+      if (breadcrumb.data.to) breadcrumb.data.to = scrubUrl(breadcrumb.data.to);
+      if (breadcrumb.data.from) breadcrumb.data.from = scrubUrl(breadcrumb.data.from);
+    }
+    if (breadcrumb.message) breadcrumb.message = scrubText(breadcrumb.message);
+    return breadcrumb;
+  },
+  beforeSend(event) {
+    if (event.user) {
+      delete event.user.ip_address;
+      delete event.user.email;
+      delete event.user.username;
+    }
+    if (event.request?.url) event.request.url = scrubUrl(event.request.url);
+    if (event.request?.query_string) delete event.request.query_string;
+    if (event.message) event.message = scrubText(event.message);
+    (event.exception?.values || []).forEach((v) => { v.value = scrubText(v.value); });
+    if (event.extra) {
+      Object.keys(event.extra).forEach((k) => { event.extra[k] = scrubText(event.extra[k]); });
+    }
+    (event.breadcrumbs || []).forEach((b) => {
+      if (b.message) b.message = scrubText(b.message);
+      if (b.data?.url) b.data.url = scrubUrl(b.data.url);
+    });
+    return event;
+  },
 });
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';

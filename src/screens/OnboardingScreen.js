@@ -44,10 +44,10 @@ export default function OnboardingScreen({ onComplete }) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Come funziona</Text>
           {[
-            { icon: 'weather-partly-cloudy', text: 'Raccoglie previsioni da Open-Meteo, OpenWeatherMap e WeatherAPI' },
+            { icon: 'weather-partly-cloudy', text: 'Raccoglie previsioni da più fonti meteo (tra cui Open-Meteo, OpenWeatherMap, WeatherAPI, MET Norway) tramite un backend tecnico dell’app' },
             { icon: 'compare', text: 'Confronta i dati affiancati per mostrarti dove i modelli concordano o divergono' },
             { icon: 'chart-timeline-variant', text: 'Mostra previsioni orarie e giornaliere fino a 16 giorni' },
-            { icon: 'shield-check-outline', text: 'Nessun account, nessun dato personale memorizzato sui nostri server' },
+            { icon: 'shield-check-outline', text: 'Nessun account e nessun profilo utente: la posizione non viene associata a te né salvata in modo permanente' },
           ].map((item, i) => (
             <View key={i} style={styles.featureRow}>
               <MaterialCommunityIcons name={item.icon} size={20} color="#38bdf8" />
@@ -69,7 +69,7 @@ export default function OnboardingScreen({ onComplete }) {
             Per visualizzare le previsioni è necessario attivare la posizione oppure cercare manualmente una città: senza una delle due cose la schermata principale resterà vuota.
           </Text>
           <Text style={styles.warningDetail}>
-            Le coordinate (latitudine e longitudine) vengono trasmesse ai servizi meteo terzi esclusivamente per ottenere le previsioni. Non vengono mai memorizzate né trasmesse ad altri.
+            Le coordinate (latitudine e longitudine) vengono inviate al backend tecnico dell'app (su Vercel) e ai servizi terzi elencati nella Privacy Policy (provider meteo, OpenStreetMap, RainViewer) solo per ottenere previsioni, nome della località e radar. Non vengono usate per pubblicità né per profilazione. Se hai meno di 14 anni, chiedi l'autorizzazione a un genitore prima di concedere il permesso.
           </Text>
           <Text style={styles.warningDetail}>
             Puoi revocare il permesso in qualsiasi momento da Impostazioni → Privacy → Posizione.
@@ -83,7 +83,7 @@ export default function OnboardingScreen({ onComplete }) {
             <Text style={[styles.cardTitle, { color: '#94a3b8' }]}>Avviso importante</Text>
           </View>
           <Text style={styles.disclaimerText}>
-            Le previsioni meteo sono indicative. Non prendere decisioni a rischio (navigazione, escursioni, eventi) basandoti esclusivamente su questa app. In caso di allerte meteo, fai sempre riferimento al Servizio Meteo dell'Aeronautica Militare o alle autorità locali.
+            Le previsioni meteo sono indicative. Non prendere decisioni a rischio (navigazione, escursioni, eventi) basandoti esclusivamente su questa app. Solo1Meteo non sostituisce i canali ufficiali: in caso di allerte meteo fai sempre riferimento al Dipartimento della Protezione Civile, alle allerte della tua Regione e al Servizio Meteo dell'Aeronautica Militare. Le segnalazioni mostrate nell'app sono indicative e non costituiscono allerte ufficiali.
           </Text>
         </View>
 

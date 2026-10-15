@@ -20,7 +20,7 @@
       "bundleIdentifier": "com.maxegon.meteostatapp",
       "buildNumber": "20",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "La posizione viene usata per mostrare le previsioni meteo della tua città attuale.",
+        "NSLocationWhenInUseUsageDescription": "Solo1Meteo usa la tua posizione, solo mentre l'app è aperta, per mostrarti le previsioni meteo della zona in cui ti trovi. La posizione non viene mai usata in background.",
         "NSPrivacyNutritionLabelTypes": [
           {
             "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePreciseLocation",
@@ -40,7 +40,12 @@
         "backgroundColor": "#0f172a"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.maxegon.meteostatapp"
+      "package": "com.maxegon.meteostatapp",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -59,7 +64,17 @@
           "project": "react-native"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "locationWhenInUsePermission": "Solo1Meteo usa la tua posizione, solo mentre l'app è aperta, per mostrarti le previsioni meteo della zona in cui ti trovi. La posizione non viene mai usata in background.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ]
     ],
     "updates": {
       "url": "https://u.expo.dev/2cf51c05-7556-454b-ae6d-fc6090154682",

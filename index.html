@@ -39,7 +39,7 @@
 <main>
   <h1>Privacy Policy</h1>
   <p class="subtitle">Solo1Meteo</p>
-  <p class="updated">Ultimo aggiornamento: 2 luglio 2026</p>
+  <p class="updated">Ultimo aggiornamento: 15 ottobre 2026</p>
 
   <section>
     <h2>1. Titolare del trattamento</h2>
@@ -54,11 +54,13 @@ Per qualsiasi domanda relativa alla privacy puoi scrivere all'indirizzo email so
     <h2>2. Quali dati raccogliamo</h2>
     <p>L'app raccoglie esclusivamente i seguenti dati:
 
-• Posizione geografica (latitudine e longitudine): solo se l'utente concede esplicitamente il permesso. Non viene memorizzata sul dispositivo né su server propri. Viene trasmessa ai servizi meteo terzi descritti al punto 4 esclusivamente per ottenere le previsioni meteo.
+• Posizione geografica (latitudine e longitudine): solo se l'utente concede esplicitamente il permesso. Non viene associata a un profilo né salvata in modo permanente. Viene trasmessa al backend tecnico dell'app e ai servizi terzi descritti al punto 4 esclusivamente per ottenere le previsioni meteo, il nome della località e la mappa radar.
 
-• Città cercate manualmente: vengono salvate localmente sul dispositivo (tramite AsyncStorage) per mostrare le ricerche recenti. Non vengono mai trasmesse a terzi né a server propri.
+• Città cercate manualmente: vengono salvate localmente sul dispositivo (tramite AsyncStorage) per mostrare le ricerche recenti. Il testo cercato viene inviato al servizio di ricerca città (Open-Meteo) solo per ottenere i risultati.
 
-L'app NON raccoglie: nome, email, numeri di telefono, dati di navigazione, identificatori pubblicitari, dati biometrici, dati di pagamento.</p>
+• Dati tecnici di errore e crash (tramite Sentry): in caso di errore o arresto anomalo vengono inviati informazioni tecniche sul dispositivo e sull'errore. L'app è configurata per non inviare intenzionalmente identificativi dell'utente né coordinate geografiche e per rimuovere le coordinate dai messaggi di errore; il servizio di ricezione può comunque vedere l'indirizzo IP della connessione, che non viene conservato secondo la configurazione del progetto.
+
+L'app NON raccoglie: nome, email, numeri di telefono, identificatori pubblicitari, dati biometrici, dati di pagamento.</p>
   </section>
 
   <section>
@@ -73,26 +75,32 @@ Non vengono utilizzati per profilazione, pubblicità, analisi comportamentale o 
 
   <section>
     <h2>4. Trasmissione a terze parti</h2>
-    <p>Le coordinate GPS vengono trasmesse ai seguenti servizi terzi, esclusivamente al momento della richiesta delle previsioni:
+    <p>Per fornire le previsioni, le coordinate GPS (o quelle della città scelta) transitano dal seguente sistema tecnico e dai servizi di terzi elencati.
 
+Backend tecnico dell'app (ospitato su Vercel)
+L'app non chiama direttamente la maggior parte dei provider: invia le coordinate a un backend tecnico ospitato su Vercel, che interroga i provider meteo in parallelo e calcola la media dei valori. Il backend non richiede account, non ha un database utenti e non associa le coordinate a un profilo. Può mantenere per pochi minuti una copia temporanea (cache) delle risposte per coordinate arrotondate. L'infrastruttura di hosting può registrare temporaneamente dati tecnici di connessione (ad esempio indirizzo IP e richiesta) nei propri log operativi. Il fornitore di hosting può trattare i dati anche al di fuori dell'Unione Europea.
+
+Provider meteo (interrogati dal backend con latitudine e longitudine)
 • Open-Meteo (open-meteo.com)
-  Server: Unione Europea
-  Privacy: https://open-meteo.com/en/terms
-  Dati trasmessi: latitudine, longitudine
-
 • OpenWeatherMap (openweathermap.org)
-  Server: Stati Uniti d'America
-  Privacy: https://openweather.co.uk/privacy-policy
-  Dati trasmessi: latitudine, longitudine
-  Nota: trasferimento di dati extra-UE ai sensi dell'art. 44 GDPR, coperto dalle Standard Contractual Clauses di OpenWeather Ltd.
-
 • WeatherAPI (weatherapi.com)
-  Server: Stati Uniti d'America
-  Privacy: https://www.weatherapi.com/privacy.aspx
-  Dati trasmessi: latitudine, longitudine
-  Nota: trasferimento di dati extra-UE ai sensi dell'art. 44 GDPR.
+• MET Norway (api.met.no)
+• Bright Sky, dati DWD (brightsky.dev)
+• Visual Crossing (visualcrossing.com)
+• 7Timer! (7timer.info)
+• Tomorrow.io (tomorrow.io)
+Alcuni di questi servizi hanno sede o server fuori dall'Unione Europea (ad esempio negli Stati Uniti): il trasferimento avviene ai sensi degli artt. 44 e seguenti del GDPR, sulla base degli strumenti adottati da ciascun fornitore. Se il backend non è raggiungibile, l'app può contattare direttamente alcuni di questi provider.
 
-Nessun altro soggetto terzo riceve i tuoi dati. L'app non utilizza SDK pubblicitari, analytics o tracciamento.</p>
+Geocodifica e mappe
+• Nominatim / OpenStreetMap (nominatim.openstreetmap.org): riceve le coordinate per ricavare il nome del quartiere o della città (anche tramite il backend). Fondazione OpenStreetMap, Regno Unito.
+• Tile della mappa OpenStreetMap (tile.openstreetmap.org): la mappa radar richiede le tile della zona visualizzata; il servizio riceve l'indirizzo IP e l'area richiesta.
+• RainViewer (rainviewer.com): fornisce i dati e le tile del radar delle precipitazioni; riceve l'indirizzo IP e l'area richiesta.
+• Leaflet, libreria della mappa, caricata dalla rete di distribuzione unpkg.com (indirizzo IP del dispositivo).
+
+Segnalazione errori
+• Sentry (sentry.io), con regione dati UE: riceve dati tecnici di errore e crash come descritto al punto 2.
+
+Questi soggetti possono trattare i dati secondo le proprie informative. L'app non utilizza SDK pubblicitari, di analisi del comportamento o di tracciamento. Data la natura tecnica del servizio, l'elenco è completo alla data di aggiornamento di questa policy.</p>
   </section>
 
   <section>
@@ -104,9 +112,9 @@ Il consenso può essere revocato in qualsiasi momento dalle Impostazioni del dis
 
   <section>
     <h2>6. Conservazione dei dati</h2>
-    <p>L'app non memorizza i dati di posizione. Le coordinate GPS vengono utilizzate in tempo reale per la richiesta meteo e non vengono salvate né sul dispositivo né su alcun server.
+    <p>L'app non memorizza le coordinate GPS sul dispositivo: vengono usate in tempo reale per la richiesta meteo. Il backend mantiene solo una cache temporanea delle risposte (pochi minuti, chiave basata su coordinate arrotondate) e non crea archivi di posizione associati agli utenti. I log tecnici dell'infrastruttura di hosting possono conservare temporaneamente dati di connessione secondo le impostazioni del fornitore.
 
-Le città cercate manualmente vengono salvate localmente sul dispositivo e possono essere cancellate in qualsiasi momento disinstallando l'app o cancellando i dati dell'app dalle impostazioni del dispositivo.</p>
+Le città cercate manualmente e quelle preferite vengono salvate localmente sul dispositivo e possono essere cancellate in qualsiasi momento disinstallando l'app o cancellando i dati dell'app dalle impostazioni del dispositivo.</p>
   </section>
 
   <section>
@@ -121,28 +129,28 @@ Le città cercate manualmente vengono salvate localmente sul dispositivo e posso
 • Opposizione: opporti al trattamento (art. 21)
 • Revoca del consenso: in qualsiasi momento, senza pregiudizio per la liceità del trattamento precedente (art. 7)
 
-Poiché l'app non conserva dati su server propri, la revoca del consenso GPS dalle impostazioni del dispositivo è sufficiente a interrompere qualsiasi trattamento.
+Poiché l'app non crea profili utente né archivi di posizione, la revoca del consenso GPS dalle impostazioni del dispositivo è sufficiente a interrompere l'invio delle coordinate.
 
 Per esercitare i tuoi diritti: Maxi Egon — maxegonit@gmail.com</p>
   </section>
 
   <section>
     <h2>8. Disclaimer previsioni meteo</h2>
-    <p>Le previsioni meteo mostrate nell'app sono fornite da servizi terzi (Open-Meteo, OpenWeatherMap, WeatherAPI) e sono da considerarsi indicative. Solo1Meteo non garantisce l'accuratezza, la completezza o l'aggiornamento delle previsioni.
+    <p>Le previsioni meteo mostrate nell'app sono fornite da servizi terzi (elencati al punto 4) e sono da considerarsi indicative. I valori mostrati sono la media dei dati disponibili ricevuti dai provider. Solo1Meteo non garantisce l'accuratezza, la completezza o l'aggiornamento delle previsioni.
 
-L'app non si assume alcuna responsabilità per decisioni prese dall'utente sulla base delle informazioni mostrate, incluse ma non limitate a: attività all'aperto, navigazione, eventi, spostamenti.
+Solo1Meteo non sostituisce i canali ufficiali di allerta. In caso di condizioni meteorologiche potenzialmente pericolose consulta il Dipartimento della Protezione Civile (protezionecivile.gov.it), le allerte emesse dalla tua Regione e il Servizio Meteo dell'Aeronautica Militare (meteoam.it). Le segnalazioni e gli avvisi mostrati nell'app sono indicativi, derivano dai dati dei provider o da soglie di calcolo e non costituiscono allerte ufficiali.
 
-In caso di condizioni meteorologiche potenzialmente pericolose, fare sempre riferimento al Servizio Meteo dell'Aeronautica Militare (meteoam.it) o al servizio meteo ufficiale della propria regione.</p>
+L'app non si assume alcuna responsabilità per decisioni prese dall'utente sulla base delle informazioni mostrate, incluse ma non limitate a: attività all'aperto, navigazione, eventi, spostamenti.</p>
   </section>
 
   <section>
     <h2>9. Sicurezza</h2>
-    <p>L'app non trasmette dati su connessioni non cifrate. Tutte le chiamate ai servizi meteo avvengono tramite HTTPS. L'app non dispone di un proprio backend, server o database, eliminando qualsiasi rischio di violazione dei dati lato server.</p>
+    <p>Le comunicazioni dell'app verso il backend, i provider e i servizi di terzi avvengono tramite HTTPS. L'app non ha un sistema di account utente e non conserva un database di dati personali degli utenti; dispone però di un backend tecnico di aggregazione meteo (punto 4) che elabora le coordinate solo per rispondere alle richieste.</p>
   </section>
 
   <section>
     <h2>10. Minori</h2>
-    <p>L'app non è destinata a minori di 16 anni e non raccoglie consapevolmente dati di minori. Se sei un genitore e ritieni che tuo figlio abbia utilizzato l'app fornendo dati personali, contattaci all'indirizzo sopra indicato.</p>
+    <p>L'app non richiede la creazione di un account. In Italia il minore che ha compiuto 14 anni può prestare autonomamente il consenso al trattamento dei propri dati personali in relazione ai servizi della società dell'informazione (art. 2-quinquies D.Lgs. 196/2003). Per i minori di 14 anni il consenso, ad esempio al permesso di accesso alla posizione GPS, deve essere prestato o autorizzato da chi esercita la responsabilità genitoriale. L'app non raccoglie consapevolmente dati di minori di 14 anni senza tale autorizzazione. Se sei un genitore e ritieni che tuo figlio abbia fornito dati personali senza il tuo consenso, contattaci all'indirizzo sopra indicato.</p>
   </section>
 
   <section>
