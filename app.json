@@ -2,7 +2,7 @@
   "expo": {
     "name": "Solo1Meteo",
     "slug": "MeteoAggregator2",
-    "version": "1.1.9",
+    "version": "1.2.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.maxegon.meteostatapp",
-      "buildNumber": "20",
+      "buildNumber": "30",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Solo1Meteo usa la tua posizione, solo mentre l'app è aperta, per mostrarti le previsioni meteo della zona in cui ti trovi. La posizione non viene mai usata in background.",
         "NSPrivacyNutritionLabelTypes": [
