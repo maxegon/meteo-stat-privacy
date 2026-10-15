@@ -65,6 +65,7 @@
         }
       ],
       "expo-web-browser",
+      "./plugins/withPodsDeploymentTarget",
       [
         "expo-location",
         {

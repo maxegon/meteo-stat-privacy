@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1792051313.5355265,
-    "ast_hash": "233d52a4b6b2ccb2d178801eee0dec1f",
+    "mtime": 1792052228.533389,
+    "ast_hash": "6e4439547057b448162684940289f95d",
     "semantic_hash": ""
   },
   "babel.config.js": {
@@ -392,6 +392,11 @@
   "src/components/DeviceDiagnostics.js": {
     "mtime": 1791577799.7408822,
     "ast_hash": "bd648b1776abe973c97937e333669f72",
+    "semantic_hash": ""
+  },
+  "plugins/withPodsDeploymentTarget.js": {
+    "mtime": 1792052228.4388163,
+    "ast_hash": "3b5d3fca7f009d1b2c2c903ac815fd6b",
     "semantic_hash": ""
   }
 }

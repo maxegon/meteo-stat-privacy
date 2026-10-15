@@ -1,16 +1,16 @@
 # Graph Report - MeteoAggregator  (2026-10-15)
 
 ## Corpus Check
-- 57 files · ~88,857 words
+- 58 files · ~88,964 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 388 nodes · 727 edges · 39 communities (15 shown, 24 thin omitted)
+- 393 nodes · 731 edges · 41 communities (17 shown, 24 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 2 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e48d2429`
+- Built from commit: `ff1c8086`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -51,6 +51,8 @@
 - generate_snapshot.js
 - expo
 - react-native-safe-area-context
+- withPodsDeploymentTarget.js
+- expo-font
 
 ## God Nodes (most connected - your core abstractions)
 1. `HomeScreen()` - 36 edges
@@ -79,27 +81,27 @@
 ## Import Cycles
 - None detected.
 
-## Communities (39 total, 24 thin omitted)
+## Communities (41 total, 24 thin omitted)
 
 ### Community 0 - "Home Screen Widgets"
-Cohesion: 0.08
-Nodes (38): AlertsButton(), styles, ProviderBadge(), styles, ProviderStatusBanner(), styles, styles, WeatherCard() (+30 more)
+Cohesion: 0.09
+Nodes (33): AlertsButton(), styles, ProviderBadge(), styles, ProviderStatusBanner(), styles, styles, WeatherCard() (+25 more)
 
 ### Community 1 - "App Navigation & Error Boundary"
 Cohesion: 0.08
-Nodes (30): App(), AppNavigator(), beforeBreadcrumb(), beforeSend(), scrubText(), scrubUrl(), Tab, TAB_ICONS (+22 more)
+Nodes (29): App(), AppNavigator(), beforeBreadcrumb(), beforeSend(), scrubText(), scrubUrl(), Tab, TAB_ICONS (+21 more)
 
 ### Community 2 - "Theming & Alerts UI"
-Cohesion: 0.11
-Nodes (25): AlertsSheet(), styles, AnimatedGradientBg(), getSkyColors(), styles, formatRange(), LEVEL_ICON, OfficialAlertBanner() (+17 more)
+Cohesion: 0.09
+Nodes (29): react-native-webview, AlertsSheet(), styles, AnimatedGradientBg(), getSkyColors(), styles, formatRange(), LEVEL_ICON (+21 more)
 
 ### Community 3 - "Expo App Config"
 Cohesion: 0.04
-Nodes (44): backgroundColor, foregroundImage, adaptiveIcon, blockedPermissions, edgeToEdgeEnabled, package, projectId, expo (+36 more)
+Nodes (45): backgroundColor, foregroundImage, adaptiveIcon, blockedPermissions, edgeToEdgeEnabled, package, projectId, expo (+37 more)
 
 ### Community 4 - "Forecast Modal Details"
-Cohesion: 0.10
-Nodes (28): beaufortLabel(), DAYS_IT, fascia(), FASCIA_COLOR_DARK, FASCIA_COLOR_LIGHT, FASCIA_ICON, FASCIA_ORDER, ForecastModal() (+20 more)
+Cohesion: 0.11
+Nodes (26): beaufortLabel(), DAYS_IT, fascia(), FASCIA_COLOR_DARK, FASCIA_COLOR_LIGHT, FASCIA_ICON, FASCIA_ORDER, ForecastModal() (+18 more)
 
 ### Community 5 - "Alert Thresholds Settings"
 Cohesion: 0.15
@@ -114,40 +116,48 @@ Cohesion: 0.21
 Nodes (17): cacheKeyFor(), makeStyles(), RANGES, readCache(), startYearFor(), TrendChart(), writeCache(), ALL_YEARS (+9 more)
 
 ### Community 8 - "Package Scripts Config"
-Cohesion: 0.08
-Nodes (23): babel-preset-expo, devDependencies, babel-preset-expo, expo, install, exclude, main, name (+15 more)
+Cohesion: 0.10
+Nodes (20): babel-preset-expo, devDependencies, babel-preset-expo, expo, install, exclude, main, name (+12 more)
 
 ### Community 9 - "Core RN Dependencies"
 Cohesion: 0.29
-Nodes (7): axios, expo-font, dependencies, axios, expo-font, react-native-webview, react-native-webview
+Nodes (7): axios, expo-web-browser, dependencies, axios, expo-web-browser, react-native-webview, react-native-webview
 
 ### Community 17 - "@expo/vector-icons"
 Cohesion: 0.23
 Nodes (18): WeatherContext, WeatherProvider(), aggAvg(), aggMajorityPair(), buildAggregateData(), buildAggregateDays(), buildAggregateHourly(), buildTomorrowNarrative() (+10 more)
 
+### Community 35 - "expo-web-browser"
+Cohesion: 0.46
+Nodes (7): avg(), cacheKey(), dayOfYear(), fetchRange(), fetchRangeWithRetry(), getClimateNormals(), staleKey()
+
 ### Community 36 - "generate_snapshot.js"
 Cohesion: 0.26
 Nodes (11): EXCLUDED_DIR_NAMES, fs, INCLUDED_EXTENSIONS, isExplicitlyExcluded(), main(), OUTPUT, path, ROOT (+3 more)
 
+### Community 39 - "withPodsDeploymentTarget.js"
+Cohesion: 0.50
+Nodes (3): fs, path, { withDangerousMod }
+
 ## Knowledge Gaps
-- **124 isolated node(s):** `Tab`, `TAB_ICONS`, `name`, `slug`, `version` (+119 more)
+- **128 isolated node(s):** `Tab`, `TAB_ICONS`, `name`, `slug`, `version` (+123 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `exclude` connect `Package Scripts Config` to `Theming & Alerts UI`?**
+  _High betweenness centrality (0.283) - this node is a cross-community bridge._
 - **What connects `Tab`, `TAB_ICONS`, `name` to the rest of the system?**
-  _124 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _128 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Home Screen Widgets` be split into smaller, more focused modules?**
-  _Cohesion score 0.08078431372549019 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09178743961352658 - nodes in this community are weakly interconnected._
 - **Should `App Navigation & Error Boundary` be split into smaller, more focused modules?**
-  _Cohesion score 0.07678075855689177 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07922705314009662 - nodes in this community are weakly interconnected._
 - **Should `Theming & Alerts UI` be split into smaller, more focused modules?**
-  _Cohesion score 0.10795454545454546 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08961593172119488 - nodes in this community are weakly interconnected._
 - **Should `Expo App Config` be split into smaller, more focused modules?**
-  _Cohesion score 0.044444444444444446 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
 - **Should `Forecast Modal Details` be split into smaller, more focused modules?**
-  _Cohesion score 0.10037878787878787 - nodes in this community are weakly interconnected._
-- **Should `Package Scripts Config` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1103448275862069 - nodes in this community are weakly interconnected._

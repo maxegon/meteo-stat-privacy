@@ -504,10 +504,20 @@
       "norm_label": "expo-web-browser"
     },
     {
+      "label": "./plugins/withPodsDeploymentTarget",
+      "file_type": "concept",
+      "source_file": "app.json",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "ref_plugins_withpodsdeploymenttarget",
+      "community": 3,
+      "norm_label": "./plugins/withpodsdeploymenttarget"
+    },
+    {
       "label": "updates",
       "file_type": "code",
       "source_file": "app.json",
-      "source_location": "L79",
+      "source_location": "L80",
       "_origin": "ast",
       "id": "app_expo_updates",
       "community": 3,
@@ -517,7 +527,7 @@
       "label": "url",
       "file_type": "code",
       "source_file": "app.json",
-      "source_location": "L80",
+      "source_location": "L81",
       "_origin": "ast",
       "id": "app_updates_url",
       "community": 3,
@@ -527,7 +537,7 @@
       "label": "checkAutomatically",
       "file_type": "code",
       "source_file": "app.json",
-      "source_location": "L81",
+      "source_location": "L82",
       "_origin": "ast",
       "id": "app_updates_checkautomatically",
       "community": 3,
@@ -537,7 +547,7 @@
       "label": "fallbackToCacheTimeout",
       "file_type": "code",
       "source_file": "app.json",
-      "source_location": "L82",
+      "source_location": "L83",
       "_origin": "ast",
       "id": "app_updates_fallbacktocachetimeout",
       "community": 3,
@@ -870,7 +880,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "package_dependencies_expo_font",
-      "community": 9,
+      "community": 40,
       "norm_label": "expo-font"
     },
     {
@@ -880,7 +890,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "expo_font",
-      "community": 9,
+      "community": 40,
       "norm_label": "expo-font"
     },
     {
@@ -970,7 +980,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_dependencies_expo_web_browser",
-      "community": 35,
+      "community": 9,
       "norm_label": "expo-web-browser"
     },
     {
@@ -980,7 +990,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "expo_web_browser",
-      "community": 35,
+      "community": 9,
       "norm_label": "expo-web-browser"
     },
     {
@@ -1270,7 +1280,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "ref_react_native_webview",
-      "community": 8,
+      "community": 2,
       "norm_label": "react-native-webview"
     },
     {
@@ -1312,6 +1322,46 @@
       "id": "babel_preset_expo",
       "community": 8,
       "norm_label": "babel-preset-expo"
+    },
+    {
+      "label": "withPodsDeploymentTarget.js",
+      "file_type": "code",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plugins_withpodsdeploymenttarget",
+      "community": 39,
+      "norm_label": "withpodsdeploymenttarget.js"
+    },
+    {
+      "label": "{ withDangerousMod }",
+      "file_type": "code",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "plugins_withpodsdeploymenttarget_withdangerousmod",
+      "community": 39,
+      "norm_label": "{ withdangerousmod }"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "plugins_withpodsdeploymenttarget_fs",
+      "community": 39,
+      "norm_label": "fs"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "plugins_withpodsdeploymenttarget_path",
+      "community": 39,
+      "norm_label": "path"
     },
     {
       "label": "generate_snapshot.js",
@@ -2048,7 +2098,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_radarmap",
-      "community": 8,
+      "community": 2,
       "norm_label": "radarmap.js"
     },
     {
@@ -2058,7 +2108,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_radarmap_radarmap",
-      "community": 8,
+      "community": 2,
       "norm_label": "radarmap"
     },
     {
@@ -2068,7 +2118,7 @@
       "source_location": "L243",
       "_origin": "ast",
       "id": "src_components_radarmap_styles",
-      "community": 8,
+      "community": 2,
       "norm_label": "styles"
     },
     {
@@ -2308,7 +2358,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "src_context_themecontext_themeprovider",
-      "community": 1,
+      "community": 2,
       "norm_label": "themeprovider()"
     },
     {
@@ -2798,7 +2848,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_climatenormals",
-      "community": 0,
+      "community": 35,
       "norm_label": "climatenormals.js"
     },
     {
@@ -2808,7 +2858,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_services_climatenormals_cachekey",
-      "community": 0,
+      "community": 35,
       "norm_label": "cachekey()"
     },
     {
@@ -2818,7 +2868,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "src_services_climatenormals_stalekey",
-      "community": 0,
+      "community": 35,
       "norm_label": "stalekey()"
     },
     {
@@ -2828,7 +2878,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "src_services_climatenormals_dayofyear",
-      "community": 0,
+      "community": 35,
       "norm_label": "dayofyear()"
     },
     {
@@ -2838,7 +2888,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "src_services_climatenormals_fetchrange",
-      "community": 0,
+      "community": 35,
       "norm_label": "fetchrange()"
     },
     {
@@ -2848,7 +2898,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "src_services_climatenormals_fetchrangewithretry",
-      "community": 0,
+      "community": 35,
       "norm_label": "fetchrangewithretry()"
     },
     {
@@ -2858,7 +2908,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "src_services_climatenormals_avg",
-      "community": 0,
+      "community": 35,
       "norm_label": "avg()"
     },
     {
@@ -2868,7 +2918,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "src_services_climatenormals_getclimatenormals",
-      "community": 0,
+      "community": 35,
       "norm_label": "getclimatenormals()"
     },
     {
@@ -3678,7 +3728,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_weatherdescriptions",
-      "community": 4,
+      "community": 0,
       "norm_label": "weatherdescriptions.js"
     },
     {
@@ -3688,7 +3738,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_utils_weatherdescriptions_desc_map",
-      "community": 4,
+      "community": 0,
       "norm_label": "desc_map"
     },
     {
@@ -3698,7 +3748,7 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "src_utils_weatherdescriptions_translatedescription",
-      "community": 4,
+      "community": 0,
       "norm_label": "translatedescription()"
     },
     {
@@ -4417,7 +4467,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app.json",
-      "source_location": "L79",
+      "source_location": "L80",
       "weight": 1.0,
       "source": "app_expo",
       "target": "app_expo_updates",
@@ -4709,13 +4759,14 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "contains",
+      "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app.json",
-      "source_location": "L81",
+      "source_location": "L58",
       "weight": 1.0,
-      "source": "app_expo_updates",
-      "target": "app_updates_checkautomatically",
+      "context": "import",
+      "source": "app_expo_plugins",
+      "target": "ref_plugins_withpodsdeploymenttarget",
       "confidence_score": 1.0
     },
     {
@@ -4725,6 +4776,16 @@
       "source_location": "L82",
       "weight": 1.0,
       "source": "app_expo_updates",
+      "target": "app_updates_checkautomatically",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app.json",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "app_expo_updates",
       "target": "app_updates_fallbacktocachetimeout",
       "confidence_score": 1.0
     },
@@ -4732,7 +4793,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app.json",
-      "source_location": "L80",
+      "source_location": "L81",
       "weight": 1.0,
       "source": "app_expo_updates",
       "target": "app_updates_url",
@@ -5540,6 +5601,36 @@
       "context": "import",
       "source": "package_devdependencies_babel_preset_expo",
       "target": "babel_preset_expo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "plugins_withpodsdeploymenttarget",
+      "target": "plugins_withpodsdeploymenttarget_fs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "plugins_withpodsdeploymenttarget",
+      "target": "plugins_withpodsdeploymenttarget_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins/withPodsDeploymentTarget.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "plugins_withpodsdeploymenttarget",
+      "target": "plugins_withpodsdeploymenttarget_withdangerousmod",
       "confidence_score": 1.0
     },
     {
@@ -11596,5 +11687,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e48d242948e326b0a708a9b9e25869d687440539"
+  "built_at_commit": "ff1c8086737b2102c59c02e7f17671f0a87265e4"
 }

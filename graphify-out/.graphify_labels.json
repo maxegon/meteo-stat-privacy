@@ -37,5 +37,7 @@
   "35": "expo-web-browser",
   "36": "generate_snapshot.js",
   "37": "expo",
-  "38": "react-native-safe-area-context"
+  "38": "react-native-safe-area-context",
+  "39": "withPodsDeploymentTarget.js",
+  "40": "expo-font"
 }
