@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1792052228.533389,
-    "ast_hash": "6e4439547057b448162684940289f95d",
+    "mtime": 1792053110.4480867,
+    "ast_hash": "b31fdcdaff79b8be54528231be380579",
     "semantic_hash": ""
   },
   "babel.config.js": {
@@ -65,9 +65,9 @@
     "semantic_hash": ""
   },
   "src/components/OfficialAlertBanner.js": {
-    "mtime": 1783068782.8918395,
-    "ast_hash": "10a88913592e1cf9c54661c09e495fc7",
-    "semantic_hash": "10a88913592e1cf9c54661c09e495fc7"
+    "mtime": 1792747263.4095871,
+    "ast_hash": "3758d30808172c5d32b195c8a39cac0b",
+    "semantic_hash": ""
   },
   "src/components/ProviderBadge.js": {
     "mtime": 1782158388.129156,
@@ -115,18 +115,18 @@
     "semantic_hash": ""
   },
   "src/screens/AffidabilitaScreen.js": {
-    "mtime": 1785660820.2093313,
-    "ast_hash": "0f16eb48468735389a144ecd390eba0b",
+    "mtime": 1792747263.4266346,
+    "ast_hash": "596adf1b5d28f8a6a5137b2c562fa1de",
     "semantic_hash": ""
   },
   "src/screens/HomeScreen.js": {
-    "mtime": 1791285932.9780571,
-    "ast_hash": "77f6340a6a4f3a127c2e614157480c92",
+    "mtime": 1792747263.4213061,
+    "ast_hash": "d4b967c3f68327685426265a602fa50a",
     "semantic_hash": ""
   },
   "src/screens/InfoScreen.js": {
-    "mtime": 1791577799.7951782,
-    "ast_hash": "19959634bb0f0060c41ad10f45025b94",
+    "mtime": 1792747263.4206066,
+    "ast_hash": "3fc1bbbaff324bc24b729b16458fdc6b",
     "semantic_hash": ""
   },
   "src/screens/MapScreen.js": {
@@ -205,9 +205,9 @@
     "semantic_hash": ""
   },
   "src/services/weatherAlerts.js": {
-    "mtime": 1782206344.10345,
-    "ast_hash": "f69f167bd099689af265cb3814de0acd",
-    "semantic_hash": "f69f167bd099689af265cb3814de0acd"
+    "mtime": 1792747263.412318,
+    "ast_hash": "7f642e6c133729210c3ac3f2a6cf9618",
+    "semantic_hash": ""
   },
   "src/services/weatherApiService.js": {
     "mtime": 1783068782.8579576,

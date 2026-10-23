@@ -73,7 +73,7 @@ export default function OfficialAlertBanner({ alerts = [] }) {
     <View style={styles.container}>
       <View style={styles.badgeRow}>
         <MaterialCommunityIcons name="shield-alert-outline" size={13} color="#dc2626" />
-        <Text style={styles.badgeText}>ALLERTA UFFICIALE</Text>
+        <Text style={styles.badgeText}>ALLERTA EMESSA DA TERZI</Text>
       </View>
 
       {visible.map((alert) => {
@@ -163,7 +163,7 @@ export default function OfficialAlertBanner({ alerts = [] }) {
                       onPress={() => Linking.openURL(selected.url)}
                     >
                       <MaterialCommunityIcons name="open-in-new" size={16} color={c.accent} />
-                      <Text style={[styles.linkBtnText, { color: c.accent }]}>Apri fonte ufficiale</Text>
+                      <Text style={[styles.linkBtnText, { color: c.accent }]}>Apri la fonte dell'allerta</Text>
                     </TouchableOpacity>
                   )}
 

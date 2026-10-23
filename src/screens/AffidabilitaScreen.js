@@ -349,9 +349,9 @@ export default function AffidabilitaScreen() {
           <Text style={styles.tipTitle}>🔢 Come l'app calcola le previsioni mostrate</Text>
           <Text style={styles.tipText}>
             L'app non mostra le previsioni di un singolo provider, ma le media tra tutte le fonti disponibili:{'\n\n'}
-            <Text style={{ fontWeight: '700' }}>• Tempo attuale e giorni 1–7:</Text> temperatura, icona e condizioni sono la media (o la condizione prevalente) tra tutti gli 8 provider attivi. Se 6 fonti su 8 dicono "sole", l'app mostra il sole.{'\n\n'}
-            <Text style={{ fontWeight: '700' }}>• Previsioni ora per ora:</Text> ogni slot orario mostra la media dei provider che hanno dati per quell'ora. Per le prime 48h ci sono fino a 8 fonti; per il giorno 3 ne restano 2-3; dall'ottavo giorno in poi solo Open-Meteo.{'\n\n'}
-            <Text style={{ fontWeight: '700' }}>• Giorni 8–16:</Text> solo Open-Meteo, l'unico provider gratuito che copre 16 giorni. Questi giorni sono contrassegnati con il badge "OM".{'\n\n'}
+            <Text style={{ fontWeight: '700' }}>• Tempo attuale e prossimi giorni:</Text> temperatura, icona e condizioni sono la media (o la condizione prevalente) tra i provider attivi che hanno dati per quel giorno (fino a 8 nei primi 2-3 giorni). Se 6 fonti su 8 dicono "sole", l'app mostra il sole.{'\n\n'}
+            <Text style={{ fontWeight: '700' }}>• Previsioni ora per ora:</Text> ogni slot orario mostra la media dei provider che hanno dati per quell'ora. Per le prime 48h ci sono fino a 8 fonti; poi diminuiscono man mano che i provider esauriscono il loro orizzonte.{'\n\n'}
+            <Text style={{ fontWeight: '700' }}>• Giorni 10–16:</Text> restano Open-Meteo (16 giorni) e Visual Crossing (15 giorni). I giorni coperti da una sola fonte sono contrassegnati con il badge "OM".{'\n\n'}
             <Text style={{ fontWeight: '700' }}>• Dati meteo per fonte:</Text> in questa sezione puoi vedere i dati originali di ogni singolo provider, senza alcuna elaborazione.
           </Text>
         </View>

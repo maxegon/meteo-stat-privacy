@@ -110,9 +110,9 @@ export default function InfoScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Come vengono calcolate le previsioni</Text>
           {[
-            { icon: 'scale-balance', color: '#38bdf8', title: 'Giorni 0–2: tutti gli 8 provider', body: 'Temperatura, icona e descrizione sono la media di tutti gli 8 provider attivi. L\'icona del giorno riflette il tempo prevalente nelle ore diurne (6–20).' },
+            { icon: 'scale-balance', color: '#38bdf8', title: 'Giorni 0–2: fino a 8 provider', body: 'Temperatura, icona e descrizione sono la media dei provider attivi (fino a 8). L\'icona del giorno riflette il tempo prevalente nelle ore diurne (6–20).' },
             { icon: 'clock-outline', color: '#fbbf24', title: 'Giorni 3–9: copertura graduale', body: 'I provider si esauriscono progressivamente: WeatherAPI a 3gg, OWM e Tomorrow.io a 5gg, 7Timer a 8gg, MetNorway e Brightsky a 9–10gg. L\'app usa automaticamente tutti quelli con dati disponibili.' },
-            { icon: 'calendar-range', color: '#818cf8', title: 'Giorni 10–16: 1–2 provider', body: 'Oltre i 10 giorni restano solo Open-Meteo (16gg) e Visual Crossing (15gg). Dal giorno 15 solo Open-Meteo. I dati restano affidabili ma provengono da meno fonti.' },
+            { icon: 'calendar-range', color: '#818cf8', title: 'Giorni 10–16: 1–2 provider', body: 'Oltre i 10 giorni restano solo Open-Meteo (16gg) e Visual Crossing (15gg). Dal giorno 15 solo Open-Meteo. Con meno fonti la media è meno rappresentativa: il contatore indica sempre quante ne vengono usate.' },
             { icon: 'thermometer', color: '#fb923c', title: 'Dati meteo per fonte: dati originali', body: 'In questa sezione ogni card mostra i dati originali del singolo provider, senza alcuna media. Tocca una card per vedere le previsioni complete di quella fonte.' },
           ].map((item, i) => (
             <View key={i} style={styles.methodRow}>
@@ -141,7 +141,7 @@ export default function InfoScreen() {
                 </Text>
                 {p.officialSource && (
                   <Text style={styles.provOfficial} onPress={() => Linking.openURL(p.officialSource.url)}>
-                    🏛️ Fonte ufficiale ente: {p.officialSource.ente} ↗
+                    🏛️ Ente pubblico che produce i dati di base: {p.officialSource.ente} ↗
                   </Text>
                 )}
               </View>
@@ -154,7 +154,7 @@ export default function InfoScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Strumenti complementari</Text>
           <Text style={styles.note}>
-            Solo1Meteo non include radar live o mappe vento animate — queste app li offrono
+            Solo1Meteo include una mappa radar della pioggia (RainViewer, aggiornata circa ogni 10 minuti) ma non mappe vento animate né radar ad alta risoluzione: queste app li offrono
           </Text>
           {EXTERNAL_APPS.map(app => (
             <TouchableOpacity key={app.name} style={styles.extCard} onPress={() => Linking.openURL(app.appStore)}>

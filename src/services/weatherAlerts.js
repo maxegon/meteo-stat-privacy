@@ -100,7 +100,7 @@ const METRIC = {
   cold: { prefix: 'min ', short: v => `${Math.round(v)}°C` },
   uv:   { prefix: '',     short: v => `UV ${Math.round(v)}` },
   rain: { prefix: '',     short: v => `${v.toFixed(1)} mm` },
-  wind: { prefix: 'raffiche fino a ', short: v => `${Math.round(v)} km/h` },
+  wind: { prefix: 'vento fino a ', short: v => `${Math.round(v)} km/h` },
 };
 
 export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, climate }) {
@@ -188,7 +188,7 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
     if (!day) return;
     const maxWind = maxWindForDate(day.date, idx === 0);
     if (maxWind >= t.windKmh) {
-      push(ALERT_TYPES.wind, { day: label, value: maxWind, source: 'fixed', detail: `raffiche fino a ${Math.round(maxWind)} km/h` });
+      push(ALERT_TYPES.wind, { day: label, value: maxWind, source: 'fixed', detail: `vento fino a ${Math.round(maxWind)} km/h` });
     } else if (climate?.avgWindMax != null && climate.avgWindMax > 5) {
       const threshold = climate.avgWindMax * ANOMALY_DELTA.windFactor;
       if (maxWind >= threshold) {
