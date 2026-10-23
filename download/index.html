@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scarica Solo1Meteo</title>
+  <meta name="description" content="Solo1Meteo: la media di 8 fonti meteo, gratis e senza pubblicità. Disponibile su App Store e Google Play.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../landing/assets/icon.png">
+  <style>
+    :root { --bg: #0f172a; --surface: #1e293b; --accent: #38bdf8; --text: #f8fafc; --muted: #a5b4c8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+           font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; }
+    main { width: 100%; max-width: 720px; padding: 32px 16px; text-align: center; }
+    img.icon { width: 96px; height: 96px; border-radius: 22px; }
+    h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.1; margin: 24px 0 12px; }
+    p { color: var(--muted); font-size: 18px; line-height: 1.5; margin: 0 0 28px; }
+    .badges { display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap;
+              background: #fff; border-radius: 20px; padding: 18px 24px; margin: 0 auto; width: fit-content; }
+    .badges img { height: 56px; width: auto; display: block; }
+    .qr { margin-top: 36px; display: none; }
+    .qr p { margin: 12px 0 0; font-size: 16px; }
+    .qr img { width: 200px; height: 200px; border-radius: 12px; }
+    .status { font-size: 16px; margin-top: 20px; min-height: 1.5em; }
+    body.desktop .qr { display: block; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="icon" src="../landing/assets/icon.png" alt="Icona di Solo1Meteo" width="96" height="96">
+    <h1>Scarica Solo1Meteo</h1>
+    <p>La media di 8 fonti meteo, gratis e senza pubblicità.</p>
+    <div class="badges">
+      <a id="ios" href="https://apps.apple.com/it/app/solo1meteo-previsioni-meteo/id6776394169">
+        <img src="appstore_it_black.svg" alt="Scarica su App Store" height="56">
+      </a>
+      <a id="android" href="https://play.google.com/store/apps/details?id=com.maxegon.meteostatapp">
+        <img src="badge_googleplay_it.png" alt="Disponibile su Google Play" height="56">
+      </a>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="qr">
+      <img src="qr.svg" alt="QR code per aprire questa pagina dal telefono" width="200" height="200">
+      <p>Inquadra il codice con il telefono</p>
+    </div>
+  </main>
+  <script>
+  (function () {
+    // ── Da compilare: Provider ID di App Store Connect (App Analytics › Campagne) ──
+    var APPSTORE_PT = '';                       // es. '123456789'; se vuoto il link non porta la campagna
+    var APPSTORE_ID = '6776394169';
+    var PLAY_ID = 'com.maxegon.meteostatapp';
+
+    var q = new URLSearchParams(location.search);
+    function clean(v, max) { return (v || '').replace(/[^A-Za-z0-9_.\-]/g, '').slice(0, max || 100); }
+    var utm = {
+      source: clean(q.get('utm_source')) || 'direct',
+      medium: clean(q.get('utm_medium')) || 'none',
+      campaign: clean(q.get('utm_campaign')) || 'download_page',
+      content: clean(q.get('utm_content'))
+    };
+
+    function appStoreUrl() {
+      var base = 'https://apps.apple.com/it/app/solo1meteo-previsioni-meteo/id' + APPSTORE_ID;
+      if (!APPSTORE_PT) return base;
+      var ct = (utm.campaign + (utm.content ? '_' + utm.content : '')).slice(0, 40); // limite di Apple: 40 caratteri
+      return 'https://apps.apple.com/app/apple-store/id' + APPSTORE_ID + '?pt=' + encodeURIComponent(APPSTORE_PT) +
+             '&ct=' + encodeURIComponent(ct) + '&mt=8';
+    }
+    function playUrl() {
+      var ref = 'utm_source=' + utm.source + '&utm_medium=' + utm.medium + '&utm_campaign=' + utm.campaign +
+                (utm.content ? '&utm_content=' + utm.content : '');
+      return 'https://play.google.com/store/apps/details?id=' + PLAY_ID + '&referrer=' + encodeURIComponent(ref);
+    }
+
+    var ios = document.getElementById('ios'), android = document.getElementById('android');
+    ios.href = appStoreUrl(); android.href = playUrl();
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var isAndroid = /Android/i.test(ua);
+    var status = document.getElementById('status');
+    if (isIOS || isAndroid) {
+      status.textContent = 'Ti porto allo store…';
+      setTimeout(function () { location.replace(isIOS ? ios.href : android.href); }, 300);
+    } else {
+      document.body.classList.add('desktop');
+    }
+  })();
+  </script>
+  <noscript><p>Scegli lo store qui sopra.</p></noscript>
+</body>
+</html>

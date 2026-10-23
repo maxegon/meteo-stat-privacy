@@ -6,7 +6,7 @@
   <meta name="tiktok-developers-site-verification" content="9Cluib0RJlnGCWl2JzotkBeTejAggPoS" />
   <meta name="tiktok-developers-site-verification" content="tiktok-developers-site-verification=9Cluib0RJlnGCWl2JzotkBeTejAggPoS" />
   <title>Solo1Meteo — Una previsione, tante fonti</title>
-  <meta name="description" content="Solo1Meteo confronta 8 fonti meteo ufficiali e ti mostra una previsione media, con il numero di fonti su cui si basa ogni dato. Niente più previsioni che si contraddicono." />
+  <meta name="description" content="Solo1Meteo scarica i dati da 8 fonti meteo di terze parti e ti mostra la media dei valori disponibili, con il numero di fonti su cui si basa ogni dato." />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -312,7 +312,7 @@
       <div class="app-subtitle">Una previsione, tante fonti</div>
       <p class="sub">
         Niente più app meteo che si contraddicono. <strong>Solo1Meteo</strong> mette insieme
-        fino a 8 fonti meteo ufficiali e ti mostra il valore medio, con accanto il numero
+        fino a 8 fonti meteo di terze parti e ti mostra il valore medio, con accanto il numero
         di fonti su cui si basa.
       </p>
       <div class="cta-row">
@@ -335,8 +335,9 @@
           Non è affiliata con, non rappresenta e non è approvata da alcun servizio meteorologico
           nazionale o governativo, inclusi <strong>MET Norway (Yr.no)</strong> e
           <strong>DWD — Deutscher Wetterdienst (Bright Sky)</strong>, i cui dati open-data sono
-          tra le fonti comparate dall'app. L'app si limita a recuperare e mostrare dati pubblici
-          tramite API ufficiali, calcolandone la media matematica. Tutti i marchi citati
+          tra le fonti comparate dall'app (sono gli unici 2 servizi meteorologici pubblici tra le 8 fonti;
+          7Timer! usa i dati del modello GFS della NOAA). L'app si limita a recuperare e mostrare dati
+          tramite le API pubbliche di ciascun servizio, calcolandone la media matematica. Tutti i marchi citati
           appartengono ai rispettivi proprietari.
         </p>
       </div>
@@ -349,7 +350,7 @@
       <h2>Il problema</h2>
       <p class="lead">
         Apri tre app meteo e ottieni tre previsioni diverse per lo stesso giorno.
-        Quale credere? <strong>Solo1Meteo</strong> risolve il problema alla radice:
+        Quale credere? <strong>Solo1Meteo</strong> non sceglie al posto tuo:
         invece di affidarsi a un'unica fonte, calcola la <strong>media tra i provider
         disponibili</strong> per quel giorno e quell'ora — e te lo dice sempre,
         in modo trasparente.
@@ -362,7 +363,7 @@
     <div class="wrap">
       <h2>Come funziona</h2>
       <p class="lead">
-        L'app interroga in parallelo 8 servizi meteo indipendenti e calcola, per ogni
+        L'app interroga in parallelo 8 servizi meteo di terze parti e calcola, per ogni
         valore (temperatura, pioggia, vento), la <strong>media tra le fonti che hanno
         dati per quel giorno/ora</strong>:
       </p>
@@ -387,8 +388,8 @@
       <div class="how-grid">
         <div class="how-card">
           <span class="icon">📡</span>
-          <h3>Dati da 8 fonti ufficiali</h3>
-          <p>Le previsioni arrivano da modelli meteorologici diversi (ECMWF, DWD, NOAA e altri), interrogati in tempo reale.</p>
+          <h3>Dati da 8 fonti di terze parti</h3>
+          <p>Le previsioni arrivano da 8 servizi diversi: 2 sono servizi meteorologici pubblici (MET Norway e DWD), gli altri sono servizi privati o comunitari.</p>
         </div>
         <div class="how-card">
           <span class="icon">⚖️</span>
@@ -414,15 +415,14 @@
     <div class="wrap">
       <h2>L'app</h2>
       <p class="lead">
-        Home, confronto tra provider, statistiche e radar — tutto in un'unica app, gratuita.
+        Home, media per giorno, statistiche, radar e il riepilogo di domani: catture reali dell'app, gratuita.
       </p>
       <div class="screens">
-        <img class="screen-shot" src="assets/screenshots/home.jpg" alt="Schermata Home di Solo1Meteo con media e contatore fonti" loading="lazy">
-        <img class="screen-shot" src="assets/screenshots/confronto.jpg" alt="Schermata Confronto tra gli 8 provider meteo" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/home.jpg" alt="Schermata Home di Solo1Meteo con la media di 8 fonti e il contatore delle fonti" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/confronto.jpg" alt="Schermata con la media delle fonti per ogni giorno e il numero di fonti usate" loading="lazy">
         <img class="screen-shot" src="assets/screenshots/statistiche.jpg" alt="Schermata Statistiche climatiche mensili e annuali" loading="lazy">
-        <img class="screen-shot" src="assets/screenshots/previsioni.jpg" alt="Schermata Previsioni fino a 16 giorni" loading="lazy">
-        <img class="screen-shot" src="assets/screenshots/radar.jpg" alt="Schermata Radar Precipitazioni in tempo reale" loading="lazy">
-        <img class="screen-shot" src="assets/screenshots/info.jpg" alt="Schermata Informazioni: disclaimer di non-affiliazione e fonti ufficiali" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/radar.jpg" alt="Schermata Radar della pioggia (RainViewer)" loading="lazy">
+        <img class="screen-shot" src="assets/screenshots/domani.jpg" alt="Schermata Il tempo di domani con il riepilogo della giornata successiva" loading="lazy">
       </div>
     </div>
   </section>
@@ -434,8 +434,8 @@
       <div class="privacy-box">
         <p>
           Solo1Meteo non raccoglie dati personali, non usa tracciamento né pubblicità.
-          La posizione viene usata solo per mostrare le previsioni, in tempo reale,
-          senza essere mai salvata.
+          La posizione viene usata solo se la autorizzi e solo per chiedere le previsioni,
+          senza essere salvata in modo permanente.
         </p>
         <a href="../index.html">Leggi l'informativa privacy completa →</a>
       </div>
