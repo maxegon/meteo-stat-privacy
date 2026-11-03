@@ -188,22 +188,15 @@ const PROVIDER_RATING = [
   },
 ];
 
+// FIX 2026-10-23 — "solo contenuti veri": tolte le percentuali (95%, 90%, ... e la tabella per
+// parametro) perché non avevano una fonte precisa. Restano indicazioni qualitative con la fonte citata.
+const FONTE_ORIZZONTE = 'https://www.ecmwf.int/en/forecasts/charts/monitoring';
+const FONTE_GUIDA = 'https://confluence.ecmwf.int/display/FUG';
 const ACCURATEZZA_GIORNI = [
-  { giorno: '1 giorno',  pct: 95, colore: '#22c55e', nota: 'Altissima affidabilità' },
-  { giorno: '2 giorni',  pct: 90, colore: '#4ade80', nota: 'Ottima' },
-  { giorno: '3 giorni',  pct: 82, colore: '#86efac', nota: 'Buona' },
-  { giorno: '5 giorni',  pct: 68, colore: '#fbbf24', nota: 'Accettabile' },
-  { giorno: '7 giorni',  pct: 53, colore: '#fb923c', nota: 'Incerta' },
-  { giorno: '10 giorni', pct: 38, colore: '#f87171', nota: 'Indicativa' },
-  { giorno: '14+ giorni',pct: 22, colore: '#ef4444', nota: 'Solo tendenze' },
-];
-
-const ACCURATEZZA_PARAMETRI = [
-  { param: 'Temperatura',      pct1g: 97, pct3g: 88, pct7g: 60, icon: '🌡️' },
-  { param: 'Precipitazioni',   pct1g: 85, pct3g: 70, pct7g: 45, icon: '🌧️' },
-  { param: 'Vento (velocità)', pct1g: 88, pct3g: 72, pct7g: 48, icon: '💨' },
-  { param: 'Copertura nuv.',   pct1g: 80, pct3g: 65, pct7g: 40, icon: '☁️' },
-  { param: 'Temporali',        pct1g: 75, pct3g: 55, pct7g: 30, icon: '⛈️' },
+  { giorno: '1-2 giorni',  colore: '#22c55e', nota: 'In genere le previsioni più attendibili' },
+  { giorno: '3-5 giorni',  colore: '#86efac', nota: 'L\'attendibilità cala giorno dopo giorno' },
+  { giorno: '6-10 giorni', colore: '#fbbf24', nota: 'Indicative: ricontrolla avvicinandoti alla data' },
+  { giorno: 'Oltre 10',    colore: '#f87171', nota: 'Solo tendenze generali' },
 ];
 
 const APPROFONDIMENTI = [
@@ -271,36 +264,24 @@ export default function AffidabilitaScreen() {
         <Text style={styles.sectionTitle}>Accuratezza delle previsioni</Text>
         <View style={styles.accCard}>
           <Text style={styles.accSubtitle}>Per orizzonte temporale</Text>
-          <Text style={styles.accNote}>Fonte: letteratura meteorologica internazionale (ECMWF, WMO) — valori approssimativi, media europea, temperatura a 2m</Text>
+          <Text style={styles.accNote}>Più ci si allontana nel tempo, meno la previsione è attendibile. Indicazione qualitativa, non una percentuale misurata.</Text>
           {ACCURATEZZA_GIORNI.map(r => (
             <View key={r.giorno} style={styles.accRow}>
-              <Text style={styles.accLabel}>{r.giorno}</Text>
-              <View style={styles.accBarBg}>
-                <View style={[styles.accBarFill, { width: `${r.pct}%`, backgroundColor: r.colore }]} />
-              </View>
-              <Text style={[styles.accPct, { color: r.colore }]}>{r.pct}%</Text>
-              <Text style={styles.accNota}>{r.nota}</Text>
+              <Text style={[styles.accLabel, { color: r.colore }]}>{r.giorno}</Text>
+              <Text style={[styles.accNota, { flex: 1 }]}>{r.nota}</Text>
             </View>
           ))}
+          <TouchableOpacity onPress={() => Linking.openURL(FONTE_ORIZZONTE)}>
+            <Text style={styles.enteUrl}>🔗 Fonte: ECMWF, monitoraggio della qualità delle previsioni</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.accCard}>
-          <Text style={styles.accSubtitle}>Per parametro meteo</Text>
-          <Text style={styles.accNote}>Medie di settore a scopo illustrativo — non costituiscono garanzia sull'accuratezza delle previsioni di questa app</Text>
-          <View style={styles.paramHeader}>
-            <Text style={[styles.paramCol, { flex: 2 }]}>Parametro</Text>
-            <Text style={styles.paramCol}>1 giorno</Text>
-            <Text style={styles.paramCol}>3 giorni</Text>
-            <Text style={styles.paramCol}>7 giorni</Text>
-          </View>
-          {ACCURATEZZA_PARAMETRI.map(r => (
-            <View key={r.param} style={styles.paramRow}>
-              <Text style={[styles.paramColText, { flex: 2 }]}>{r.icon} {r.param}</Text>
-              <Text style={[styles.paramPct, { color: '#22c55e' }]}>{r.pct1g}%</Text>
-              <Text style={[styles.paramPct, { color: '#fbbf24' }]}>{r.pct3g}%</Text>
-              <Text style={[styles.paramPct, { color: '#f87171' }]}>{r.pct7g}%</Text>
-            </View>
-          ))}
+          <Text style={styles.accSubtitle}>Per fenomeno</Text>
+          <Text style={styles.accNote}>La temperatura è in genere più prevedibile della pioggia; i rovesci e i temporali locali sono i fenomeni più difficili da prevedere con precisione di luogo e ora. Indicazione qualitativa, non una misura dell'accuratezza di questa app.</Text>
+          <TouchableOpacity onPress={() => Linking.openURL(FONTE_GUIDA)}>
+            <Text style={styles.enteUrl}>🔗 Fonte: ECMWF Forecast User Guide</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Valutazione provider integrati */}

@@ -374,17 +374,35 @@ export const buildAggregateDays = (w) => {
     return aggMajorityPair(items);
   };
 
-  return base.map((day, i) => {
-    const dayProviders = providers.filter(p => p?.daily?.[i]);
-    const maxVals   = dayProviders.map(p => p.daily[i].tempMax).filter(v => v != null);
-    const minVals   = dayProviders.map(p => p.daily[i].tempMin).filter(v => v != null);
-    const precipVals = dayProviders.map(p => p.daily[i].precipProbability).filter(v => v != null);
+  // FIX 2026-10-23 — i giorni dei provider si abbinano per DATA, non per posizione
+  // nell'array: se un provider iniziasse da un altro giorno (es. raggruppamento UTC
+  // dopo mezzanotte) l'indice i mescolerebbe giorni diversi ("giorni sfasati").
+  const dailyOn = (p, date) => p.daily.find(r => r?.date === date);
+  // FIX 2026-10-23 — contatore onesto: quanti provider hanno ORE con temperatura
+  // in quel giorno locale. Oltre ~48 h solo Open-Meteo e 7Timer hanno dati orari,
+  // quindi una max "dalle ore" su 2 provider veniva mostrata con "7 fonti".
+  const hourlyProvidersByDate = {};
+  [w.openMeteo, w.openWeather, w.weatherApi, w.metNorway,
+   w.brightsky, w.visualCrossing, w.sevenTimer, w.tomorrowIo].forEach((p, idx) => {
+    (p?.hourly || []).forEach(h => {
+      if (h?.temp == null || isNaN(h.temp)) return;
+      const d = hourKey(h.time, offsetSec).slice(0, 10);
+      (hourlyProvidersByDate[d] = hourlyProvidersByDate[d] || new Set()).add(idx);
+    });
+  });
+
+  return base.map((day) => {
+    const dayProviders = providers.filter(p => dailyOn(p, day.date));
+    const dayRows = dayProviders.map(p => dailyOn(p, day.date));
+    const maxVals   = dayRows.map(r => r.tempMax).filter(v => v != null);
+    const minVals   = dayRows.map(r => r.tempMin).filter(v => v != null);
+    const precipVals = dayRows.map(r => r.precipProbability).filter(v => v != null);
     // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": anche i mm di pioggia
     // devono essere la media dei provider che hanno il dato per quel giorno
     // (prima venivano presi solo da `base`, violando la regola).
-    const precipMmVals = dayProviders.map(p => p.daily[i].precipitation).filter(v => v != null);
+    const precipMmVals = dayRows.map(r => r.precipitation).filter(v => v != null);
     // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": UV aggregato come media
-    const uvVals = dayProviders.map(p => p.daily[i].uvIndex).filter(v => v != null);
+    const uvVals = dayRows.map(r => r.uvIndex).filter(v => v != null);
     // INVARIANTE — vedi CLAUDE.md "Regole intoccabili": icona e descrizione
     // vengono votate INSIEME come coppia (stesso provider/slot orario), mai
     // separatamente — altrimenti l'icona "vincente" può appartenere a un
@@ -397,12 +415,16 @@ export const buildAggregateDays = (w) => {
     // corrente, vedi resolveNowCondition. Il voto sulle icone `current` è
     // stato tolto: era istantaneo e faceva divergere "Oggi" dal resto.
     const pair = prevalentPairForDate(day.date)
-      || aggMajorityPair(dayProviders.map(p => ({ icon: p.daily[i].icon, description: p.daily[i].description })))
+      || aggMajorityPair(dayRows.map(r => ({ icon: r.icon, description: r.description })))
       || { icon: day.icon, description: day.description };
     // Ore aggregate di questo giorno (per oggi, i===0, solo ore future come le
     // card). Se disponibili, max/min derivano da queste (così compaiono nelle
     // card orarie); altrimenti fallback alla media dei max/min giornalieri.
-    const dayHours = hourlyByDate[day.date] || [];
+    const hourlyCount = hourlyProvidersByDate[day.date]?.size || 0;
+    // Le ore aggregate si usano solo se le hanno almeno metà dei provider del giorno;
+    // altrimenti media dei max/min giornalieri di tutti i provider con quel giorno.
+    const useHourly = hourlyCount * 2 >= dayProviders.length;
+    const dayHours = useHourly ? (hourlyByDate[day.date] || []) : [];
     // INVARIANTE COERENZA: tempMax/tempMin usano TUTTE le ore del giorno (passate
     // + future), così il massimo non è mai inferiore alla temperatura attuale
     // mostrata in card (che può essere il picco già raggiunto stamattina).
@@ -410,21 +432,22 @@ export const buildAggregateDays = (w) => {
     // eliminando la discrepanza "banner 35° / card 36°" quando il picco è già
     // passato ma la temperatura attuale supera le previsioni rimanenti.
     const allDayTemps = dayHours.map(h => h.temp).filter(v => v != null && !isNaN(v));
-    if (i === 0 && w.consensus?.temperature != null) allDayTemps.push(w.consensus.temperature);
+    if (allDayTemps.length && day.date === base[0]?.date && w.consensus?.temperature != null) allDayTemps.push(w.consensus.temperature);
     const tempMaxVal = allDayTemps.length ? Math.round(Math.max(...allDayTemps)) : Math.round(aggAvg(maxVals) ?? day.tempMax);
     const tempMinVal = allDayTemps.length ? Math.round(Math.min(...allDayTemps)) : Math.round(aggAvg(minVals) ?? day.tempMin);
     return {
       ...day,
       tempMax: tempMaxVal,
       tempMin: tempMinVal,
-      precipProbability: (precipProbByDate[day.date]?.length
+      precipProbability: (useHourly && precipProbByDate[day.date]?.length
         ? Math.round(Math.max(...precipProbByDate[day.date]))
         : Math.round(aggAvg(precipVals) ?? day.precipProbability)),
       precipitation: precipMmVals.length ? aggAvg(precipMmVals) : (day.precipitation ?? null),
       uvIndex: uvVals.length ? Math.round(aggAvg(uvVals) * 10) / 10 : (day.uvIndex ?? null),
       icon: pair.icon,
       description: pair.description,
-      providerCount: dayProviders.length,
+      // providerCount = provider che hanno davvero contribuito a max/min mostrati
+      providerCount: allDayTemps.length ? hourlyCount : dayProviders.length,
     };
   });
 };

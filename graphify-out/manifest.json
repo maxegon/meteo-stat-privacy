@@ -1,402 +1,506 @@
 {
   ".claude/settings.json": {
     "mtime": 1787150966.4674337,
+    "seen": 1793703630.862943,
     "ast_hash": "e2d00bbeb3c3b987d69186476553b51f",
     "semantic_hash": ""
   },
   "App.js": {
     "mtime": 1792051323.6974735,
+    "seen": 1793703630.862946,
     "ast_hash": "91c05f4000d70fe01fdabe859780d42b",
     "semantic_hash": ""
   },
   "app.json": {
     "mtime": 1792053110.4480867,
+    "seen": 1793703630.862947,
     "ast_hash": "b31fdcdaff79b8be54528231be380579",
     "semantic_hash": ""
   },
   "babel.config.js": {
     "mtime": 1782158388.1176708,
+    "seen": 1793703630.8629482,
     "ast_hash": "537a04a07802908f07d37f99ef41b40f",
     "semantic_hash": "537a04a07802908f07d37f99ef41b40f"
   },
   "eas.json": {
     "mtime": 1785660820.1949556,
+    "seen": 1793703630.8629491,
     "ast_hash": "d4e3b7e227c31023032378fa187cb697",
     "semantic_hash": ""
   },
   "index.js": {
     "mtime": 1782158388.1200945,
+    "seen": 1793703630.8629491,
     "ast_hash": "33caa6d28d87fc7e637c033d0d7124b1",
     "semantic_hash": "33caa6d28d87fc7e637c033d0d7124b1"
   },
   "package.json": {
     "mtime": 1789053046.6807628,
+    "seen": 1793703630.8629498,
     "ast_hash": "6ff6f76a76ca283fc41f6d05f2b5a29a",
     "semantic_hash": ""
   },
   "src/components/AlertSettingsModal.js": {
     "mtime": 1782158388.1252337,
+    "seen": 1793703630.862952,
     "ast_hash": "2e0b77d5151d6676d738f89fb94deb9b",
     "semantic_hash": "2e0b77d5151d6676d738f89fb94deb9b"
   },
   "src/components/AlertsButton.js": {
     "mtime": 1783068782.891092,
+    "seen": 1793703630.862953,
     "ast_hash": "4b4c16964251f8b35c3bf8dd8e05a417",
     "semantic_hash": "4b4c16964251f8b35c3bf8dd8e05a417"
   },
   "src/components/AlertsSheet.js": {
     "mtime": 1783068782.8914132,
+    "seen": 1793703630.862954,
     "ast_hash": "7846cdf4a2aee4cf2b588a99d062cb9d",
     "semantic_hash": "7846cdf4a2aee4cf2b588a99d062cb9d"
   },
   "src/components/AnimatedGradientBg.js": {
     "mtime": 1782158388.1266634,
+    "seen": 1793703630.862954,
     "ast_hash": "91c086d9e4c39ee77a4a0189aeb5b640",
     "semantic_hash": "91c086d9e4c39ee77a4a0189aeb5b640"
   },
   "src/components/ErrorBoundary.js": {
     "mtime": 1782158388.1272764,
+    "seen": 1793703630.862955,
     "ast_hash": "3cb62fc8d122f2240bc7f0e9a5cc86db",
     "semantic_hash": "3cb62fc8d122f2240bc7f0e9a5cc86db"
   },
   "src/components/ForecastModal.js": {
     "mtime": 1787416176.332706,
+    "seen": 1793703630.862956,
     "ast_hash": "4123aa9203d9a3020507eb945293e03a",
     "semantic_hash": ""
   },
   "src/components/OfficialAlertBanner.js": {
     "mtime": 1792747263.4095871,
+    "seen": 1793703630.862956,
     "ast_hash": "3758d30808172c5d32b195c8a39cac0b",
     "semantic_hash": ""
   },
   "src/components/ProviderBadge.js": {
     "mtime": 1782158388.129156,
+    "seen": 1793703630.862957,
     "ast_hash": "8690f2a8f5495adb314e758af84beef7",
     "semantic_hash": "8690f2a8f5495adb314e758af84beef7"
   },
   "src/components/ProviderStatusBanner.js": {
     "mtime": 1783089717.127957,
+    "seen": 1793703630.862957,
     "ast_hash": "45c2f325b8d4d328863c59243eb40a96",
     "semantic_hash": "45c2f325b8d4d328863c59243eb40a96"
   },
   "src/components/RadarMap.js": {
     "mtime": 1792051323.6969614,
+    "seen": 1793703630.8629582,
     "ast_hash": "0fd3ace74a0e8ea333cc485cb92451b4",
     "semantic_hash": ""
   },
   "src/components/TrendChart.js": {
     "mtime": 1782481107.6286898,
+    "seen": 1793703630.8629591,
     "ast_hash": "0f7b90f2c09748d05d0a69df621cc286",
     "semantic_hash": "0f7b90f2c09748d05d0a69df621cc286"
   },
   "src/components/WeatherAlertBanner.js": {
     "mtime": 1783068782.8926997,
+    "seen": 1793703630.86296,
     "ast_hash": "c20b524848c7b73b3837c27cb3cc8b83",
     "semantic_hash": "c20b524848c7b73b3837c27cb3cc8b83"
   },
   "src/components/WeatherCard.js": {
     "mtime": 1782158388.1316702,
+    "seen": 1793703630.86296,
     "ast_hash": "c6c82bd23228634160aa395553558b57",
     "semantic_hash": "c6c82bd23228634160aa395553558b57"
   },
   "src/components/WeatherIcon.js": {
     "mtime": 1782158388.132261,
+    "seen": 1793703630.8629608,
     "ast_hash": "6230c21c6fd9e9b90c748f9c58a3ca24",
     "semantic_hash": "6230c21c6fd9e9b90c748f9c58a3ca24"
   },
   "src/context/ThemeContext.js": {
     "mtime": 1782158388.132996,
+    "seen": 1793703630.8629608,
     "ast_hash": "f1b00c5269db9c660d9bff279ecef3c0",
     "semantic_hash": "f1b00c5269db9c660d9bff279ecef3c0"
   },
   "src/context/WeatherContext.js": {
     "mtime": 1791284939.2763646,
+    "seen": 1793703630.862962,
     "ast_hash": "4663e9a11629b21268289bdc236e0e82",
     "semantic_hash": ""
   },
   "src/screens/AffidabilitaScreen.js": {
-    "mtime": 1792747263.4266346,
-    "ast_hash": "596adf1b5d28f8a6a5137b2c562fa1de",
+    "mtime": 1792788139.392141,
+    "seen": 1793703630.862962,
+    "ast_hash": "ba2639c8341033a2e81d4449940449fa",
     "semantic_hash": ""
   },
   "src/screens/HomeScreen.js": {
     "mtime": 1792747263.4213061,
+    "seen": 1793703630.862963,
     "ast_hash": "d4b967c3f68327685426265a602fa50a",
     "semantic_hash": ""
   },
   "src/screens/InfoScreen.js": {
     "mtime": 1792747263.4206066,
+    "seen": 1793703630.862963,
     "ast_hash": "3fc1bbbaff324bc24b729b16458fdc6b",
     "semantic_hash": ""
   },
   "src/screens/MapScreen.js": {
     "mtime": 1788511421.405565,
+    "seen": 1793703630.862964,
     "ast_hash": "3a68d9ebb2bdcd81a3343592474614bb",
     "semantic_hash": ""
   },
   "src/screens/OnboardingScreen.js": {
     "mtime": 1792051389.5949922,
+    "seen": 1793703630.862964,
     "ast_hash": "0fa880b4feee01561224ac38b4599341",
     "semantic_hash": ""
   },
   "src/screens/PrivacyPolicyScreen.js": {
     "mtime": 1792051372.409418,
+    "seen": 1793703630.862965,
     "ast_hash": "0af93ac1182abaf8371c8206fdf7824d",
     "semantic_hash": ""
   },
   "src/screens/StatsScreen.js": {
     "mtime": 1788511536.3995965,
+    "seen": 1793703630.862966,
     "ast_hash": "d4bc896e2a5b686e3459a6f2f3fd265d",
     "semantic_hash": ""
   },
   "src/services/aggregator.js": {
     "mtime": 1783068782.856179,
+    "seen": 1793703630.862966,
     "ast_hash": "6ddf46ecfaf40235730f518e67e1e8b7",
     "semantic_hash": "6ddf46ecfaf40235730f518e67e1e8b7"
   },
   "src/services/climateNormals.js": {
     "mtime": 1782203264.5241728,
+    "seen": 1793703630.862967,
     "ast_hash": "130724230dbb6f2ad3cf468317d0dc0c",
     "semantic_hash": "130724230dbb6f2ad3cf468317d0dc0c"
   },
   "src/services/config.js": {
     "mtime": 1783068782.85655,
+    "seen": 1793703630.862967,
     "ast_hash": "87e2e18f7ca1309dd4e3b74e0b12e738",
     "semantic_hash": "87e2e18f7ca1309dd4e3b74e0b12e738"
   },
   "src/services/externalApps.js": {
     "mtime": 1782158388.1461506,
+    "seen": 1793703630.862968,
     "ast_hash": "a5b714dbedfabdaea6a15351ab89d5df",
     "semantic_hash": "a5b714dbedfabdaea6a15351ab89d5df"
   },
   "src/services/favorites.js": {
     "mtime": 1783068782.8948407,
+    "seen": 1793703630.862968,
     "ast_hash": "1745c1a39b5ec2296c7b33184e57e77b",
     "semantic_hash": "1745c1a39b5ec2296c7b33184e57e77b"
   },
   "src/services/metNorwayService.js": {
     "mtime": 1783068782.8569288,
+    "seen": 1793703630.86297,
     "ast_hash": "7da13c274c87ed5b790d9cd9e2238c16",
     "semantic_hash": "7da13c274c87ed5b790d9cd9e2238c16"
   },
   "src/services/nowcastService.js": {
     "mtime": 1783068782.8573024,
+    "seen": 1793703630.86297,
     "ast_hash": "04f624274d858fbc55e008e3745a6273",
     "semantic_hash": "04f624274d858fbc55e008e3745a6273"
   },
   "src/services/openMeteoService.js": {
     "mtime": 1782481117.7797773,
+    "seen": 1793703630.8629708,
     "ast_hash": "8989c4894235edb4e3c22ca98dcbf199",
     "semantic_hash": "8989c4894235edb4e3c22ca98dcbf199"
   },
   "src/services/openWeatherService.js": {
     "mtime": 1783068782.8576431,
+    "seen": 1793703630.8629708,
     "ast_hash": "37a4003be7790b8ad4bacf72eef38134",
     "semantic_hash": "37a4003be7790b8ad4bacf72eef38134"
   },
   "src/services/providers.js": {
     "mtime": 1792051313.5597842,
+    "seen": 1793703630.862972,
     "ast_hash": "76ad09e7ac99d6df80786be2e8ebaf01",
     "semantic_hash": ""
   },
   "src/services/weatherAggregator.js": {
-    "mtime": 1791285702.6140323,
-    "ast_hash": "7fab3b67b0bae76ec6d0048d01bbf92e",
+    "mtime": 1792788166.4452467,
+    "seen": 1793703630.862972,
+    "ast_hash": "a9fd9c010227aae90b0871ba8a463eb8",
     "semantic_hash": ""
   },
   "src/services/weatherAlerts.js": {
     "mtime": 1792747263.412318,
+    "seen": 1793703630.862973,
     "ast_hash": "7f642e6c133729210c3ac3f2a6cf9618",
     "semantic_hash": ""
   },
   "src/services/weatherApiService.js": {
     "mtime": 1783068782.8579576,
+    "seen": 1793703630.862973,
     "ast_hash": "c7b715e21dfec4b72fc7c13946b4ae96",
     "semantic_hash": "c7b715e21dfec4b72fc7c13946b4ae96"
   },
   "src/utils/errorLogger.js": {
     "mtime": 1791575232.6160684,
+    "seen": 1793703630.862974,
     "ast_hash": "c4e1a73ce6c99e6fff2a8343ae6bcb10",
     "semantic_hash": ""
   },
   "src/utils/isCoastal.js": {
     "mtime": 1782158388.1525307,
+    "seen": 1793703630.862974,
     "ast_hash": "e589f2f44a5b02c73e61cf82a7a47f30",
     "semantic_hash": "e589f2f44a5b02c73e61cf82a7a47f30"
   },
   "src/utils/weatherDescriptions.js": {
     "mtime": 1782158388.1531098,
+    "seen": 1793703630.862975,
     "ast_hash": "af846c3f447236e2c5fe76e09ad9f1f2",
     "semantic_hash": "af846c3f447236e2c5fe76e09ad9f1f2"
   },
   "src/utils/weatherIconColor.js": {
     "mtime": 1782158388.1583722,
+    "seen": 1793703630.862976,
     "ast_hash": "726a334aa4bf61af10c8ab0155704a09",
     "semantic_hash": "726a334aa4bf61af10c8ab0155704a09"
   },
   "src/utils/windDir.js": {
     "mtime": 1782158388.1590688,
+    "seen": 1793703630.862976,
     "ast_hash": "8305df5edc14c6bea9a21ac99028e165",
     "semantic_hash": "8305df5edc14c6bea9a21ac99028e165"
   },
   "src/utils/withRetry.js": {
     "mtime": 1782158388.1597424,
+    "seen": 1793703630.862977,
     "ast_hash": "ab4004aab603bb8d5e04971e3dd8acf1",
     "semantic_hash": "ab4004aab603bb8d5e04971e3dd8acf1"
   },
   "src/utils/yearlyStats.js": {
     "mtime": 1782481052.6160586,
+    "seen": 1793703630.862978,
     "ast_hash": "d0299886dcf770658dcd848ac33a8ce0",
     "semantic_hash": "d0299886dcf770658dcd848ac33a8ce0"
   },
   "CLAUDE.md": {
     "mtime": 1782158388.1112409,
+    "seen": 1793703630.8629792,
     "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
     "semantic_hash": ""
   },
   "index.html": {
     "mtime": 1792051372.4096982,
+    "seen": 1793703630.862981,
     "ast_hash": "547abc7da0db57b3704b44ba638a67e0",
     "semantic_hash": ""
   },
   "assets/adaptive-icon.png": {
     "mtime": 1782158388.113832,
+    "seen": 1793703630.862986,
     "ast_hash": "8711cc4dea75a514915fd4ab70b3bf34",
     "semantic_hash": ""
   },
   "assets/favicon.png": {
     "mtime": 1782158388.1143563,
+    "seen": 1793703630.862986,
     "ast_hash": "4f1cb2cac2370cd5050681232e8575a8",
     "semantic_hash": ""
   },
   "assets/icon.png": {
     "mtime": 1782158388.1149778,
+    "seen": 1793703630.862987,
     "ast_hash": "8711cc4dea75a514915fd4ab70b3bf34",
     "semantic_hash": ""
   },
   "assets/splash-icon.png": {
     "mtime": 1782158388.1157455,
+    "seen": 1793703630.862987,
     "ast_hash": "97dae5a0e62ad8551d8a31897b425e63",
     "semantic_hash": ""
   },
   "src/services/geocodeService.js": {
     "mtime": 1785660820.2125266,
+    "seen": 1793703630.8629692,
     "ast_hash": "0091b23429148e5f8441b4aa3cf58095",
     "semantic_hash": ""
   },
   "src/components/UpdateBanner.js": {
     "mtime": 1787412466.0394564,
+    "seen": 1793703630.8629591,
     "ast_hash": "ad14d318ed3428bda9e5720b7bcbafb1",
     "semantic_hash": ""
   },
   "src/utils/weatherEmoji.js": {
     "mtime": 1785663813.7151935,
+    "seen": 1793703630.862975,
     "ast_hash": "3131e852b7c7b33a393b1cf92c2702ac",
     "semantic_hash": ""
   },
   "scripts/generate_snapshot.js": {
     "mtime": 1787152088.320085,
+    "seen": 1793703630.8629508,
     "ast_hash": "91108a484582689cb2b11d090b30c950",
     "semantic_hash": ""
   },
   "landing/index.html": {
-    "mtime": 1787833202.197576,
-    "ast_hash": "1e6b174ff8d91d5bbc8f65f1281a280f",
+    "mtime": 1792768240.1308575,
+    "seen": 1793703630.862981,
+    "ast_hash": "e2fec1c7b425926f202133d068ac6179",
     "semantic_hash": ""
   },
   "landing/assets/icon.png": {
     "mtime": 1787151259.5886447,
+    "seen": 1793703630.8629901,
     "ast_hash": "fba2536ce047f2a935ecfbb9d3010ff4",
     "semantic_hash": ""
   },
   "landing/assets/screenshots/confronto.jpg": {
-    "mtime": 1787151259.5913677,
-    "ast_hash": "828b16ad1ced36e11a11c24c05296505",
+    "mtime": 1792768240.1256802,
+    "seen": 1793703630.8629901,
+    "ast_hash": "adb2fc37188aac56f8af97af9094ef48",
     "semantic_hash": ""
   },
   "landing/assets/screenshots/home.jpg": {
-    "mtime": 1787151259.5942025,
-    "ast_hash": "19e6456a13c250bb6b6eba5f5097734f",
-    "semantic_hash": ""
-  },
-  "landing/assets/screenshots/info.jpg": {
-    "mtime": 1787151259.5953226,
-    "ast_hash": "59d52d5b6e630d6ffa2ad722a29fe190",
-    "semantic_hash": ""
-  },
-  "landing/assets/screenshots/previsioni.jpg": {
-    "mtime": 1787151259.5962732,
-    "ast_hash": "ae0ac5eae499b771a773a8ddfe6bc235",
+    "mtime": 1792768240.1276894,
+    "seen": 1793703630.862991,
+    "ast_hash": "c8a47cc2e42379006368d995cfa056af",
     "semantic_hash": ""
   },
   "landing/assets/screenshots/radar.jpg": {
-    "mtime": 1787151259.5970984,
-    "ast_hash": "ff996b9594405510f89095dc06343d5e",
+    "mtime": 1792768240.128866,
+    "seen": 1793703630.8629918,
+    "ast_hash": "5ec98fc5dc2b6b6fd80a24e0e1e1f29d",
     "semantic_hash": ""
   },
   "landing/assets/screenshots/statistiche.jpg": {
-    "mtime": 1787151259.5981638,
-    "ast_hash": "962a42511439a14ba8e0b0c45894ffc6",
+    "mtime": 1792768240.1300755,
+    "seen": 1793703630.862993,
+    "ast_hash": "0ab927338c2e410b54e6328cfaa458e9",
     "semantic_hash": ""
   },
   "9Cluib0RJlnGCWl2JzotkBeTejAggPoS.txt": {
     "mtime": 1787833188.139931,
+    "seen": 1793703630.862978,
     "ast_hash": "10243d735848a9a32385f4f45cb29665",
     "semantic_hash": ""
   },
   "fWoCk437sYYrNPPUUTq7nvr6cp6Pmm80.txt": {
     "mtime": 1787833795.894318,
+    "seen": 1793703630.8629801,
     "ast_hash": "65269db293200a1b7ec43382d166940a",
     "semantic_hash": ""
   },
   "landing/tiktok9Cluib0RJlnGCWl2JzotkBeTejAggPoS.txt": {
     "mtime": 1787833510.34429,
+    "seen": 1793703630.8629818,
     "ast_hash": "5d43fd1def6c1312b9937e4c9ead0946",
     "semantic_hash": ""
   },
   "tiktok-developers-site-verification.html": {
     "mtime": 1787833192.9870303,
+    "seen": 1793703630.8629818,
     "ast_hash": "55d142d0b35c41075ded6bb975742aea",
     "semantic_hash": ""
   },
   "tiktok-developers-site-verification.txt": {
     "mtime": 1787833182.4001055,
+    "seen": 1793703630.862983,
     "ast_hash": "10243d735848a9a32385f4f45cb29665",
     "semantic_hash": ""
   },
   "tiktok-site-verification.txt": {
     "mtime": 1787833067.6391451,
+    "seen": 1793703630.862983,
     "ast_hash": "b4b1d56effc477588aa87038516710fd",
     "semantic_hash": ""
   },
   "tiktok9Cluib0RJlnGCWl2JzotkBeTejAggPoS.html": {
     "mtime": 1787832932.9692996,
+    "seen": 1793703630.862984,
     "ast_hash": "36ff08e82278db87730b9807ba2854d8",
     "semantic_hash": ""
   },
   "tiktok9Cluib0RJlnGCWl2JzotkBeTejAggPoS.txt": {
     "mtime": 1787833510.3409634,
+    "seen": 1793703630.862984,
     "ast_hash": "5d43fd1def6c1312b9937e4c9ead0946",
     "semantic_hash": ""
   },
   "tiktokfWoCk437sYYrNPPUUTq7nvr6cp6Pmm80.txt": {
     "mtime": 1787833795.89136,
+    "seen": 1793703630.862985,
     "ast_hash": "65269db293200a1b7ec43382d166940a",
     "semantic_hash": ""
   },
   "scripts/ota-publish.sh": {
     "mtime": 1791567482.5366802,
+    "seen": 1793703630.862952,
     "ast_hash": "45c41d4c2be55d33979e1eda49f270ec",
     "semantic_hash": ""
   },
   "src/components/DeviceDiagnostics.js": {
     "mtime": 1791577799.7408822,
+    "seen": 1793703630.862955,
     "ast_hash": "bd648b1776abe973c97937e333669f72",
     "semantic_hash": ""
   },
   "plugins/withPodsDeploymentTarget.js": {
     "mtime": 1792052228.4388163,
+    "seen": 1793703630.8629508,
     "ast_hash": "3b5d3fca7f009d1b2c2c903ac815fd6b",
+    "semantic_hash": ""
+  },
+  "download/index.html": {
+    "mtime": 1792777296.628037,
+    "seen": 1793703630.8629792,
+    "ast_hash": "86d85553faee393e55e26ebd0d886e77",
+    "semantic_hash": ""
+  },
+  "download/appstore_it_black.svg": {
+    "mtime": 1792768240.122882,
+    "seen": 1793703630.862988,
+    "ast_hash": "0a6a96b9e3294e2e3b62f5bbd8f16f22",
+    "semantic_hash": ""
+  },
+  "download/badge_googleplay_it.png": {
+    "mtime": 1792768240.123508,
+    "seen": 1793703630.862988,
+    "ast_hash": "84bd311ebe2b5dda272c85a7f120880e",
+    "semantic_hash": ""
+  },
+  "download/qr.svg": {
+    "mtime": 1792768240.1244648,
+    "seen": 1793703630.862989,
+    "ast_hash": "2e9b805a50e86e5447fc6a68d9785682",
+    "semantic_hash": ""
+  },
+  "landing/assets/screenshots/domani.jpg": {
+    "mtime": 1792768240.1265643,
+    "seen": 1793703630.862991,
+    "ast_hash": "f620a0f73241d70d82f51eb01cb3642d",
+    "semantic_hash": ""
+  },
+  "package-lock.json": {
+    "mtime": 1788515318.3779943,
+    "seen": 1793703630.862993,
+    "ast_hash": "4e10d66a8f7a325032234eaafa3026b3",
     "semantic_hash": ""
   }
 }
