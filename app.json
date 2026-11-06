@@ -2,7 +2,7 @@
   "expo": {
     "name": "Solo1Meteo",
     "slug": "MeteoAggregator2",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -18,8 +18,23 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.maxegon.meteostatapp",
-      "buildNumber": "30",
+      "buildNumber": "31",
       "infoPlist": {
+        "CFBundleDevelopmentRegion": "it",
+        "CFBundleLocalizations": [
+          "it"
+        ],
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
+              }
+            ]
+          }
+        },
         "NSLocationWhenInUseUsageDescription": "Solo1Meteo usa la tua posizione, solo mentre l'app è aperta, per mostrarti le previsioni meteo della zona in cui ti trovi. La posizione non viene mai usata in background.",
         "NSPrivacyNutritionLabelTypes": [
           {
@@ -66,6 +81,7 @@
       ],
       "expo-web-browser",
       "./plugins/withPodsDeploymentTarget",
+      "./plugins/withSceneDelegate",
       [
         "expo-location",
         {
