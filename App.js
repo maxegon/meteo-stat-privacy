@@ -197,7 +197,9 @@ AppState.addEventListener('change', (status) => {
   Updates.checkForUpdateAsync()
     .then((check) => (check.isAvailable ? Updates.fetchUpdateAsync() : null))
     .then((fetched) => { if (fetched?.isNew) return Updates.reloadAsync(); })
-    .catch((e) => logError('AppState:otaCheck', e))
+    // Errore di rete atteso (server OTA non raggiungibile): solo log locale, non Sentry
+    // (SOLO1METEO-2 del 2026-11-11: mail inutile da un dispositivo di test Google).
+    .catch((e) => logError('AppState:otaCheck', e, '', { skipSentry: true }))
     .finally(() => { _otaCheckInCorso = false; });
 });
 

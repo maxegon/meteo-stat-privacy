@@ -9,11 +9,14 @@ const MAX_LOGS = 20;
  * 1. Lo invia a Sentry → ti arriva email automatica
  * 2. Lo salva in AsyncStorage → visibile nella tab Info (5 tap versione)
  *
+ * `opts.skipSentry`: salva solo il log locale, senza inviare a Sentry (per errori
+ * di rete attesi e non azionabili, es. controllo OTA fallito: niente mail inutili).
+ *
  * Silente: non lancia mai eccezioni.
  */
-export async function logError(context, error, extra = '') {
+export async function logError(context, error, extra = '', opts = {}) {
   // ── Sentry (email automatica) ───────────────────────────────────────────
-  try {
+  if (!opts.skipSentry) try {
     Sentry.withScope(scope => {
       scope.setTag('context', String(context));
       // Status HTTP come tag filtrabile: serve alla regola Sentry "backend 401"
