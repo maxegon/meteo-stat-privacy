@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1792053110.4480867,
-    "seen": 1793703630.862947,
-    "ast_hash": "b31fdcdaff79b8be54528231be380579",
+    "mtime": 1793926028.5263252,
+    "seen": 1794387434.396287,
+    "ast_hash": "1d61261108148f91592254570054391f",
     "semantic_hash": ""
   },
   "babel.config.js": {
@@ -42,10 +42,10 @@
     "semantic_hash": ""
   },
   "src/components/AlertSettingsModal.js": {
-    "mtime": 1782158388.1252337,
-    "seen": 1793703630.862952,
-    "ast_hash": "2e0b77d5151d6676d738f89fb94deb9b",
-    "semantic_hash": "2e0b77d5151d6676d738f89fb94deb9b"
+    "mtime": 1794387400.0028975,
+    "seen": 1794387434.3962939,
+    "ast_hash": "9244c8ae5c56d6e4b9df97b5c8861036",
+    "semantic_hash": ""
   },
   "src/components/AlertsButton.js": {
     "mtime": 1783068782.891092,
@@ -246,9 +246,9 @@
     "semantic_hash": ""
   },
   "src/services/weatherAlerts.js": {
-    "mtime": 1792747263.412318,
-    "seen": 1793703630.862973,
-    "ast_hash": "7f642e6c133729210c3ac3f2a6cf9618",
+    "mtime": 1794387395.8953109,
+    "seen": 1794387434.396317,
+    "ast_hash": "c6004905a11835bebe125df104458941",
     "semantic_hash": ""
   },
   "src/services/weatherApiService.js": {
@@ -495,6 +495,12 @@
     "mtime": 1792768240.1265643,
     "seen": 1793703630.862991,
     "ast_hash": "f620a0f73241d70d82f51eb01cb3642d",
+    "semantic_hash": ""
+  },
+  "plugins/withSceneDelegate.js": {
+    "mtime": 1793926024.9725616,
+    "seen": 1794387434.3962922,
+    "ast_hash": "ceda1e59c51aa36e72d922ca86123e92",
     "semantic_hash": ""
   },
   "package-lock.json": {
