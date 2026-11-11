@@ -1,8 +1,9 @@
 import 'react-native-gesture-handler';
 import * as Sentry from '@sentry/react-native';
 
-// ⚠️  Sostituisci SENTRY_DSN con la stringa che trovi su sentry.io → Project → Settings → DSN
-const SENTRY_DSN = 'https://cdb1fb2a942313c6804638af266d7a62@o4511524236689408.ingest.de.sentry.io/4511524250976336';
+// DSN del progetto Sentry "solo1meteo" (org max-egon, regione UE). Aggiornato 2026-11-11:
+// il vecchio progetto "react-native" era stato rinominato "sportviewlens".
+const SENTRY_DSN = 'https://d9435b03daa1af4e057fd39f2309005f@o4511524236689408.ingest.de.sentry.io/4512412404940880';
 
 // Privacy: coordinate e IP dell'utente non devono mai arrivare a Sentry.
 // Redact dei parametri di posizione negli URL e delle coordinate numeriche nei testi.

@@ -76,7 +76,7 @@
         "@sentry/react-native/expo",
         {
           "organization": "max-egon",
-          "project": "react-native"
+          "project": "solo1meteo"
         }
       ],
       "expo-web-browser",
