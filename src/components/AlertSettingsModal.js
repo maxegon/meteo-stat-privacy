@@ -17,7 +17,8 @@ import {
 const STEPPER_CONFIG = {
   heatMax: { min: 25, max: 50, step: 1, format: v => `${v}°C` },
   coldMin: { min: -20, max: 10, step: 1, format: v => `${v}°C` },
-  rainMmH: { min: 5,  max: 50, step: 1, format: v => `${v} mm` },
+  rainMmH: { min: 5,  max: 50, step: 1, format: v => `${v} mm/h` },
+  rainDayMm: { min: 10, max: 150, step: 5, format: v => `${v} mm/giorno` },
   windKmh: { min: 30, max: 120, step: 5, format: v => `${v} km/h` },
   uvMax:   { min: 3,  max: 11, step: 1, format: v => `UV ${v}` },
 };
@@ -74,7 +75,15 @@ export default function AlertSettingsModal({ visible, onClose, onSave }) {
 
   if (!loaded && visible) return null;
 
-  const alertEntries = Object.values(ALERT_TYPES);
+  // La pioggia ha due soglie distinte: picco orario (mm/h) e totale giornaliero (mm/giorno).
+  const alertEntries = Object.values(ALERT_TYPES).flatMap(a =>
+    a.id === 'rain'
+      ? [
+          { ...a, label: 'Pioggia intensa · picco orario' },
+          { ...a, label: 'Pioggia intensa · totale giornaliero', thresholdKey: 'rainDayMm' },
+        ]
+      : [a]
+  );
   const defaults = getDefaultThresholds();
 
   return (

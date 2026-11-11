@@ -5,7 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const DEFAULT_THRESHOLDS = {
   heatMax:      35,   // °C — caldo estremo
   coldMin:       0,   // °C — freddo estremo
-  rainMmH:      20,   // mm/h — pioggia intensa
+  rainMmH:      20,   // mm/h — pioggia intensa (picco ORARIO)
+  rainDayMm:    30,   // mm/giorno — pioggia intensa (TOTALE GIORNALIERO)
   windKmh:      60,   // km/h — vento forte
   uvMax:         8,   // indice UV — radiazione molto alta
 };
@@ -99,7 +100,7 @@ const METRIC = {
   heat: { prefix: 'temperatura max prevista ', short: v => `${Math.round(v)}°` },
   cold: { prefix: 'min ', short: v => `${Math.round(v)}°C` },
   uv:   { prefix: '',     short: v => `UV ${Math.round(v)}` },
-  rain: { prefix: '',     short: v => `${v.toFixed(1)} mm` },
+  rain: { prefix: 'pioggia ', short: v => `${v.toFixed(0)} mm/giorno` },
   wind: { prefix: 'vento fino a ', short: v => `${Math.round(v)} km/h` },
 };
 
@@ -111,11 +112,11 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
   // entrambi, alla fine i due trigger vengono fusi in un unico banner con
   // l'etichetta "Oggi e domani".
   const raw = [];
-  const push = (typeInfo, { day, value, source, detail, note }) => {
+  const push = (typeInfo, { day, value, source, detail, note, short }) => {
     raw.push({
       id: typeInfo.id, label: typeInfo.label, icon: typeInfo.icon, color: typeInfo.color,
       bgColor: typeInfo.bgColor, borderColor: typeInfo.borderColor,
-      day, value, source, detail, note: note || null, seasonal: !!typeInfo.seasonal,
+      day, value, source, detail, short: short || null, note: note || null, seasonal: !!typeInfo.seasonal,
     });
   };
 
@@ -123,6 +124,22 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
     { idx: 0, label: 'Oggi' },
     { idx: 1, label: 'Domani' },
   ];
+
+  // Picco orario di pioggia (mm/h, media provider) per una data: serve a chiarire
+  // che il valore dell'alert è il TOTALE GIORNALIERO e non un'intensità oraria.
+  const dateOf = h => (h?.time || '').replace(' ', 'T').slice(0, 10);
+  const maxRainHourForDate = (dateStr) => {
+    if (!dateStr) return 0;
+    return (hourly || []).reduce((max, h) => {
+      if (dateOf(h) !== dateStr) return max;
+      const p = h?.precipMm ?? h?.precipitation;
+      return (p != null && p > max) ? p : max;
+    }, 0);
+  };
+  const rainPeakNote = (dateStr) => {
+    const peak = maxRainHourForDate(dateStr);
+    return peak > 0 ? ` (picco orario ${peak.toFixed(1)} mm/h)` : '';
+  };
 
   DAY_DEFS.forEach(({ idx, label }) => {
     const day = daily[idx];
@@ -138,8 +155,13 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
     if (day.uvIndex != null && Math.round(day.uvIndex) >= t.uvMax) {
       push(ALERT_TYPES.uv, { day: label, value: day.uvIndex, source: 'fixed', detail: `UV ${Math.round(day.uvIndex)} (protezione indispensabile)` });
     }
-    if (day.precipitation != null && day.precipitation >= t.rainMmH) {
-      push(ALERT_TYPES.rain, { day: label, value: day.precipitation, source: 'fixed', detail: `${day.precipitation.toFixed(1)} mm previsti` });
+    // Pioggia: due soglie distinte. Totale giornaliero (mm/giorno) E picco orario (mm/h).
+    const rainDayLimit = t.rainDayMm ?? DEFAULT_THRESHOLDS.rainDayMm;
+    const rainPeak = maxRainHourForDate(day.date);
+    if (day.precipitation != null && day.precipitation >= rainDayLimit) {
+      push(ALERT_TYPES.rain, { day: label, value: day.precipitation, source: 'fixed', short: `${day.precipitation.toFixed(0)} mm/giorno`, detail: `${day.precipitation.toFixed(0)} mm previsti in tutta la giornata${rainPeakNote(day.date)}` });
+    } else if (rainPeak >= t.rainMmH) {
+      push(ALERT_TYPES.rain, { day: label, value: day.precipitation ?? rainPeak, source: 'fixed', short: `picco ${rainPeak.toFixed(0)} mm/h`, detail: `picco orario ${rainPeak.toFixed(1)} mm/h${day.precipitation != null ? ` (totale giornaliero ${day.precipitation.toFixed(0)} mm)` : ''}` });
     }
 
     // ── ANOMALIA CLIMATICA (solo se abbiamo le medie storiche) ───────
@@ -165,14 +187,13 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
         const threshold = climate.avgPrecip * ANOMALY_DELTA.rainFactor;
         if (day.precipitation >= threshold) {
           const factor = (day.precipitation / climate.avgPrecip).toFixed(1);
-          push(ANOMALY_TYPES.rain, { day: label, value: day.precipitation, source: 'anomaly', detail: `${day.precipitation.toFixed(1)} mm (${factor}× la media stagionale)`, note: `${factor}× la media stagionale` });
+          push(ANOMALY_TYPES.rain, { day: label, value: day.precipitation, source: 'anomaly', detail: `${day.precipitation.toFixed(0)} mm in tutta la giornata (${factor}× la media stagionale)${rainPeakNote(day.date)}`, note: `${factor}× la media stagionale` });
         }
       }
     }
   });
 
   // ── Vento Oggi/Domani: picco orario per ciascun giorno ──────────────────
-  const dateOf = h => (h?.time || '').replace(' ', 'T').slice(0, 10);
   const now = new Date();
   const maxWindForDate = (dateStr, futureOnly) => {
     if (!dateStr) return 0;
@@ -238,8 +259,8 @@ export function detectAlerts({ daily = [], hourly = [], consensus, thresholds, c
     if (days.length === 2) {
       dayPhrase = 'Oggi e domani';
       const m = METRIC[entry.id] || { prefix: '', short: v => `${v}` };
-      const shortOggi = m.short(oggi.value);
-      const shortDomani = m.short(domani.value);
+      const shortOggi = oggi.short || m.short(oggi.value);
+      const shortDomani = domani.short || m.short(domani.value);
       // Se i valori mostrati (già arrotondati) coincidono, scrivilo una volta sola:
       // "Oggi e domani: temperatura max prevista 35°" invece di "35° e 35°".
       message = shortOggi === shortDomani
@@ -292,7 +313,8 @@ export function checkDayThresholds(day, thresholds) {
   if (day.tempMin != null && Math.round(day.tempMin) <= t.coldMin) {
     exceeded.push({ id: 'cold', color: ALERT_TYPES.cold.color, icon: ALERT_TYPES.cold.icon, bgColor: ALERT_TYPES.cold.bgColor });
   }
-  if (day.precipitation != null && day.precipitation >= t.rainMmH) {
+  // Totale giornaliero vs soglia giornaliera (non la soglia oraria mm/h).
+  if (day.precipitation != null && day.precipitation >= (t.rainDayMm ?? DEFAULT_THRESHOLDS.rainDayMm)) {
     exceeded.push({ id: 'rain', color: ALERT_TYPES.rain.color, icon: ALERT_TYPES.rain.icon, bgColor: ALERT_TYPES.rain.bgColor });
   }
   if (day.uvIndex != null && Math.round(day.uvIndex) >= t.uvMax) {
