@@ -37,13 +37,17 @@ export async function fetchAll(lat, lon) {
     );
     return data;
   } catch (err) {
-    // Backend non raggiungibile dopo tutti i retry — chiamate dirette
-    logError('fetchAll:backend', err);
-    return fetchAllDirect(lat, lon);
+    // Backend non raggiungibile dopo tutti i retry — chiamate dirette.
+    // Il log del backend parte dopo: se anche tutti i provider falliscono per rete,
+    // il telefono e' offline e non serve una mail Sentry (SOLO1METEO-3, 19/11/2026).
+    return fetchAllDirect(lat, lon, err);
   }
 }
 
-async function fetchAllDirect(lat, lon) {
+// Errore di rete senza risposta HTTP (offline, DNS, connessione rifiutata). I timeout restano esclusi.
+const isNetworkError = e => !!e && !e.response && e.code === 'ERR_NETWORK';
+
+async function fetchAllDirect(lat, lon, backendErr = null) {
   const [openMeteo, openWeather, weatherApi, metNorway, marine] = await Promise.allSettled([
     withRetry(() => OpenMeteo.fetchForecast(lat, lon), 2, 800),
     withRetry(() => OpenWeather.fetchForecast(lat, lon), 2, 800),
@@ -53,10 +57,14 @@ async function fetchAllDirect(lat, lon) {
   ]);
 
   // Logga provider che hanno fallito anche dopo i retry
-  [['openMeteo', openMeteo], ['openWeather', openWeather], ['weatherApi', weatherApi], ['metNorway', metNorway]]
-    .forEach(([name, r]) => {
-      if (r.status === 'rejected') logError(`fetchAllDirect:${name}`, r.reason);
-    });
+  const providers = [['openMeteo', openMeteo], ['openWeather', openWeather], ['weatherApi', weatherApi], ['metNorway', metNorway]];
+  const offline = isNetworkError(backendErr)
+    && providers.every(([, r]) => r.status === 'rejected' && isNetworkError(r.reason));
+  const opts = { skipSentry: offline }; // offline: solo log locale (tab Info)
+  if (backendErr) logError('fetchAll:backend', backendErr, offline ? 'offline' : '', opts);
+  providers.forEach(([name, r]) => {
+    if (r.status === 'rejected') logError(`fetchAllDirect:${name}`, r.reason, '', opts);
+  });
 
   const get = r => r.status === 'fulfilled' ? r.value : null;
   const results = {
